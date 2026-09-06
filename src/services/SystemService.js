@@ -1,15 +1,14 @@
-﻿class SystemService {
+class SystemService {
   constructor(systemRepository) {
     this.systemRepository = systemRepository;
   }
 
   async getStatus() {
-    const database = await this.systemRepository.getDatabaseStatus();
-
+    await this.systemRepository.checkDatabaseConnection();
     return {
-      application: 'Paris Licoreria Sistema',
-      status: 'OK',
-      database
+      application: "Paris Licoreria Sistema",
+      status: "OK",
+      database: "OK"
     };
   }
 }
