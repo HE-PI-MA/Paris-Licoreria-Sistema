@@ -78,3 +78,24 @@
   background: var(--app-warning-soft);
   border-color: rgba(139, 91, 17, 0.2);
 }
+.app-input-dark {
+  color-scheme: dark;
+  color: #ffffff;
+  caret-color: #ffffff;
+}
+
+.app-input-dark::selection {
+  color: #ffffff;
+  background: rgba(217, 164, 65, 0.42);
+}
+
+.app-input-dark:-webkit-autofill,
+.app-input-dark:-webkit-autofill:hover,
+.app-input-dark:-webkit-autofill:focus,
+.app-input-dark:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff;
+  -webkit-box-shadow: 0 0 0 1000px #121211 inset !important;
+  box-shadow: 0 0 0 1000px #121211 inset !important;
+  transition: background-color 9999s ease-out 0s;
+}
