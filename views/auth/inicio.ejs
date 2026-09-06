@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> | Paris Licoreria</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <script src="/js/pages/inicio.js" defer></script>
+</head>
+<body>
+  <main class="app-access-page">
+    <section class="app-access-card">
+      <div class="app-access-eyebrow">Sesion verificada</div>
+      <h1 class="app-access-title">Acceso autorizado</h1>
+      <p class="app-access-copy">
+        Bienvenido, <strong><%= usuario.nombre %> <%= usuario.apellido %></strong>.
+        Usuario: <strong><%= usuario.nombreUsuario %></strong>.
+        Rol: <strong><%= usuario.rol %></strong>.
+      </p>
+      <p class="app-access-copy">
+        El Dashboard y los modulos se construiran en la siguiente etapa.
+      </p>
+
+      <div class="app-auth-status">
+        <div class="app-alert app-alert--danger" data-logout-error hidden role="alert"></div>
+      </div>
+
+      <button class="app-button app-button--primary" type="button" data-logout>
+        Cerrar sesion
+      </button>
+    </section>
+  </main>
+</body>
+</html>

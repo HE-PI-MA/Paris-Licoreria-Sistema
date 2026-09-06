@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const session = require('express-session');
 const helmet = require('helmet');
 const path = require('path');
@@ -13,6 +13,7 @@ const AuthService = require('./services/AuthService');
 const AuthController = require('./controllers/AuthController');
 const AuthRoutes = require('./routes/auth.routes');
 const AuthMiddleware = require('./middleware/AuthMiddleware');
+const RoleMiddleware = require('./middleware/RoleMiddleware');
 
 const LicenseRepository = require('./repositories/LicenseRepository');
 const LicenseVerifier = require('./core/LicenseVerifier');
@@ -24,6 +25,8 @@ const ActivationService = require('./services/ActivationService');
 const LicenseController = require('./controllers/LicenseController');
 const LicenseRoutes = require('./routes/license.routes');
 const LicenseMiddleware = require('./middleware/LicenseMiddleware');
+const WebController = require('./controllers/WebController');
+const WebRoutes = require('./routes/web.routes');
 
 class App {
   constructor() {
@@ -69,6 +72,7 @@ class App {
     const authService = new AuthService(authRepository);
     this.authController = new AuthController(authService);
     this.authMiddleware = new AuthMiddleware(authService);
+    this.roleMiddleware = new RoleMiddleware();
 
     const licenseRepository = new LicenseRepository();
     const licenseVerifier = new LicenseVerifier();
@@ -96,20 +100,25 @@ class App {
     );
 
     this.licenseMiddleware = new LicenseMiddleware(activationService);
+
+    this.webController = new WebController(
+      licenseService,
+      activationService
+    );
   }
 
   configureRoutes() {
     const systemRoutes = new SystemRoutes(this.systemController);
     const authRoutes = new AuthRoutes(this.authController, this.licenseMiddleware, this.authMiddleware);
     const licenseRoutes = new LicenseRoutes(this.licenseController);
+    const webRoutes = new WebRoutes(
+      this.webController,
+      this.licenseMiddleware,
+      this.authMiddleware
+    );
 
-    this.app.get('/', (req, res) => {
-      res.json({
-        application: 'Paris Licoreria Sistema',
-        message: 'Servidor funcionando',
-        architecture: 'POO'
-      });
-    });
+
+    this.app.use('/', webRoutes.getRouter());
 
     this.app.use('/api', systemRoutes.getRouter());
     this.app.use('/api/licencia', licenseRoutes.getRouter());

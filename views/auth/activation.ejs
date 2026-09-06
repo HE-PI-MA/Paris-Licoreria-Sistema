@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> | Paris Licoreria</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <script src="/js/pages/activation.js" defer></script>
+</head>
+<body>
+  <main class="app-auth-page">
+    <section class="app-auth-hero">
+      <div class="app-auth-hero-inner">
+        <div class="app-auth-kicker">Equipo protegido</div>
+        <h1 class="app-auth-brand">Paris<br>Licoreria</h1>
+        <p class="app-auth-description">
+          Esta instalacion necesita una licencia autentica y una activacion valida.
+        </p>
+      </div>
+    </section>
+
+    <section class="app-auth-panel">
+      <div class="app-auth-card">
+        <div class="app-auth-logo" aria-hidden="true">PL</div>
+        <h2 class="app-auth-title">Activar equipo</h2>
+        <p class="app-auth-subtitle">
+          Introduce el codigo privado entregado para esta computadora.
+        </p>
+
+        <ul class="app-auth-meta">
+          <li><strong>Licencia:</strong> <%= license.valida ? license.licenciaId : license.estado %></li>
+          <li><strong>Estado:</strong> <%= activation.estado %></li>
+        </ul>
+
+        <div class="app-auth-status">
+          <% if (!license.valida) { %>
+            <div class="app-alert app-alert--warning" role="status">
+              No existe una licencia valida para este equipo.
+            </div>
+          <% } %>
+          <div class="app-alert app-alert--danger" data-activation-error hidden role="alert"></div>
+          <div class="app-alert app-alert--success" data-activation-success hidden role="status"></div>
+        </div>
+
+        <form class="app-auth-form" data-activation-form novalidate>
+          <div class="app-field">
+            <label class="app-label" for="codigo">Codigo de activacion</label>
+            <input
+              class="app-input"
+              id="codigo"
+              name="codigo"
+              type="password"
+              autocomplete="off"
+              required
+            >
+          </div>
+
+          <button
+            class="app-button app-button--primary"
+            type="submit"
+            data-activation-submit
+            <%= license.valida ? "" : "disabled" %>
+          >
+            Activar esta computadora
+          </button>
+        </form>
+
+        <p class="app-auth-help">
+          El codigo no se almacena en texto plano dentro de activation.dat.
+        </p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

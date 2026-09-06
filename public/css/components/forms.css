@@ -1,0 +1,108 @@
+.app-field {
+  display: grid;
+  gap: var(--app-s2);
+}
+
+.app-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.app-input-wrap {
+  position: relative;
+}
+
+.app-input {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  background: var(--app-surface);
+  color: var(--app-text);
+  padding: 0 var(--app-s4);
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.app-input:focus {
+  border-color: var(--app-primary);
+  box-shadow: var(--app-shadow-focus);
+}
+
+.app-input--with-action {
+  padding-right: 96px;
+}
+
+.app-input-action {
+  position: absolute;
+  top: 50%;
+  right: var(--app-s2);
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--app-primary);
+  padding: 8px 10px;
+  font-weight: 800;
+  font-size: 0.78rem;
+}
+
+.app-input-action:hover,
+.app-input-action:focus-visible {
+  background: var(--app-primary-soft);
+  outline: none;
+}
+
+.app-button {
+  min-height: 50px;
+  border: 0;
+  border-radius: var(--app-radius-sm);
+  padding: 0 var(--app-s5);
+  font-weight: 800;
+  transition: transform 120ms ease, opacity 120ms ease, background 120ms ease;
+}
+
+.app-button:hover {
+  transform: translateY(-1px);
+}
+
+.app-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
+.app-button--primary {
+  background: var(--app-primary);
+  color: #ffffff;
+}
+
+.app-button--primary:hover {
+  background: var(--app-primary-strong);
+}
+
+.app-alert {
+  border: 1px solid transparent;
+  border-radius: var(--app-radius-sm);
+  padding: var(--app-s3) var(--app-s4);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.app-alert--danger {
+  color: var(--app-danger);
+  background: var(--app-danger-soft);
+  border-color: rgba(161, 43, 57, 0.2);
+}
+
+.app-alert--success {
+  color: var(--app-success);
+  background: var(--app-success-soft);
+  border-color: rgba(23, 107, 69, 0.2);
+}
+
+.app-alert--warning {
+  color: var(--app-warning);
+  background: var(--app-warning-soft);
+  border-color: rgba(139, 91, 17, 0.2);
+}

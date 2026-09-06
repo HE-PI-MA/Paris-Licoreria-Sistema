@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> | Paris Licoreria</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <script src="/js/pages/login.js" defer></script>
+</head>
+<body>
+  <main class="app-auth-page">
+    <section class="app-auth-hero" aria-label="Paris Licoreria">
+      <div class="app-auth-hero-inner">
+        <div class="app-auth-kicker">Sistema de gestion</div>
+        <h1 class="app-auth-brand">Paris<br>Licoreria</h1>
+        <p class="app-auth-description">
+          Acceso seguro para la administracion y operacion diaria del negocio.
+        </p>
+      </div>
+    </section>
+
+    <section class="app-auth-panel">
+      <div class="app-auth-card">
+        <div class="app-auth-logo" aria-hidden="true">PL</div>
+        <h2 class="app-auth-title">Bienvenido</h2>
+        <p class="app-auth-subtitle">
+          Ingresa con tu usuario autorizado para continuar.
+        </p>
+
+        <div class="app-auth-status">
+          <div class="app-alert app-alert--danger" data-login-error hidden role="alert"></div>
+          <div class="app-alert app-alert--success" data-login-success hidden role="status"></div>
+        </div>
+
+        <form class="app-auth-form" data-login-form novalidate>
+          <div class="app-field">
+            <label class="app-label" for="nombre_usuario">Usuario</label>
+            <input
+              class="app-input"
+              id="nombre_usuario"
+              name="nombre_usuario"
+              type="text"
+              autocomplete="username"
+              maxlength="50"
+              required
+              autofocus
+            >
+          </div>
+
+          <div class="app-field">
+            <label class="app-label" for="contrasena">Contrasena</label>
+            <div class="app-input-wrap">
+              <input
+                class="app-input app-input--with-action"
+                id="contrasena"
+                name="contrasena"
+                type="password"
+                autocomplete="current-password"
+                required
+              >
+              <button
+                class="app-input-action"
+                type="button"
+                data-password-toggle
+                aria-pressed="false"
+              >
+                Mostrar
+              </button>
+            </div>
+          </div>
+
+          <button class="app-button app-button--primary" type="submit" data-login-submit>
+            Iniciar sesion
+          </button>
+        </form>
+
+        <p class="app-auth-help">
+          Acceso protegido por licencia, activacion, autenticacion y permisos.
+        </p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
