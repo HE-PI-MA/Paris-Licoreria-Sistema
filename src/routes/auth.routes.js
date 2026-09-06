@@ -2,10 +2,11 @@
 const loginRateLimiter = require("../middleware/loginRateLimiter");
 
 class AuthRoutes {
-  constructor(authController, licenseMiddleware) {
+  constructor(authController, licenseMiddleware, authMiddleware) {
     this.router = express.Router();
     this.authController = authController;
     this.licenseMiddleware = licenseMiddleware;
+    this.authMiddleware = authMiddleware;
     this.registerRoutes();
   }
 
@@ -15,6 +16,13 @@ class AuthRoutes {
       this.licenseMiddleware.requireActivation,
       loginRateLimiter,
       this.authController.login
+    );
+
+    this.router.get(
+      "/me",
+      this.licenseMiddleware.requireActivation,
+      this.authMiddleware.requireAuth,
+      this.authController.me
     );
 
     this.router.post("/logout", this.authController.logout);

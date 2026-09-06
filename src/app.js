@@ -12,6 +12,7 @@ const AuthRepository = require('./repositories/AuthRepository');
 const AuthService = require('./services/AuthService');
 const AuthController = require('./controllers/AuthController');
 const AuthRoutes = require('./routes/auth.routes');
+const AuthMiddleware = require('./middleware/AuthMiddleware');
 
 const LicenseRepository = require('./repositories/LicenseRepository');
 const LicenseVerifier = require('./core/LicenseVerifier');
@@ -67,6 +68,7 @@ class App {
     const authRepository = new AuthRepository();
     const authService = new AuthService(authRepository);
     this.authController = new AuthController(authService);
+    this.authMiddleware = new AuthMiddleware(authService);
 
     const licenseRepository = new LicenseRepository();
     const licenseVerifier = new LicenseVerifier();
@@ -98,7 +100,7 @@ class App {
 
   configureRoutes() {
     const systemRoutes = new SystemRoutes(this.systemController);
-    const authRoutes = new AuthRoutes(this.authController, this.licenseMiddleware);
+    const authRoutes = new AuthRoutes(this.authController, this.licenseMiddleware, this.authMiddleware);
     const licenseRoutes = new LicenseRoutes(this.licenseController);
 
     this.app.get('/', (req, res) => {

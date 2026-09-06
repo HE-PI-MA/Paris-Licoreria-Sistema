@@ -4,6 +4,7 @@
 
     this.login = this.login.bind(this);
     this.logout = this.logout.bind(this);
+    this.me = this.me.bind(this);
   }
 
   async login(req, res) {
@@ -57,6 +58,12 @@
     }
   }
 
+  me(req, res) {
+    return res.status(200).json({
+      autenticado: true,
+      usuario: req.authUser
+    });
+  }
   logout(req, res) {
     req.session.destroy((error) => {
       if (error) {
