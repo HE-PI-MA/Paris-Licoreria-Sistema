@@ -8,10 +8,6 @@
   font-weight: 700;
 }
 
-.app-input-wrap {
-  position: relative;
-}
-
 .app-input {
   width: 100%;
   min-height: 50px;
@@ -27,30 +23,6 @@
 .app-input:focus {
   border-color: var(--app-primary);
   box-shadow: var(--app-shadow-focus);
-}
-
-.app-input--with-action {
-  padding-right: 96px;
-}
-
-.app-input-action {
-  position: absolute;
-  top: 50%;
-  right: var(--app-s2);
-  transform: translateY(-50%);
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--app-primary);
-  padding: 8px 10px;
-  font-weight: 800;
-  font-size: 0.78rem;
-}
-
-.app-input-action:hover,
-.app-input-action:focus-visible {
-  background: var(--app-primary-soft);
-  outline: none;
 }
 
 .app-button {

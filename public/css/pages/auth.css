@@ -213,9 +213,11 @@
 
 .app-login-shell {
   position: relative;
-  min-height: 100svh;
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 56%) minmax(480px, 44%);
+  grid-template-columns: 50% 50%;
   overflow: hidden;
   background: var(--app-black);
   color: #ffffff;
@@ -223,130 +225,149 @@
 
 .app-login-visual {
   position: relative;
-  min-height: 100svh;
+  z-index: 1;
+  width: 114%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   background:
     linear-gradient(
       90deg,
-      rgba(0, 0, 0, 0.16) 0%,
-      rgba(0, 0, 0, 0.06) 52%,
-      rgba(0, 0, 0, 0.46) 100%
+      rgba(0, 0, 0, 0.12) 0%,
+      rgba(0, 0, 0, 0.03) 58%,
+      rgba(0, 0, 0, 0.3) 100%
     ),
-    url("/img/login/paris-login-fondo-izquierdo.webp") center center / cover no-repeat;
+    url("/img/login/paris-login-fondo-izquierdo.webp")
+      0% center / cover no-repeat;
 }
 
 .app-login-visual-overlay {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.08), transparent 42%),
-    linear-gradient(0deg, rgba(0, 0, 0, 0.38), transparent 42%);
+    linear-gradient(180deg, rgba(0, 0, 0, 0.04), transparent 48%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.24), transparent 44%);
   pointer-events: none;
-}
-
-.app-login-visual-copy {
-  position: absolute;
-  z-index: 2;
-  top: 31%;
-  left: clamp(44px, 8vw, 150px);
-  width: min(300px, 34vw);
-  color: var(--app-gold-300);
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.78);
-}
-
-.app-login-rule {
-  display: block;
-  width: 54px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--app-gold-100), var(--app-gold-600));
-}
-
-.app-login-rule--short {
-  width: 42px;
-  margin-top: 28px;
-}
-
-.app-login-slogan {
-  margin: 20px 0 0;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.35rem, 2vw, 2.1rem);
-  line-height: 1.25;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
 }
 
 .app-login-panel {
   position: relative;
   z-index: 3;
-  min-height: 100svh;
-  margin-left: clamp(-110px, -6vw, -60px);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
   padding:
-    clamp(52px, 6vh, 86px)
-    clamp(42px, 5vw, 92px)
-    clamp(38px, 5vh, 64px)
-    clamp(110px, 9vw, 172px);
+    clamp(18px, 2.2vh, 30px)
+    clamp(34px, 4vw, 72px)
+    clamp(18px, 2.2vh, 30px)
+    clamp(74px, 6.5vw, 116px);
   display: grid;
   place-items: center;
-  clip-path: polygon(11% 0, 100% 0, 100% 100%, 0 100%);
-  background:
-    linear-gradient(rgba(5, 5, 4, 0.86), rgba(5, 5, 4, 0.9)),
-    url("/img/login/paris-login-fondo-derecho.webp") center right / cover no-repeat;
+  overflow: hidden;
+  isolation: isolate;
+  clip-path: polygon(
+    7% 0,
+    100% 0,
+    100% 100%,
+    0 100%
+  );
+  background: #080705;
   box-shadow: -28px 0 80px rgba(0, 0, 0, 0.46);
+}
+
+.app-login-panel::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -6% -5% -9% -6%;
+  background:
+    url("/img/login/paris-login-fondo-derecho.webp")
+      right bottom / cover no-repeat;
+  transform: translate3d(-1.8%, -1%, 0) scale(1.04);
+  transform-origin: right bottom;
+  pointer-events: none;
+}
+
+.app-login-panel::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(5, 5, 4, 0.48) 0%,
+      rgba(5, 5, 4, 0.58) 52%,
+      rgba(5, 5, 4, 0.67) 100%
+    );
+  pointer-events: none;
 }
 
 .app-login-panel-edge {
   position: absolute;
   z-index: 4;
-  top: -8%;
-  bottom: -8%;
-  left: 8.5%;
-  width: 3px;
+  top: -5%;
+  left: 3.4%;
+  width: 11px;
+  height: 110%;
+  border-radius: 999px;
   background:
     linear-gradient(
       180deg,
-      transparent,
-      var(--app-gold-100) 14%,
-      var(--app-gold-500) 52%,
-      var(--app-gold-600) 86%,
-      transparent
+      #fff0bd 0%,
+      #f5cd72 22%,
+      #d9a441 54%,
+      #a96b1d 100%
     );
-  transform: rotate(5.8deg);
+  transform: rotate(4deg);
   transform-origin: center;
-  box-shadow: 0 0 18px rgba(217, 164, 65, 0.34);
+  box-shadow:
+    0 0 4px rgba(255, 235, 178, 0.9),
+    0 0 13px rgba(217, 164, 65, 0.5);
   pointer-events: none;
 }
 
 .app-login-card {
   position: relative;
-  z-index: 5;
-  width: min(100%, 570px);
+  z-index: 3;
+  width: min(100%, 610px);
+  max-height: calc(100dvh - 24px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .app-login-brand {
+  height: clamp(190px, 22vh, 220px);
   display: flex;
   justify-content: center;
-  margin-bottom: clamp(4px, 1vh, 12px);
+  align-items: flex-start;
+  margin: 0;
+  overflow: visible;
 }
 
 .app-login-brand-image {
   display: block;
-  width: min(330px, 70%);
+  width: min(300px, 66%);
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
+  transform: translateY(-78px);
   filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.42));
 }
 
 .app-login-heading {
-  margin-top: clamp(-84px, -7vh, -44px);
+  margin-top: -16px;
   text-align: center;
 }
 
 .app-login-title {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2.35rem, 4.2vw, 4rem);
+  font-size: clamp(2.5rem, 4vw, 4rem);
   font-weight: 600;
-  line-height: 1;
+  line-height: 0.98;
   color: var(--app-gold-100);
   text-shadow: 0 4px 24px rgba(217, 164, 65, 0.13);
 }
@@ -354,16 +375,16 @@
 .app-login-subtitle {
   margin: 14px 0 0;
   color: var(--app-gold-muted);
-  font-size: clamp(0.72rem, 0.9vw, 0.95rem);
+  font-size: clamp(0.7rem, 0.82vw, 0.92rem);
   font-weight: 700;
-  letter-spacing: 0.36em;
+  letter-spacing: 0.34em;
   text-transform: uppercase;
 }
 
 .app-login-status {
   display: grid;
   gap: 10px;
-  margin-top: 24px;
+  margin-top: clamp(14px, 2vh, 22px);
 }
 
 .app-login-alert {
@@ -373,8 +394,8 @@
 
 .app-login-form {
   display: grid;
-  gap: 18px;
-  margin-top: 30px;
+  gap: clamp(14px, 1.8vh, 18px);
+  margin-top: clamp(20px, 3vh, 30px);
 }
 
 .app-login-field {
@@ -403,7 +424,7 @@
 
 .app-login-input {
   width: 100%;
-  min-height: 64px;
+  min-height: clamp(56px, 7vh, 64px);
   border: 1px solid var(--app-login-border);
   border-radius: 11px;
   outline: none;
@@ -494,8 +515,8 @@
 }
 
 .app-login-submit {
-  min-height: 64px;
-  margin-top: 6px;
+  min-height: clamp(56px, 7vh, 64px);
+  margin-top: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -552,15 +573,15 @@
 }
 
 .app-login-footer {
-  margin-top: clamp(48px, 7vh, 78px);
+  margin-top: clamp(22px, 3.4vh, 32px);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 18px;
   color: rgba(245, 205, 114, 0.62);
-  font-size: clamp(0.62rem, 0.72vw, 0.78rem);
+  font-size: clamp(0.6rem, 0.7vw, 0.76rem);
   font-weight: 700;
-  letter-spacing: 0.34em;
+  letter-spacing: 0.32em;
   text-align: center;
   text-transform: uppercase;
   white-space: nowrap;
@@ -569,147 +590,332 @@
 .app-login-footer-line {
   width: 54px;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--app-gold-500)
-  );
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--app-gold-500)
+    );
 }
 
 .app-login-footer-line:last-child {
   transform: scaleX(-1);
 }
 
-@media (max-width: 1180px) {
-  .app-login-shell {
-    grid-template-columns: minmax(0, 48%) minmax(500px, 52%);
-  }
-
-  .app-login-visual-copy {
-    left: 44px;
-    width: 250px;
-  }
-
+@media (max-width: 1180px) and (min-width: 901px) {
   .app-login-panel {
-    margin-left: -70px;
-    padding-left: 120px;
-    padding-right: 48px;
+    padding-right: 36px;
+    padding-left: 82px;
+  }
+
+  .app-login-card {
+    width: min(100%, 540px);
+  }
+
+  .app-login-brand-image {
+  display: block;
+  width: min(300px, 66%);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  transform: translateY(-78px);
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.42));
+}
+
+  .app-login-title {
+    font-size: clamp(2.45rem, 4vw, 3.4rem);
+  }
+}
+
+@media (max-height: 760px) and (min-width: 901px) {
+  .app-login-brand {
+  height: clamp(190px, 22vh, 220px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin: 0;
+  overflow: visible;
+}
+
+  .app-login-brand-image {
+  display: block;
+  width: min(300px, 66%);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  transform: translateY(-78px);
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.42));
+}
+
+  .app-login-heading {
+  margin-top: -16px;
+  text-align: center;
+}
+
+  .app-login-title {
+    font-size: 2.75rem;
+  }
+
+  .app-login-subtitle {
+    margin-top: 9px;
+  }
+
+  .app-login-status {
+    margin-top: 10px;
+  }
+
+  .app-login-form {
+    margin-top: 16px;
+    gap: 12px;
+  }
+
+  .app-login-input,
+  .app-login-submit {
+    min-height: 52px;
+  }
+
+  .app-login-footer {
+    margin-top: 18px;
   }
 }
 
 @media (max-width: 900px) {
   .app-login-shell {
+    height: auto;
+    min-height: 100dvh;
     display: block;
-    min-height: 100svh;
-    background:
-      linear-gradient(rgba(4, 4, 3, 0.86), rgba(4, 4, 3, 0.92)),
-      url("/img/login/paris-login-fondo-derecho.webp") center / cover fixed;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: var(--app-black);
   }
 
   .app-login-visual {
-    min-height: 240px;
-    background-position: center 44%;
-  }
-
-  .app-login-visual-copy {
-    top: auto;
-    bottom: 30px;
-    left: 28px;
-    width: 260px;
-  }
-
-  .app-login-slogan {
-    font-size: 1.18rem;
+    width: 100%;
+    height: clamp(190px, 31dvh, 280px);
+    min-height: 0;
+    background:
+      linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.32),
+        rgba(0, 0, 0, 0.03)
+      ),
+      url("/img/login/paris-login-fondo-izquierdo.webp")
+        center 45% / cover no-repeat;
   }
 
   .app-login-panel {
-    min-height: calc(100svh - 240px);
-    margin-left: 0;
-    padding: 38px 22px 46px;
+    width: 100%;
+    height: auto;
+    min-height: calc(100dvh - clamp(190px, 31dvh, 280px));
+    padding: 30px 22px 38px;
     clip-path: none;
+    overflow: hidden;
+  }
+
+  .app-login-panel::before {
+    inset: -4%;
+    background-position: right bottom;
+    transform: translate3d(0, 3%, 0) scale(1.02);
+  }
+
+  .app-login-panel::after {
     background:
-      linear-gradient(rgba(5, 5, 4, 0.91), rgba(5, 5, 4, 0.95)),
-      url("/img/login/paris-login-fondo-derecho.webp") center / cover no-repeat;
-    box-shadow: none;
+      linear-gradient(
+        180deg,
+        rgba(5, 5, 4, 0.66),
+        rgba(5, 5, 4, 0.78)
+      );
   }
 
   .app-login-panel-edge {
     top: 0;
     left: 0;
-    right: 0;
-    bottom: auto;
     width: 100%;
-    height: 2px;
+    height: 4px;
+    border-radius: 0;
     transform: none;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      var(--app-gold-500),
-      transparent
-    );
+    background:
+      linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--app-gold-300) 18%,
+        var(--app-gold-500) 50%,
+        var(--app-gold-300) 82%,
+        transparent 100%
+      );
   }
 
   .app-login-card {
     width: min(100%, 520px);
+    max-height: none;
+    margin: 0 auto;
   }
+
+  .app-login-brand {
+  height: clamp(190px, 22vh, 220px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin: 0;
+  overflow: visible;
+}
 
   .app-login-brand-image {
-    width: min(280px, 68vw);
-  }
+  display: block;
+  width: min(300px, 66%);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  transform: translateY(-78px);
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.42));
+}
 
   .app-login-heading {
-    margin-top: -70px;
+  margin-top: -16px;
+  text-align: center;
+}
+
+  .app-login-title {
+    font-size: clamp(2.35rem, 8vw, 3.2rem);
+  }
+
+  .app-login-subtitle {
+    letter-spacing: 0.26em;
   }
 
   .app-login-footer {
-    margin-top: 46px;
+    margin-top: 28px;
   }
 }
 
 @media (max-width: 520px) {
-  .app-login-visual {
-    min-height: 190px;
+  .app-login-shell {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background:
+      linear-gradient(
+        rgba(0, 0, 0, 0.18),
+        rgba(0, 0, 0, 0.42)
+      ),
+      url("/img/login/paris-login-fondo-izquierdo.webp")
+        5% center / cover no-repeat;
   }
 
-  .app-login-visual-copy {
-    bottom: 20px;
-    left: 20px;
-    width: 230px;
+  .app-login-visual {
+    display: none;
   }
 
   .app-login-panel {
-    min-height: calc(100svh - 190px);
-    padding: 28px 16px 36px;
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 20px 16px 24px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    clip-path: none;
+    background: transparent;
+    box-shadow: none;
   }
+
+  .app-login-panel::before {
+    display: none;
+  }
+
+  .app-login-panel::after {
+  inset: 0;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(3, 3, 3, 0.03),
+      rgba(3, 3, 3, 0.12)
+    );
+}
+
+  .app-login-panel-edge {
+    display: none;
+  }
+
+  .app-login-card {
+  width: min(100%, 420px);
+  max-height: none;
+  margin: 0 auto;
+  padding: 24px 14px 20px;
+  border: 1px solid rgba(217, 164, 65, 0.10);
+  border-radius: 18px;
+  background: rgba(7, 7, 6, 0.10);
+  backdrop-filter: blur(10px) saturate(115%);
+  -webkit-backdrop-filter: blur(10px) saturate(115%);
+}
+
+  .app-login-brand {
+  height: 165px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: visible;
+}
 
   .app-login-brand-image {
-    width: min(245px, 76vw);
-  }
+  width: min(205px, 66vw);
+  transform: translateY(-18px);
+}
 
   .app-login-heading {
-    margin-top: -58px;
-  }
+  margin-top: 4px;
+  text-align: center;
+}
 
   .app-login-title {
-    font-size: 2.5rem;
+    font-size: clamp(2.15rem, 11vw, 2.55rem);
   }
 
   .app-login-subtitle {
-    letter-spacing: 0.25em;
+    margin-top: 9px;
+    font-size: 0.64rem;
+    letter-spacing: 0.18em;
+  }
+
+  .app-login-status {
+    margin-top: 12px;
+  }
+
+  .app-login-form {
+    gap: 12px;
+    margin-top: 18px;
   }
 
   .app-login-input,
   .app-login-submit {
-    min-height: 58px;
+    min-height: 54px;
+  }
+
+  .app-login-input {
+    padding-left: 56px;
+    font-size: 0.95rem;
+  }
+
+  .app-login-field-icon {
+    left: 17px;
+    width: 23px;
+    height: 23px;
   }
 
   .app-login-footer {
-    gap: 10px;
-    letter-spacing: 0.2em;
+    margin-top: 20px;
+    gap: 8px;
+    font-size: 0.55rem;
+    letter-spacing: 0.13em;
     white-space: normal;
   }
 
   .app-login-footer-line {
-    width: 34px;
+    width: 24px;
   }
 }
