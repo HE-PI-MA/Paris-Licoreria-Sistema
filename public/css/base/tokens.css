@@ -30,3 +30,18 @@
   --app-s10: 40px;
   --app-s12: 48px;
 }
+:root {
+  --app-black: #070706;
+  --app-black-soft: #11100e;
+  --app-black-glass: rgba(10, 9, 8, 0.82);
+  --app-gold-100: #fff0bd;
+  --app-gold-300: #f5cd72;
+  --app-gold-500: #d9a441;
+  --app-gold-600: #b98428;
+  --app-gold-border: rgba(217, 164, 65, 0.58);
+  --app-gold-muted: rgba(245, 205, 114, 0.72);
+  --app-login-muted: rgba(255, 255, 255, 0.66);
+  --app-login-border: rgba(236, 190, 95, 0.55);
+  --app-login-input: rgba(14, 14, 13, 0.76);
+  --app-login-shadow: 0 26px 75px rgba(0, 0, 0, 0.42);
+}

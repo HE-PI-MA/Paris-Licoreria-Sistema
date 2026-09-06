@@ -7,6 +7,7 @@
   const successBox = document.querySelector("[data-login-success]");
   const password = document.querySelector("#contrasena");
   const toggle = document.querySelector("[data-password-toggle]");
+  const submitDefaultHtml = submit?.innerHTML || "";
 
   if (!form) return;
 
@@ -23,15 +24,22 @@
   if (toggle && password) {
     toggle.addEventListener("click", () => {
       const visible = password.type === "text";
+
       password.type = visible ? "password" : "text";
-      toggle.textContent = visible ? "Mostrar" : "Ocultar";
+      toggle.classList.toggle("is-visible", !visible);
       toggle.setAttribute("aria-pressed", String(!visible));
+      toggle.setAttribute(
+        "aria-label",
+        visible ? "Mostrar contrasena" : "Ocultar contrasena"
+      );
+
       password.focus();
     });
   }
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+
     hide(errorBox);
     hide(successBox);
 
@@ -49,7 +57,9 @@
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         credentials: "same-origin",
         body: JSON.stringify({
           nombre_usuario: nombreUsuario,
@@ -76,10 +86,13 @@
         window.location.assign("/inicio");
       }, 450);
     } catch (error) {
-      show(errorBox, "No fue posible comunicarse con el servidor.");
+      show(
+        errorBox,
+        "No fue posible comunicarse con el servidor. Intenta nuevamente."
+      );
     } finally {
       submit.disabled = false;
-      submit.textContent = "Iniciar sesion";
+      submit.innerHTML = submitDefaultHtml;
     }
   });
 })();

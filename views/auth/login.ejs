@@ -3,80 +3,138 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070706">
   <title><%= title %> | Paris Licoreria</title>
   <link rel="stylesheet" href="/css/app.css">
   <script src="/js/pages/login.js" defer></script>
 </head>
 <body>
-  <main class="app-auth-page">
-    <section class="app-auth-hero" aria-label="Paris Licoreria">
-      <div class="app-auth-hero-inner">
-        <div class="app-auth-kicker">Sistema de gestion</div>
-        <h1 class="app-auth-brand">Paris<br>Licoreria</h1>
-        <p class="app-auth-description">
-          Acceso seguro para la administracion y operacion diaria del negocio.
+  <main class="app-login-shell">
+    <section class="app-login-visual" aria-label="Paris Licoreria">
+      <div class="app-login-visual-overlay" aria-hidden="true"></div>
+
+      <div class="app-login-visual-copy">
+        <span class="app-login-rule" aria-hidden="true"></span>
+        <p class="app-login-slogan">
+          Mas que bebidas,<br>
+          grandes momentos
         </p>
+        <span class="app-login-rule app-login-rule--short" aria-hidden="true"></span>
       </div>
     </section>
 
-    <section class="app-auth-panel">
-      <div class="app-auth-card">
-        <div class="app-auth-logo" aria-hidden="true">PL</div>
-        <h2 class="app-auth-title">Bienvenido</h2>
-        <p class="app-auth-subtitle">
-          Ingresa con tu usuario autorizado para continuar.
-        </p>
+    <section class="app-login-panel">
+      <div class="app-login-panel-edge" aria-hidden="true"></div>
 
-        <div class="app-auth-status">
-          <div class="app-alert app-alert--danger" data-login-error hidden role="alert"></div>
-          <div class="app-alert app-alert--success" data-login-success hidden role="status"></div>
+      <div class="app-login-card">
+        <div class="app-login-brand">
+          <img
+            class="app-login-brand-image"
+            src="/img/login/paris-login-logo.webp"
+            alt="Paris Licoreria LM"
+            width="1000"
+            height="1000"
+            decoding="async"
+          >
         </div>
 
-        <form class="app-auth-form" data-login-form novalidate>
-          <div class="app-field">
-            <label class="app-label" for="nombre_usuario">Usuario</label>
-            <input
-              class="app-input"
-              id="nombre_usuario"
-              name="nombre_usuario"
-              type="text"
-              autocomplete="username"
-              maxlength="50"
-              required
-              autofocus
-            >
+        <header class="app-login-heading">
+          <h1 class="app-login-title">Bienvenido</h1>
+          <p class="app-login-subtitle">Sistema administrativo</p>
+        </header>
+
+        <div class="app-login-status">
+          <div
+            class="app-alert app-alert--danger app-login-alert"
+            data-login-error
+            hidden
+            role="alert"
+          ></div>
+          <div
+            class="app-alert app-alert--success app-login-alert"
+            data-login-success
+            hidden
+            role="status"
+          ></div>
+        </div>
+
+        <form class="app-login-form" data-login-form novalidate>
+          <div class="app-login-field">
+            <label class="app-visually-hidden" for="nombre_usuario">Usuario</label>
+            <div class="app-login-input-wrap">
+              <svg class="app-login-field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 21a8 8 0 0 0-16 0"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+
+              <input
+                class="app-login-input"
+                id="nombre_usuario"
+                name="nombre_usuario"
+                type="text"
+                autocomplete="username"
+                maxlength="50"
+                placeholder="Usuario"
+                required
+                autofocus
+              >
+            </div>
           </div>
 
-          <div class="app-field">
-            <label class="app-label" for="contrasena">Contrasena</label>
-            <div class="app-input-wrap">
+          <div class="app-login-field">
+            <label class="app-visually-hidden" for="contrasena">Contrasena</label>
+            <div class="app-login-input-wrap">
+              <svg class="app-login-field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="5" y="10" width="14" height="11" rx="2"></rect>
+                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                <path d="M12 14v3"></path>
+              </svg>
+
               <input
-                class="app-input app-input--with-action"
+                class="app-login-input app-login-input--password"
                 id="contrasena"
                 name="contrasena"
                 type="password"
                 autocomplete="current-password"
+                placeholder="Contrasena"
                 required
               >
+
               <button
-                class="app-input-action"
+                class="app-login-password-toggle"
                 type="button"
                 data-password-toggle
+                aria-label="Mostrar contrasena"
                 aria-pressed="false"
               >
-                Mostrar
+                <svg class="app-login-eye app-login-eye--show" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
+                  <circle cx="12" cy="12" r="2.5"></circle>
+                </svg>
+
+                <svg class="app-login-eye app-login-eye--hide" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 3l18 18"></path>
+                  <path d="M10.7 6.2A10.4 10.4 0 0 1 12 6c6.5 0 10 6 10 6a17.7 17.7 0 0 1-3.1 3.8"></path>
+                  <path d="M6.5 6.5C3.5 8.5 2 12 2 12s3.5 6 10 6a10.3 10.3 0 0 0 4.3-.9"></path>
+                </svg>
               </button>
             </div>
           </div>
 
-          <button class="app-button app-button--primary" type="submit" data-login-submit>
-            Iniciar sesion
+          <button class="app-login-submit" type="submit" data-login-submit>
+            <span>Ingresar</span>
+            <svg class="app-login-submit-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14"></path>
+              <path d="m14 7 5 5-5 5"></path>
+            </svg>
           </button>
         </form>
 
-        <p class="app-auth-help">
-          Acceso protegido por licencia, activacion, autenticacion y permisos.
-        </p>
+        <footer class="app-login-footer">
+          <span class="app-login-footer-line" aria-hidden="true"></span>
+          <span>Licores que unen historias</span>
+          <span class="app-login-footer-line" aria-hidden="true"></span>
+        </footer>
       </div>
     </section>
   </main>
