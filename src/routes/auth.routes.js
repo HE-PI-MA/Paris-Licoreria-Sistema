@@ -1,22 +1,23 @@
-﻿const express = require('express');
-const loginRateLimiter = require('../middleware/loginRateLimiter');
+﻿const express = require("express");
+const loginRateLimiter = require("../middleware/loginRateLimiter");
 
 class AuthRoutes {
-  constructor(authController) {
+  constructor(authController, licenseMiddleware) {
     this.router = express.Router();
     this.authController = authController;
-
+    this.licenseMiddleware = licenseMiddleware;
     this.registerRoutes();
   }
 
   registerRoutes() {
     this.router.post(
-      '/login',
+      "/login",
+      this.licenseMiddleware.requireActivation,
       loginRateLimiter,
       this.authController.login
     );
 
-    this.router.post('/logout', this.authController.logout);
+    this.router.post("/logout", this.authController.logout);
   }
 
   getRouter() {

@@ -13,6 +13,17 @@ const AuthService = require('./services/AuthService');
 const AuthController = require('./controllers/AuthController');
 const AuthRoutes = require('./routes/auth.routes');
 
+const LicenseRepository = require('./repositories/LicenseRepository');
+const LicenseVerifier = require('./core/LicenseVerifier');
+const MachineFingerprint = require('./utils/MachineFingerprint');
+const LicenseService = require('./services/LicenseService');
+const WindowsProtection = require('./utils/WindowsProtection');
+const ActivationRepository = require('./repositories/ActivationRepository');
+const ActivationService = require('./services/ActivationService');
+const LicenseController = require('./controllers/LicenseController');
+const LicenseRoutes = require('./routes/license.routes');
+const LicenseMiddleware = require('./middleware/LicenseMiddleware');
+
 class App {
   constructor() {
     this.app = express();
@@ -56,11 +67,39 @@ class App {
     const authRepository = new AuthRepository();
     const authService = new AuthService(authRepository);
     this.authController = new AuthController(authService);
+
+    const licenseRepository = new LicenseRepository();
+    const licenseVerifier = new LicenseVerifier();
+    const machineFingerprint = new MachineFingerprint();
+
+    const licenseService = new LicenseService(
+      licenseRepository,
+      licenseVerifier,
+      machineFingerprint
+    );
+
+    const activationRepository = new ActivationRepository();
+    const windowsProtection = new WindowsProtection();
+
+    const activationService = new ActivationService(
+      activationRepository,
+      licenseService,
+      windowsProtection,
+      machineFingerprint
+    );
+
+    this.licenseController = new LicenseController(
+      licenseService,
+      activationService
+    );
+
+    this.licenseMiddleware = new LicenseMiddleware(activationService);
   }
 
   configureRoutes() {
     const systemRoutes = new SystemRoutes(this.systemController);
-    const authRoutes = new AuthRoutes(this.authController);
+    const authRoutes = new AuthRoutes(this.authController, this.licenseMiddleware);
+    const licenseRoutes = new LicenseRoutes(this.licenseController);
 
     this.app.get('/', (req, res) => {
       res.json({
@@ -71,6 +110,7 @@ class App {
     });
 
     this.app.use('/api', systemRoutes.getRouter());
+    this.app.use('/api/licencia', licenseRoutes.getRouter());
     this.app.use('/api/auth', authRoutes.getRouter());
   }
 
