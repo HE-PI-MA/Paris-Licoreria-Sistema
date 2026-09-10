@@ -1,4 +1,5 @@
-﻿class AuthController {
+const safeLog = require('../utils/safeLog');
+class AuthController {
   constructor(authService) {
     this.authService = authService;
 
@@ -9,7 +10,7 @@
 
   async login(req, res) {
     try {
-      const { nombre_usuario, contrasena } = req.body;
+      const { nombre_usuario, contrasena } = req.body || {};
 
       const usuario = await this.authService.authenticate(
         nombre_usuario,
@@ -50,7 +51,7 @@
         });
       }
 
-      console.error('Error durante el inicio de sesion:', error.message);
+      safeLog('LOGIN_FAILED', error, req.requestId);
 
       return res.status(500).json({
         error: 'No se pudo iniciar sesion'
@@ -67,7 +68,7 @@
   logout(req, res) {
     req.session.destroy((error) => {
       if (error) {
-        console.error('Error cerrando sesion:', error.message);
+        safeLog('LOGOUT_FAILED', error, req.requestId);
 
         return res.status(500).json({
           error: 'No se pudo cerrar la sesion'

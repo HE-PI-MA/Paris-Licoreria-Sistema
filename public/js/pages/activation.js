@@ -1,5 +1,6 @@
 (() => {
   "use strict";
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
 
   const form = document.querySelector("[data-activation-form]");
   const submit = document.querySelector("[data-activation-submit]");
@@ -36,7 +37,7 @@
     try {
       const response = await fetch("/api/licencia/activar", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
         credentials: "same-origin",
         body: JSON.stringify({ codigo })
       });

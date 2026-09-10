@@ -1,5 +1,6 @@
 (() => {
   "use strict";
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
 
   const form = document.querySelector("[data-login-form]");
   const submit = document.querySelector("[data-login-submit]");
@@ -58,7 +59,8 @@
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken
         },
         credentials: "same-origin",
         body: JSON.stringify({

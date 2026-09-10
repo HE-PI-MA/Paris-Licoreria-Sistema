@@ -1,5 +1,4 @@
-﻿const express = require("express");
-const loginRateLimiter = require("../middleware/loginRateLimiter");
+const express = require("express");
 
 class AuthRoutes {
   constructor(authController, licenseMiddleware, authMiddleware) {
@@ -14,7 +13,6 @@ class AuthRoutes {
     this.router.post(
       "/login",
       this.licenseMiddleware.requireActivation,
-      loginRateLimiter,
       this.authController.login
     );
 

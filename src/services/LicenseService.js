@@ -15,13 +15,13 @@ class LicenseService {
     return `${year}-${month}-${day}`;
   }
 
-  getValidatedLicense() {
-    const license = this.licenseRepository.read();
+  async getValidatedLicense() {
+    const license = await this.licenseRepository.read();
     if (!license) throw new Error("LICENCIA_NO_INSTALADA");
     LicenseSchema.validate(license);
-    if (!this.licenseVerifier.verify(license)) throw new Error("LICENCIA_FIRMA_INVALIDA");
+    if (!(await this.licenseVerifier.verify(license))) throw new Error("LICENCIA_FIRMA_INVALIDA");
 
-    const currentFingerprint = this.machineFingerprint.generate();
+    const currentFingerprint = await this.machineFingerprint.generate();
     if (license.equipo.toLowerCase() !== currentFingerprint.toLowerCase()) {
       throw new Error("LICENCIA_EQUIPO_NO_AUTORIZADO");
     }
@@ -33,22 +33,17 @@ class LicenseService {
     return license;
   }
 
-  getStatus() {
-    try {
-      const license = this.getValidatedLicense();
-      return {
-        valida: true,
-        estado: "LICENCIA_VALIDA",
-        licenciaId: license.licenciaId,
-        cliente: license.cliente,
-        tipo: license.tipo,
-        fechaEmision: license.fechaEmision,
-        fechaExpiracion: license.fechaExpiracion
-      };
-    } catch (error) {
-      return { valida: false, estado: error.message };
-    }
+  errorCode(error) {
+    return /^(LICENCIA|ACTIVACION|CLAVE_PUBLICA|MACHINE_GUID|SISTEMA_OPERATIVO|WINDOWS_PROTECTION)_[A-Z_]+$/.test(error?.message || '')
+      ? error.message : 'ERROR_DE_LICENCIA';
+  }
+  describe(license) {
+    return { valida: true, estado: 'LICENCIA_VALIDA', licenciaId: license.licenciaId,
+      cliente: license.cliente, tipo: license.tipo, fechaEmision: license.fechaEmision, fechaExpiracion: license.fechaExpiracion };
+  }
+  async getStatus() {
+    try { return this.describe(await this.getValidatedLicense()); }
+    catch (error) { return { valida: false, estado: this.errorCode(error) }; }
   }
 }
-
 module.exports = LicenseService;

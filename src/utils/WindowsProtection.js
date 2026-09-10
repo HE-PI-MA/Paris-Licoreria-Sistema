@@ -1,4 +1,6 @@
-﻿const { execFileSync } = require("child_process");
+const { execFile } = require("child_process");
+const { promisify } = require("util");
+const run = promisify(execFile);
 
 class WindowsProtection {
   constructor() {
@@ -11,17 +13,20 @@ class WindowsProtection {
     }
   }
 
-  runPowerShell(script, variables = {}) {
+  async runPowerShell(script, variables = {}) {
     this.ensureWindows();
 
-    const env = { ...process.env };
+    const env = {};
+    for (const key of ["SystemRoot", "WINDIR", "PATH", "TEMP", "TMP", "USERPROFILE", "PSModulePath"]) {
+      if (process.env[key]) env[key] = process.env[key];
+    }
 
     for (const [key, value] of Object.entries(variables)) {
       env[key] = String(value);
     }
 
     try {
-      return execFileSync(
+      const result = await run(
         "powershell.exe",
         [
           "-NoProfile",
@@ -34,15 +39,18 @@ class WindowsProtection {
         {
           encoding: "utf8",
           windowsHide: true,
+          timeout: 10000,
+          maxBuffer: 1024 * 1024,
           env
         }
-      ).trim();
+      );
+      return result.stdout.trim();
     } catch (error) {
       throw new Error("WINDOWS_PROTECTION_ERROR");
     }
   }
 
-  protect(value) {
+  async protect(value) {
     const input = Buffer.from(String(value), "utf8").toString("base64");
 
     const script = [
@@ -58,7 +66,7 @@ class WindowsProtection {
     });
   }
 
-  unprotect(protectedValue) {
+  async unprotect(protectedValue) {
     const script = [
       "$protected=[Convert]::FromBase64String($env:PARIS_DPAPI_INPUT)",
       "$entropy=[Text.Encoding]::UTF8.GetBytes($env:PARIS_DPAPI_ENTROPY)",
@@ -66,7 +74,7 @@ class WindowsProtection {
       "[Console]::Out.Write([Convert]::ToBase64String($data))"
     ].join("; ");
 
-    const output = this.runPowerShell(script, {
+    const output = await this.runPowerShell(script, {
       PARIS_DPAPI_INPUT: String(protectedValue),
       PARIS_DPAPI_ENTROPY: this.entropy
     });

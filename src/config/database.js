@@ -1,4 +1,4 @@
-﻿const mysql = require('mysql2/promise');
+const mysql = require('mysql2/promise');
 
 class Database {
   constructor() {
@@ -10,9 +10,15 @@ class Database {
       database: process.env.DB_NAME,
       waitForConnections: true,
       connectionLimit: 10,
-      queueLimit: 0,
+      queueLimit: 100,
+      connectTimeout: 10000,
       charset: 'utf8mb4'
     });
+  }
+
+  async assertSchema() {
+    const [rows] = await this.pool.execute("SELECT id FROM app_migration WHERE id = ?", ['U004']);
+    if (rows.length !== 1) throw new Error('MIGRACION_U004_REQUERIDA');
   }
 
   getPool() {

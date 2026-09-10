@@ -2,6 +2,13 @@ const express = require('express');
 const session = require('express-session');
 const helmet = require('helmet');
 const path = require('path');
+const crypto = require('crypto');
+const runtime = require('./config/runtime');
+const database = require('./config/database');
+const MySqlSessionStore = require('./services/MySqlSessionStore');
+const CsrfMiddleware = require('./middleware/CsrfMiddleware');
+const makeRateLimits = require('./middleware/rateLimits');
+const safeLog = require('./utils/safeLog');
 
 const SystemRepository = require('./repositories/SystemRepository');
 const SystemService = require('./services/SystemService');
@@ -29,7 +36,9 @@ const WebController = require('./controllers/WebController');
 const WebRoutes = require('./routes/web.routes');
 
 class App {
-  constructor() {
+  constructor(options = {}) {
+    this.options = options;
+    this.config = runtime();
     this.app = express();
 
     this.configureApplication();
@@ -41,26 +50,35 @@ class App {
   configureApplication() {
     this.app.set('view engine', 'ejs');
     this.app.set('views', path.join(__dirname, '..', 'views'));
-
-    this.app.use(helmet());
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
-
-    this.app.use(session({
-      name: 'paris.sid',
-      secret: process.env.SESSION_SECRET,
-      resave: false,
-      saveUninitialized: false,
-      rolling: true,
-      cookie: {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 8 * 60 * 60 * 1000
-      }
-    }));
-
+    if (this.config.proxies.length) this.app.set('trust proxy', this.config.proxies);
+    this.app.use(helmet({ contentSecurityPolicy: {
+      directives: { 'upgrade-insecure-requests': this.config.production ? [] : null }
+    } }));
+    this.app.use((req, res, next) => {
+      req.requestId = crypto.randomUUID();
+      res.setHeader('X-Request-Id', req.requestId);
+      next();
+    });
     this.app.use(express.static(path.join(__dirname, '..', 'public')));
+    this.limits = makeRateLimits();
+    this.app.use(this.limits.general);
+    this.app.post('/api/auth/login', this.limits.login);
+    this.app.post('/api/licencia/activar', this.limits.activation);
+    this.app.get('/api/licencia/estado', this.limits.status);
+    this.app.use(express.json({ limit: '16kb' }));
+    this.sessionStore = this.options.sessionStore || new MySqlSessionStore(database.getPool());
+    this.app.use(session({
+      name: 'paris.sid', secret: this.config.sessionSecret,
+      store: this.sessionStore, resave: false, saveUninitialized: false, rolling: true,
+      cookie: { httpOnly: true, sameSite: 'lax', secure: this.config.production, maxAge: 8 * 60 * 60 * 1000 }
+    }));
+    const csrf = new CsrfMiddleware(this.config.origin);
+    this.app.use((req, res, next) => {
+      res.setHeader('Cache-Control', 'no-store');
+      req.csrfToken = () => csrf.token(req, res);
+      next();
+    });
+    this.app.use('/api', csrf.protect);
   }
 
   configureDependencies() {
@@ -131,10 +149,15 @@ class App {
     });
 
     this.app.use((error, req, res, next) => {
-      console.error(error);
-      res.status(500).json({ error: 'Error interno del servidor' });
+      if (res.headersSent) return next(error);
+      const status = [400, 413, 415].includes(error.status) ? error.status : 500;
+      safeLog('HTTP_REQUEST_FAILED', error, req.requestId);
+      const messages = { 400: 'Solicitud no valida.', 413: 'La solicitud es demasiado grande.', 415: 'Formato no compatible.', 500: 'Error interno del servidor' };
+      res.status(status).json({ error: messages[status], requestId: req.requestId });
     });
   }
+
+  close() { this.sessionStore.close?.(); }
 
   getExpressApp() {
     return this.app;

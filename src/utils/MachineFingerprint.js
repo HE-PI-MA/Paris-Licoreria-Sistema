@@ -1,55 +1,27 @@
-﻿const crypto = require("crypto");
-const { execFileSync } = require("child_process");
-
+const crypto = require('crypto');
+const { execFile } = require('child_process');
+const { promisify } = require('util');
+const run = promisify(execFile);
 class MachineFingerprint {
-  constructor() {
-    this.productId = "PARIS_LICORERIA";
-  }
-
-  getMachineGuid() {
-    if (process.platform !== "win32") {
-      throw new Error("SISTEMA_OPERATIVO_NO_COMPATIBLE");
-    }
-
-    const output = execFileSync(
-      "reg.exe",
-      [
-        "QUERY",
-        "HKLM\\SOFTWARE\\Microsoft\\Cryptography",
-        "/v",
-        "MachineGuid"
-      ],
-      { encoding: "utf8", windowsHide: true }
-    );
-
-    const match = output.match(/MachineGuid\s+REG_SZ\s+([^\r\n]+)/i);
-
-    if (!match || !match[1]) {
-      throw new Error("MACHINE_GUID_NO_DISPONIBLE");
-    }
-
+  constructor() { this.productId = 'PARIS_LICORERIA'; this.pending = null; }
+  async getMachineGuid() {
+    if (process.platform !== 'win32') throw new Error('SISTEMA_OPERATIVO_NO_COMPATIBLE');
+    const { stdout } = await run('reg.exe', ['QUERY', 'HKLM\\SOFTWARE\\Microsoft\\Cryptography', '/v', 'MachineGuid'],
+      { encoding: 'utf8', windowsHide: true, timeout: 10000, maxBuffer: 65536 });
+    const match = stdout.match(/MachineGuid\s+REG_SZ\s+([^\r\n]+)/i);
+    if (!match) throw new Error('MACHINE_GUID_NO_DISPONIBLE');
     return match[1].trim().toLowerCase();
   }
-
-  generate() {
-    const machineGuid = this.getMachineGuid();
-    const source = `${this.productId}:${machineGuid}`;
-
-    return crypto
-      .createHash("sha256")
-      .update(source, "utf8")
-      .digest("hex");
+  async generate() {
+    if (!this.pending) {
+      this.pending = this.getMachineGuid().then(guid => crypto.createHash('sha256').update(this.productId + ':' + guid, 'utf8').digest('hex'))
+        .catch(() => { this.pending = null; throw new Error('MACHINE_GUID_NO_DISPONIBLE'); });
+    }
+    return this.pending;
   }
-
-  getDisplayId() {
-    const fingerprint = this.generate().toUpperCase();
-
-    return [
-      fingerprint.slice(0, 8),
-      fingerprint.slice(8, 16),
-      fingerprint.slice(16, 24)
-    ].join("-");
+  async getDisplayId() {
+    const fingerprint = (await this.generate()).toUpperCase();
+    return [fingerprint.slice(0,8), fingerprint.slice(8,16), fingerprint.slice(16,24)].join('-');
   }
 }
-
 module.exports = MachineFingerprint;

@@ -1,139 +1,72 @@
-﻿const crypto = require("crypto");
-
+const crypto = require('crypto');
 class ActivationService {
-  constructor(
-    activationRepository,
-    licenseService,
-    windowsProtection,
-    machineFingerprint
-  ) {
-    this.activationRepository = activationRepository;
-    this.licenseService = licenseService;
-    this.windowsProtection = windowsProtection;
-    this.machineFingerprint = machineFingerprint;
+  constructor(activationRepository, licenseService, windowsProtection, machineFingerprint) {
+    Object.assign(this, { activationRepository, licenseService, windowsProtection, machineFingerprint });
+    this.cachedData = null;
+    this.decoding = null;
+    this.activating = Promise.resolve();
   }
-
-  hashCode(code) {
-    return crypto
-      .createHash("sha256")
-      .update(String(code), "utf8")
-      .digest("hex");
+  hashCode(code) { return crypto.createHash('sha256').update(code, 'utf8').digest('hex'); }
+  hashesMatch(a, b) {
+    return typeof a === 'string' && typeof b === 'string' && /^[a-f0-9]{64}$/i.test(a) && /^[a-f0-9]{64}$/i.test(b) &&
+      crypto.timingSafeEqual(Buffer.from(a, 'hex'), Buffer.from(b, 'hex'));
   }
-
-  hashesMatch(first, second) {
-    if (
-      typeof first !== "string" ||
-      typeof second !== "string" ||
-      !/^[a-fA-F0-9]{64}$/.test(first) ||
-      !/^[a-fA-F0-9]{64}$/.test(second)
-    ) {
-      return false;
-    }
-
-    return crypto.timingSafeEqual(
-      Buffer.from(first, "hex"),
-      Buffer.from(second, "hex")
-    );
+  async activate(code) {
+    if (typeof code !== 'string' || !code.trim() || code.length > 512) throw new Error('ACTIVACION_CODIGO_REQUERIDO');
+    const operation = this.activating.then(async () => {
+      const license = await this.licenseService.getValidatedLicense();
+      if (!this.hashesMatch(this.hashCode(code.trim()), license.activacionHash)) throw new Error('ACTIVACION_CODIGO_INVALIDO');
+      try {
+        const current = await this.getValidatedActivation(license);
+        return { activada: true, estado: 'ACTIVACION_YA_VALIDA', licenciaId: current.licenciaId, fechaActivacion: current.fechaActivacion };
+      } catch (error) {
+        if (!error.message.startsWith('ACTIVACION_')) throw error;
+      }
+      const activation = { version: 1, producto: 'PARIS_LICORERIA', licenciaId: license.licenciaId,
+        equipo: license.equipo.toLowerCase(), fechaActivacion: new Date().toISOString() };
+      const protectedData = await this.windowsProtection.protect(JSON.stringify(activation));
+      await this.activationRepository.write(protectedData);
+      this.cachedData = null;
+      return { activada: true, estado: 'ACTIVACION_CORRECTA', licenciaId: license.licenciaId, fechaActivacion: activation.fechaActivacion };
+    });
+    this.activating = operation.catch(() => {});
+    return operation;
   }
-
-  activate(code) {
-    const activationCode = String(code || "").trim();
-
-    if (!activationCode) {
-      throw new Error("ACTIVACION_CODIGO_REQUERIDO");
+  async getValidatedActivation(license) {
+    license = license || await this.licenseService.getValidatedLicense();
+    const data = await this.activationRepository.read();
+    if (!data) throw new Error('ACTIVACION_REQUERIDA');
+    // Cache only the decoding of identical bytes; license/date/file are checked each request.
+    if (data !== this.cachedData) {
+      this.cachedData = data;
+      this.decoding = Promise.resolve().then(() => this.windowsProtection.unprotect(data)).then(raw => {
+        try { return JSON.parse(raw); } catch { throw new Error('ACTIVACION_FORMATO_INVALIDO'); }
+      }).catch(() => {
+        if (this.cachedData === data) this.cachedData = null;
+        throw new Error('ACTIVACION_NO_VALIDA_PARA_ESTE_EQUIPO');
+      });
     }
-
-    const license = this.licenseService.getValidatedLicense();
-    const receivedHash = this.hashCode(activationCode);
-
-    if (!this.hashesMatch(receivedHash, license.activacionHash)) {
-      throw new Error("ACTIVACION_CODIGO_INVALIDO");
-    }
-
-    const activation = {
-      version: 1,
-      producto: "PARIS_LICORERIA",
-      licenciaId: license.licenciaId,
-      equipo: this.machineFingerprint.generate().toLowerCase(),
-      fechaActivacion: new Date().toISOString()
-    };
-
-    const protectedData = this.windowsProtection.protect(
-      JSON.stringify(activation)
-    );
-
-    this.activationRepository.write(protectedData);
-
-    return {
-      activada: true,
-      estado: "ACTIVACION_CORRECTA",
-      licenciaId: license.licenciaId
-    };
+    const activation = await this.decoding;
+    if (!activation || activation.version !== 1 || activation.producto !== 'PARIS_LICORERIA') throw new Error('ACTIVACION_INVALIDA');
+    if (activation.licenciaId !== license.licenciaId) throw new Error('ACTIVACION_LICENCIA_NO_COINCIDE');
+    if (activation.equipo !== license.equipo.toLowerCase()) throw new Error('ACTIVACION_EQUIPO_NO_COINCIDE');
+    return { ...activation };
   }
-
-  getValidatedActivation() {
-    const license = this.licenseService.getValidatedLicense();
-    const protectedData = this.activationRepository.read();
-
-    if (!protectedData) {
-      throw new Error("ACTIVACION_REQUERIDA");
-    }
-
-    let rawActivation;
-
+  async getStatus(license) {
     try {
-      rawActivation = this.windowsProtection.unprotect(protectedData);
-    } catch (error) {
-      throw new Error("ACTIVACION_NO_VALIDA_PARA_ESTE_EQUIPO");
-    }
-
-    let activation;
-
-    try {
-      activation = JSON.parse(rawActivation);
-    } catch (error) {
-      throw new Error("ACTIVACION_FORMATO_INVALIDO");
-    }
-
-    if (
-      activation.version !== 1 ||
-      activation.producto !== "PARIS_LICORERIA"
-    ) {
-      throw new Error("ACTIVACION_INVALIDA");
-    }
-
-    if (activation.licenciaId !== license.licenciaId) {
-      throw new Error("ACTIVACION_LICENCIA_NO_COINCIDE");
-    }
-
-    const currentFingerprint = this.machineFingerprint
-      .generate()
-      .toLowerCase();
-
-    if (activation.equipo !== currentFingerprint) {
-      throw new Error("ACTIVACION_EQUIPO_NO_COINCIDE");
-    }
-
-    return activation;
+      const a = await this.getValidatedActivation(license);
+      return { activada: true, estado: 'ACTIVACION_VALIDA', licenciaId: a.licenciaId, fechaActivacion: a.fechaActivacion };
+    } catch (error) { return { activada: false, estado: this.licenseService.errorCode(error) }; }
   }
-
-  getStatus() {
-    try {
-      const activation = this.getValidatedActivation();
-
-      return {
-        activada: true,
-        estado: "ACTIVACION_VALIDA",
-        licenciaId: activation.licenciaId,
-        fechaActivacion: activation.fechaActivacion
-      };
-    } catch (error) {
-      return {
-        activada: false,
-        estado: error.message
-      };
+  async getSystemStatus() {
+    let license;
+    try { license = await this.licenseService.getValidatedLicense(); }
+    catch (error) {
+      const estado = this.licenseService.errorCode(error);
+      return { licencia: { valida: false, estado }, activacion: { activada: false, estado }, accesoSistema: false };
     }
+    const activacion = await this.getStatus(license);
+    return { licencia: this.licenseService.describe(license), activacion, accesoSistema: activacion.activada };
   }
 }
-
 module.exports = ActivationService;

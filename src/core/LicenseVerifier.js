@@ -1,4 +1,4 @@
-﻿const fs = require("fs");
+const fs = require("fs/promises");
 const path = require("path");
 const crypto = require("crypto");
 const LicensePayload = require("./LicensePayload");
@@ -13,15 +13,12 @@ class LicenseVerifier {
     );
   }
 
-  getPublicKey() {
-    if (!fs.existsSync(this.publicKeyPath)) {
-      throw new Error("CLAVE_PUBLICA_NO_DISPONIBLE");
-    }
-
-    return fs.readFileSync(this.publicKeyPath, "utf8");
+  async getPublicKey() {
+    try { return await fs.readFile(this.publicKeyPath, "utf8"); }
+    catch { throw new Error("CLAVE_PUBLICA_NO_DISPONIBLE"); }
   }
 
-  verify(license) {
+  async verify(license) {
     if (!license || typeof license.firma !== "string") {
       return false;
     }
@@ -39,7 +36,7 @@ class LicenseVerifier {
     }
 
     const payload = LicensePayload.serialize(license);
-    const publicKey = this.getPublicKey();
+    const publicKey = await this.getPublicKey();
 
     return crypto.verify(
       null,

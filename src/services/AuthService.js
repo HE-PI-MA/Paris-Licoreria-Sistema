@@ -1,4 +1,4 @@
-﻿const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt');
 
 class AuthService {
   constructor(authRepository) {
@@ -6,7 +6,8 @@ class AuthService {
   }
 
   async authenticate(username, password) {
-    const normalizedUsername = String(username || '').trim();
+    if (typeof username !== 'string' || typeof password !== 'string' || username.length > 50 || password.length > 1024) throw new Error('CREDENCIALES_INVALIDAS');
+    const normalizedUsername = username.trim();
     const plainPassword = String(password || '');
 
     if (!normalizedUsername || !plainPassword) {

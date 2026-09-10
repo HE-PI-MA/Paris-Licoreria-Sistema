@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
+  <meta name="csrf-token" content="<%= csrfToken %>">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070706">
   <title><%= title %> | Paris Licoreria</title>
@@ -35,6 +36,7 @@
         </header>
 
         <div class="app-login-status">
+          <% if (sesionVencida) { %><p role="status" class="app-alert app-alert--warning">La sesión venció. Inicia sesión nuevamente.</p><% } %>
           <div
             class="app-alert app-alert--danger app-login-alert"
             data-login-error

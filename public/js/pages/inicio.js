@@ -1,5 +1,6 @@
 (() => {
   "use strict";
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
 
   const button = document.querySelector("[data-logout]");
   const errorBox = document.querySelector("[data-logout-error]");
@@ -14,6 +15,8 @@
     try {
       const response = await fetch("/api/auth/logout", {
         method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        body: JSON.stringify({}),
         credentials: "same-origin"
       });
 

@@ -1,4 +1,4 @@
-﻿# 03. Base de Datos y Roles
+# 03. Base de Datos y Roles
 
 ## 1. Base de datos
 
@@ -74,29 +74,15 @@ Actualmente se comprobaron dos usuarios:
 
 No se documentan contrasenas reales.
 
-## 5. Estado actual de las contrasenas
+## 5. Contraseñas
 
-Durante la inspeccion se comprobo:
+La aplicación verifica contraseñas con bcrypt. El SQL de demostración contiene marcadores que no sirven para iniciar sesión. `node scripts/create-admin.js` permite configurar el primer administrador sin publicar su contraseña y sin sustituir cuentas reales existentes.
 
-- Prefijo almacenado: $2y$
-- Longitud observada: 47 caracteres
+La compatibilidad de un hash antiguo debe verificarse antes de migrarlo. Este parche no convierte prefijos `$2y$` ni cambia contraseñas existentes automáticamente.
 
-Esta informacion sugiere que las contrasenas fueron generadas mediante un esquema relacionado con bcrypt, pero todavia no se considera validada su compatibilidad con la libreria bcrypt utilizada por Node.js.
+## 6. Autenticación
 
-Antes de implementar el inicio de sesion se realizara una prueba controlada de compatibilidad.
-
-No se modificaran las contrasenas existentes hasta completar esa verificacion.
-
-## 6. Reglas previstas de autenticacion
-
-Para iniciar sesion el sistema debera comprobar:
-
-- Que el nombre de usuario exista
-- Que el usuario se encuentre ACTIVO
-- Que la contrasena sea valida
-- Que el rol exista
-
-Una vez autenticado, la sesion almacenara solamente la informacion necesaria del usuario.
+Se comprueba usuario existente, estado ACTIVO, contraseña válida y rol relacionado. La sesión se regenera después del login y se persiste en MySQL. Las solicitudes protegidas consultan nuevamente el usuario activo.
 
 ## 7. Autorizacion por rol
 
@@ -116,9 +102,6 @@ Las operaciones criticas de negocio aprovecharan los procedimientos almacenados 
 
 La aplicacion no duplicara innecesariamente en JavaScript la logica transaccional ya protegida por MySQL.
 
-## 9. Estado
+## 9. Estado U004
 
-Estructura de ROL verificada.
-Estructura de USUARIO verificada.
-Usuarios iniciales identificados.
-Compatibilidad de contrasenas pendiente de prueba.
+El login está implementado. Las tablas `sesion_web` y `app_migration` se agregan a las 21 tablas de negocio. Las reglas SQL corregidas y las limitaciones de prueba se describen en `09_PARCHE_U004.md`.

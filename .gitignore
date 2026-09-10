@@ -21,3 +21,8 @@ generar-licencia.js
 Paris-Licoreria-Licencias-PRIVADO/
 *.p12
 *.pfx
+
+# Copias y material local de U004
+backups/
+paris-parche-backup-*/
+*.sql.backup

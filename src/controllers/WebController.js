@@ -1,57 +1,27 @@
 class WebController {
   constructor(licenseService, activationService) {
-    this.licenseService = licenseService;
-    this.activationService = activationService;
-
-    this.home = this.home.bind(this);
-    this.login = this.login.bind(this);
-    this.activation = this.activation.bind(this);
-    this.inicio = this.inicio.bind(this);
+    Object.assign(this, { licenseService, activationService });
+    for (const name of ['home', 'login', 'activation', 'inicio']) this[name] = this[name].bind(this);
   }
-
-  home(req, res) {
-    const license = this.licenseService.getStatus();
-    const activation = this.activationService.getStatus();
-
-    if (license.valida === true && activation.activada === true) {
-      return res.redirect("/login");
-    }
-
-    return res.redirect("/activar");
+  async home(req, res) {
+    const status = await this.activationService.getSystemStatus();
+    return res.redirect(status.accesoSistema ? '/login' : '/activar');
   }
-
-  login(req, res) {
-    const license = this.licenseService.getStatus();
-    const activation = this.activationService.getStatus();
-
-    if (license.valida !== true || activation.activada !== true) {
-      return res.redirect("/activar");
-    }
-
-    return res.render("auth/login", { title: "Iniciar sesion" });
+  async login(req, res) {
+    const status = await this.activationService.getSystemStatus();
+    if (!status.accesoSistema) return res.redirect('/activar');
+    req.csrfToken();
+    return res.render('auth/login', { title: 'Iniciar sesion', sesionVencida: req.query.sesion === 'vencida' });
   }
-
-  activation(req, res) {
-    const license = this.licenseService.getStatus();
-    const activation = this.activationService.getStatus();
-
-    if (license.valida === true && activation.activada === true) {
-      return res.redirect("/login");
-    }
-
-    return res.render("auth/activation", {
-      title: "Activar equipo",
-      license,
-      activation
-    });
+  async activation(req, res) {
+    const status = await this.activationService.getSystemStatus();
+    if (status.accesoSistema) return res.redirect('/login');
+    req.csrfToken();
+    return res.render('auth/activation', { title: 'Activar equipo', license: status.licencia, activation: status.activacion });
   }
-
   inicio(req, res) {
-    return res.render("auth/inicio", {
-      title: "Acceso autorizado",
-      usuario: req.authUser
-    });
+    req.csrfToken();
+    return res.render('auth/inicio', { title: 'Acceso autorizado', usuario: req.authUser });
   }
 }
-
 module.exports = WebController;

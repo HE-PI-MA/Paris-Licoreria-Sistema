@@ -1,42 +1,20 @@
-﻿const fs = require("fs");
-const path = require("path");
-
+const fs = require('fs/promises');
+const path = require('path');
 class LicenseRepository {
   constructor() {
-    const programData = process.env.ProgramData || "C:\\ProgramData";
-
-    this.licensePath = process.env.PARIS_LICENSE_PATH || path.join(
-      programData,
-      "ParisLicoreria",
-      "license",
-      "license.json"
-    );
+    this.licensePath = process.env.PARIS_LICENSE_PATH || path.join(process.env.ProgramData || 'C:\\ProgramData', 'ParisLicoreria', 'license', 'license.json');
   }
-
-  getLicensePath() {
-    return this.licensePath;
-  }
-
-  exists() {
-    return fs.existsSync(this.licensePath);
-  }
-
-  read() {
-    if (!this.exists()) {
-      return null;
-    }
-
+  getLicensePath() { return this.licensePath; }
+  async read() {
     try {
-      const content = fs.readFileSync(this.licensePath, "utf8");
-      return JSON.parse(content);
+      const stat = await fs.stat(this.licensePath);
+      if (stat.size > 65536) throw new Error('LICENCIA_FORMATO_INVALIDO');
+      return JSON.parse(await fs.readFile(this.licensePath, 'utf8'));
     } catch (error) {
-      if (error instanceof SyntaxError) {
-        throw new Error("LICENCIA_FORMATO_INVALIDO");
-      }
-
-      throw new Error("LICENCIA_NO_SE_PUDO_LEER");
+      if (error.code === 'ENOENT') return null;
+      if (error instanceof SyntaxError || error.message === 'LICENCIA_FORMATO_INVALIDO') throw new Error('LICENCIA_FORMATO_INVALIDO');
+      throw new Error('LICENCIA_NO_SE_PUDO_LEER');
     }
   }
 }
-
 module.exports = LicenseRepository;

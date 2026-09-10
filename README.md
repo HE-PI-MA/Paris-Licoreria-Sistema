@@ -1,84 +1,33 @@
-# Paris Licoreria Sistema
+# París Licorería — aplicación con parche U004
 
-Sistema web responsive para la gestion operativa de Paris Licoreria.
+Aplicación web Node.js / Express / EJS / MySQL, con servidor Windows para licencias Ed25519 y activación DPAPI.
 
-## Tecnologias
+Implementado: activación, login, consulta/cierre de sesión, revalidación del usuario activo, sesiones persistentes en MySQL, protección CSRF y límites de solicitudes. Roles: ADMINISTRADOR y ENCARGADO_VENTA; el middleware se aplica al incorporar los módulos operativos.
 
-- Node.js
-- Express.js
-- EJS
-- MySQL 8
-- PNPM
-- JavaScript
-- CSS
+Pendiente: dashboard, productos, inventario, proveedores, compras, ventas, caja, administración web de usuarios y reportes. La base de datos V2 ya contiene parte de esas operaciones; todavía no están conectadas a pantallas.
 
-## Arquitectura
+## Actualizar una instalación
 
-Route -> Controller -> Service -> Repository -> MySQL
+Leer `docs/09_PARCHE_U004.md`. Detener el servidor, respaldar MySQL y aplicar la migración U004 antes de iniciar esta versión. La actualización no elimina tablas ni modifica automáticamente operaciones históricas.
 
-## Seguridad implementada
+La base pasa de 21 tablas de negocio a 23 tablas en total: agrega `sesion_web` y `app_migration`.
 
-- Licencia Ed25519 ligada al equipo
-- Activacion protegida con DPAPI de Windows
-- Login bloqueado sin activacion valida
-- bcrypt
-- Limite de intentos
-- Sesiones
-- Revalidacion de usuario ACTIVO
-- AuthMiddleware
-- RoleMiddleware preparado para modulos
-- Clave privada fuera del repositorio
+## Comandos
 
-## Interfaz implementada
+- `node --test tests/application.test.js tests/migration-runner.test.js tests/mysql.test.js`: pruebas de aplicación; MySQL se omite salvo activación explícita.
+- `node scripts/migrate.js --backup "C:/Respaldos/paris.sql"`: migración sobre la base configurada.
+- `node scripts/db-check.js`: revisión de datos existentes, solo lectura.
+- `node scripts/create-admin.js`: crear el administrador inicial o reemplazar exclusivamente su registro de demostración; no cambia cuentas reales existentes.
+- `node server.js`: iniciar, después de la migración.
 
-- Pantalla de activacion
-- Login responsive
-- Mostrar/ocultar contrasena
-- Mensajes propios
-- Pantalla temporal de acceso autorizado
-- Design System centralizado
-- Sin alert(), confirm() ni prompt() como UX habitual
+También se incluyen los equivalentes `npm test`, `npm run db:migrate`, `npm run db:check`, `npm run admin:create` y `npm start`.
 
-## Roles
+## Configuración
 
-- ADMINISTRADOR
-- ENCARGADO_VENTA
+Conservar el `.env` de la instalación. El ejemplo no contiene contraseñas ni claves. El secreto de sesión debe ser privado y tener al menos 32 caracteres. La clave privada de licencias continúa fuera del proyecto.
 
-## Base de datos
+Para desarrollo local, `NODE_ENV=development`, `HOST=127.0.0.1` y `PORT=3100`.
 
-paris_licoreria
+Para producción, `PUBLIC_ORIGIN` debe indicar el origen HTTPS exacto. Usar certificados TLS en Node o configurar explícitamente el proxy autorizado mediante `TRUST_PROXY`. La configuración incompleta detiene el inicio con un mensaje; no se desactivan cookies seguras para eludir HTTPS.
 
-Proyecto independiente de BD:
-BD1-Paris-Licoreria
-
-## Ejecucion
-
-Desarrollo:
-pnpm dev
-
-Produccion:
-pnpm start
-
-Puerto de desarrollo:
-http://localhost:3100
-
-## Pendiente
-
-- Ajuste visual definitivo del Login
-- Dashboard
-- Productos e inventario
-- Proveedores y compras
-- Ventas y caja
-- Usuarios
-- Reportes
-
-## Antes de produccion
-
-- Sesiones persistentes en lugar de MemoryStore
-- HTTPS y cookies seguras segun entorno
-- Usuario MySQL de privilegios minimos
-- RoleMiddleware en cada modulo real
-- Permisos de Windows sobre ProgramData
-- Mantener privada la clave de firma
-
-Para uso comercial se recomienda que el repositorio de la aplicacion no sea publico.
+Las licencias y activaciones existentes conservan su formato y ubicación. Se requieren permisos adecuados del usuario que ejecuta Node sobre ProgramData. El código de activación es repetible en el mismo equipo sin reescribir una activación válida; no se promete consumo global de un solo uso.
