@@ -62,3 +62,31 @@ Registro de las jornadas de desarrollo, actividades realizadas y tiempo dedicado
 - **Módulos funcionales:** Pendientes
 
 ---
+
+## 10/09/2026
+
+### Tiempo de trabajo
+
+- **Hora de inicio:** 11:00, confirmada por el usuario.
+- **Zona horaria:** Bolivia (UTC-04:00).
+- **Estado de la jornada:** En curso.
+- **Hora de finalización:** Pendiente.
+- **Pausas:** Pendientes de confirmar.
+- **Tiempo efectivo trabajado:** Pendiente de calcular al cerrar la jornada.
+
+### Actividades realizadas
+
+- Revisión de la auditoría del sistema y sus repositorios.
+- Respaldo de la base de datos antes de aplicar cambios.
+- Instalación del parche U004 y actualización de MySQL.
+- Ejecución de 15 pruebas automáticas en Windows, todas aprobadas.
+- Publicación del parche en GitHub mediante el commit 1207e34.
+- Corrección de la apertura de una caja con datos de prueba, conservando las ventas.
+- Comprobación de fechas, pagos, stock y contraseñas de demostración: cero incidencias en esas cuatro revisiones.
+- Prueba manual satisfactoria de inicio, cierre y nuevo inicio de sesión.
+
+### Estado actual
+
+El acceso al sistema funciona en el equipo de pruebas. El dashboard y los módulos de negocio siguen pendientes de desarrollo.
+
+---
