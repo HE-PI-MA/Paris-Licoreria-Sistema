@@ -7,5 +7,5 @@
     </div>
     <button class="module-filter-button app-button app-button--secondary" type="button" <% if (!moduleUi.enabled) { %>disabled<% } %> aria-describedby="module-controls-help"><%- include('../icon', { name: 'filter' }) %><span>Filtros</span></button>
   </div>
-  <p class="module-controls-help" id="module-controls-help"><%= moduleUi.enabled ? 'Filtra los registros ficticios de esta demostración.' : 'Disponible próximamente.' %></p>
+  <p class="module-controls-help" id="module-controls-help"><%= moduleUi.enabled ? moduleUi.controlsHelp : 'Disponible próximamente.' %></p>
 </section>

@@ -11,6 +11,10 @@ const CsrfMiddleware = require('./middleware/CsrfMiddleware');
 const makeRateLimits = require('./middleware/rateLimits');
 const safeLog = require('./utils/safeLog');
 const TemplateCache = require('./core/TemplateCache');
+const ProductRepository = require('./repositories/ProductRepository');
+const ProductService = require('./services/ProductService');
+const ProductController = require('./controllers/ProductController');
+const ProductRoutes = require('./routes/product.routes');
 
 const SystemRepository = require('./repositories/SystemRepository');
 const SystemService = require('./services/SystemService');
@@ -123,6 +127,7 @@ class App {
     this.licenseMiddleware = new LicenseMiddleware(activationService);
 
     this.webController = new WebController(activationService);
+    this.productController = new ProductController(new ProductService(this.options.productRepository || new ProductRepository(database.getPool())));
   }
 
   configureRoutes() {
@@ -141,6 +146,7 @@ class App {
     this.app.use('/api', systemRoutes.getRouter());
     this.app.use('/api/licencia', licenseRoutes.getRouter());
     this.app.use('/api/auth', authRoutes.getRouter());
+    this.app.use('/api/productos', new ProductRoutes(this.productController, this.licenseMiddleware, this.authMiddleware).getRouter());
   }
 
   configureErrors() {

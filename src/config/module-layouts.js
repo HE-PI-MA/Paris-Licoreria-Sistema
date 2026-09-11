@@ -5,7 +5,7 @@ const definitions = {
   inicio: { actionLabel: 'Actualizar resumen', actionIcon: 'refresh', contentView: 'dashboard/content' },
   ventas: { actionLabel: 'Nueva venta', actionIcon: 'plus', contentView: 'ventas/content' },
   caja: { actionLabel: 'Abrir caja', actionIcon: 'plus', contentView: 'caja/content' },
-  productos: { actionLabel: 'Nuevo producto', actionIcon: 'plus', contentView: 'productos/content' },
+  productos: { actionLabel: 'Nuevo producto', actionIcon: 'plus', contentView: 'productos/content', enabled: true },
   inventario: { actionLabel: 'Ver movimientos', actionIcon: 'layers', contentView: 'inventario/content' },
   compras: { actionLabel: 'Nueva compra', actionIcon: 'plus', contentView: 'compras/content' },
   proveedores: { actionLabel: 'Nuevo proveedor', actionIcon: 'plus', contentView: 'proveedores/content' },
@@ -21,10 +21,11 @@ function forPage(page) {
   return {
     ...definitions[page.id],
     id: page.id,
-    searchPlaceholder: `Buscar en ${page.label.toLocaleLowerCase('es')}…`,
+    searchPlaceholder: page.id === 'productos' ? 'Nombre del producto o código de barras…' : `Buscar en ${page.label.toLocaleLowerCase('es')}…`,
+    controlsHelp: page.id === 'productos' ? 'El stock se consulta aquí; los movimientos se registran en Compras e Inventario.' : 'Filtra los registros ficticios de esta demostración.',
     message: page.id === 'demo-componentes'
       ? 'Demostración: los cambios usan datos ficticios y se pierden al recargar.'
-      : 'Los controles se habilitarán cuando este módulo esté disponible.'
+      : page.id === 'productos' ? 'Los precios se definen en las presentaciones de cada producto.' : 'Los controles se habilitarán cuando este módulo esté disponible.'
   };
 }
 

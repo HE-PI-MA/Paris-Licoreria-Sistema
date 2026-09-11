@@ -137,7 +137,7 @@
       } catch (error) {
         if (!this.destroyed) {
           this.setErrors(error?.fieldErrors || {});
-          if (!this.errors.size) this.alert.show('error', 'No se pudo guardar. Revisa la conexión e inténtalo nuevamente.');
+          if (!this.errors.size) this.alert.show('error', error?.userMessage || 'No se pudo guardar. Revisa la conexión e inténtalo nuevamente.');
         }
       } finally { this.setBusy(false); }
       if (succeeded) {

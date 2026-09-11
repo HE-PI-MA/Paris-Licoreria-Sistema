@@ -30,10 +30,16 @@ test('U006: shared module structure, authenticated navigation, profile and local
       assert.ok(position > previousRegion, `${item.id}: falta la sección ${region} o está fuera de orden`);
       previousRegion = position;
     }
-    assert.match(response.text, /class="module-primary-action app-button app-button--primary"[^>]*\bdisabled/);
-    assert.match(response.text, /id="module-search"[^>]+disabled/);
+    if (item.id === 'productos') {
+      assert.doesNotMatch(response.text, /data-module-primary[^>]*disabled/);
+      assert.match(response.text, /id="products-table"/);
+      assert.match(response.text, /js\/pages\/products.js/);
+    } else {
+      assert.match(response.text, /class="module-primary-action app-button app-button--primary"[^>]*\bdisabled/);
+      assert.match(response.text, /id="module-search"[^>]+disabled/);
+    }
     assert.ok(response.text.includes('data-module-error'));
-    if(item.id!=='inicio')assert.ok(response.text.includes('Módulo en preparación'));
+    if(!['inicio','productos'].includes(item.id))assert.ok(response.text.includes('Módulo en preparación'));
   }
   s.setUser({...user,nombre:'<script>alert(1)</script>',apellido:'& Usuario'});
   const profile=await s.request('/perfil',{headers});
@@ -47,7 +53,7 @@ test('U006: shared module structure, authenticated navigation, profile and local
     assert.equal((await s.request(asset)).status,200,asset);
   }
 }));
-test('U009: demostración protegida y componentes compartidos disponibles sin habilitar Productos',()=>scenario(async s=>{
+test('U009: demostración protegida y componentes compartidos disponibles separada del catálogo real de Productos',()=>scenario(async s=>{
   assert.equal((await s.request('/demostracion/componentes')).status,302);
   const form=await s.form();
   const login=await s.post('/api/auth/login',{nombre_usuario:'audit_user',contrasena:password},form);
@@ -69,7 +75,7 @@ test('U009: demostración protegida y componentes compartidos disponibles sin ha
     assert.equal((await s.request('/css/components/'+name+'.css')).status,200);
   }
   const products=await s.request('/productos',{headers});
-  assert.match(products.text,/data-module-primary[^>]*disabled/);
+  assert.doesNotMatch(products.text,/data-module-primary[^>]*disabled/);
   assert.ok(!products.text.includes('/js/pages/components-demo.js'));
   assert.ok(!products.text.includes('href="/demostracion/componentes"'));
   s.setUser({...user,id_rol:2,rol:'ENCARGADO_VENTA'});

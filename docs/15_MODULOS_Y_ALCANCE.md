@@ -2,11 +2,11 @@
 
 ## Qué funciona hoy
 
-Las nueve páginas tienen la estructura compartida: cabecera, controles, contenido y mensajes. La navegación está protegida por licencia, sesión y rol. Inicio muestra el saludo; los otros módulos muestran su estado de preparación. Los controles de negocio aún están desactivados.
+Las nueve páginas tienen la estructura compartida: cabecera, controles, contenido y mensajes. La navegación está protegida por licencia, sesión y rol. Inicio muestra el saludo. Productos está implementado en U012: catálogo y presentaciones conectados a MySQL, con permisos de administrador. Los otros módulos mantienen su estado de preparación y sus controles desactivados.
 
-Mi perfil consulta los datos reales del usuario autenticado. Cerrar sesión funciona desde el pie del sidebar. Estas son funciones actuales, a diferencia de las operaciones descritas a continuación.
+Mi perfil consulta los datos reales del usuario autenticado. Cerrar sesión funciona desde el pie del sidebar. La guía vigente de Productos es `24_PRODUCTOS_U012.md`; las otras operaciones siguientes siguen previstas.
 
-## Funciones previstas
+## Funciones por módulo
 
 Este es el alcance inicial propuesto a partir del esquema existente. Los campos, permisos de operación y detalles visuales se concretan al desarrollar cada módulo.
 

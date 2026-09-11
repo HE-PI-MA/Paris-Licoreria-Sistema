@@ -2,13 +2,15 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U011
+## Estado del desarrollo — U012
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
-**Pendiente:** conectar las pantallas con las operaciones del negocio. Inicio muestra un saludo; los otros ocho módulos muestran su espacio en preparación. Sus botones, buscadores y filtros están desactivados. Una página visible no significa que su operación ya esté implementada.
+**Productos U012:** catálogo conectado a MySQL, búsqueda y filtros remotos, edición, estados, eliminación protegida y presentaciones con equivalencias, barras y precios. Acceso de administrador. El stock se consulta, no se edita aquí.
 
-La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; todavía no existen las API ni los formularios que los conecten a estos módulos.
+**Pendiente:** las operaciones de los otros módulos. Inicio conserva el saludo y las pantallas restantes conservan sus espacios de preparación.
+
+La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; Productos incorpora su API y formularios; los demás módulos todavía no están conectados.
 
 La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, modales, confirmaciones, tablas, filtros, selectores, fechas y menús de acciones. Login y activación comparten AuthForm. CSS conserva su organización por componentes; la auditoría U011 corrige interacciones y optimiza la compilación de EJS sin cambiar el diseño.
 
@@ -16,6 +18,7 @@ La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, moda
 
 | Documento | Qué explica |
 | --- | --- |
+| [Productos U012](docs/24_PRODUCTOS_U012.md) | Instalación, permisos, clases, API, formularios y comprobaciones del catálogo. |
 | [Arquitectura](docs/01_ARQUITECTURA_DEL_SISTEMA.md) | Capas, archivos y recorrido de una petición. |
 | [Configuración y ejecución](docs/02_CONFIGURACION_Y_EJECUCION.md) | Requisitos, dependencias y arranque. |
 | [Base de datos y roles](docs/03_BASE_DE_DATOS_Y_ROLES.md) | Tablas, procedimientos y permisos actuales. |
@@ -34,17 +37,18 @@ Los documentos U002–U006E registran entregas anteriores; los valores visuales 
 
 ## Ejecutar la instalación existente
 
-Conservar `.env`, dependencias, licencia, activación y base de datos. Si U004 ya fue instalada correctamente, esta revisión no requiere volver a migrar MySQL.
+Conservar `.env`, dependencias, licencia, activación y base de datos. U012 añade únicamente una tabla de control de reintentos. Instalarla una vez con `node scripts/setup-products.js`, usando una cuenta con permisos de instalación. No volver a ejecutar la migración U004.
 
 ```powershell
 npm test
+node scripts/setup-products.js --comprobar
 node scripts/db-check.js
 node server.js
 ```
 
-El primer comando ejecuta pruebas simuladas; la integración con MySQL real se omite si no se configura expresamente. El segundo consulta la base configurada y muestra cuatro comprobaciones, sin corregir datos. El tercero inicia el servidor.
+El primer comando ejecuta pruebas simuladas; la integración con MySQL real se omite si no se configura expresamente. El segundo comprueba U012. `db-check.js` consulta cuatro comprobaciones sin corregir datos; `server.js` inicia el servidor.
 
-Para una instalación nueva, seguir la configuración y la [migración U004](docs/09_PARCHE_U004.md). Se conserva `pnpm-lock.yaml`; no se actualizan dependencias en U011.
+Para una instalación nueva, seguir la configuración y la [migración U004](docs/09_PARCHE_U004.md). Se conserva `pnpm-lock.yaml`; no se actualizan dependencias en U012.
 
 ## Configuración privada
 
@@ -56,7 +60,7 @@ Desarrollo local: `NODE_ENV=development`, `HOST=127.0.0.1`, `PORT=3100`. Producc
 
 La base visual reutilizable incluye botones, campos, modales, confirmaciones, mensajes, notificaciones y tablas. Guía y ejemplos: [Componentes compartidos](docs/20_COMPONENTES_COMPARTIDOS_U009.md).
 
-La demostración está en `/demostracion/componentes`, disponible con licencia y sesión de administrador. Utiliza datos ficticios en memoria; las operaciones reales de Productos siguen pendientes.
+La demostración está en `/demostracion/componentes`, disponible con licencia y sesión de administrador. Utiliza datos ficticios en memoria; Productos usa su propia API y la base configurada en `/productos`.
 
 ## Controles compartidos U010
 
