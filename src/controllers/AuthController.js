@@ -17,6 +17,7 @@ class AuthController {
         contrasena
       );
 
+      // Cambiar el identificador evita reutilizar la sesión previa al login.
       await new Promise((resolve, reject) => {
         req.session.regenerate((error) => {
           if (error) return reject(error);

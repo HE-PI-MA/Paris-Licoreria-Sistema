@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="csrf-token" content="<%= csrfToken %>">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title><%= title %> | París Licorería</title>
+  <script src="/js/components/sidebar-preference.js"></script>
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/components/sidebar.css">
+  <script src="/js/components/sidebar.js" defer></script>
+  <% if (moduleUi) { %>
+    <link rel="stylesheet" href="/css/components/module-layout.css">
+    <script src="/js/components/module-layout.js" defer></script>
+  <% } %>
+</head>
+<body class="paris-app">
+  <a class="paris-skip-link" href="#module-content">Ir al contenido</a>
+  <%- include('../components/sidebar') %>
+  <div class="paris-workspace" id="paris-workspace">
+    <header class="workspace-mobile-header">
+      <button class="workspace-menu-button" type="button" data-sidebar-open aria-label="Abrir menú" aria-controls="paris-sidebar" aria-expanded="false"><%- include('../components/icon', { name: 'menu' }) %></button>
+      <span>París Licorería</span>
+    </header>
+    <main class="workspace-main" id="module-content" tabindex="-1">
+      <% if (moduleUi) { %>
+        <%# El marco se comparte; contentView viene de module-layouts.js. %>
+        <div class="module-layout" data-module-layout="<%= page.id %>">
+          <%- include('../components/module/header') %>
+          <%- include('../components/module/controls') %>
+          <section class="module-content-panel" data-module-region="content" aria-labelledby="module-content-title" aria-busy="false">
+            <header class="module-panel-heading"><h2 id="module-content-title">Contenido</h2></header>
+            <div class="module-content-area"><%- include('../' + moduleUi.contentView) %></div>
+          </section>
+          <%- include('../components/module/messages') %>
+        </div>
+      <% } else { %>
+      <header class="workspace-heading"><h1><%= title %></h1></header>
+      <% if (page.id === 'perfil') { %>
+        <section class="workspace-profile-card" aria-labelledby="profile-title">
+          <div class="workspace-profile-summary"><span class="workspace-profile-avatar" aria-hidden="true"><%= profile.initials %></span><div><h2 id="profile-title"><%= profile.name %></h2><p><%= profile.role %></p></div></div>
+          <dl class="workspace-profile-details"><div><dt>Nombre</dt><dd><%= usuario.nombre %></dd></div><div><dt>Apellido</dt><dd><%= usuario.apellido || 'Sin registrar' %></dd></div><div><dt>Usuario</dt><dd><%= usuario.nombreUsuario %></dd></div><div><dt>Rol</dt><dd><%= profile.role %></dd></div></dl>
+        </section>
+      <% } else if (page.id === 'forbidden') { %>
+        <section class="workspace-empty"><span class="workspace-symbol"><%- include('../components/icon', { name: 'lock' }) %></span><h2>No tienes acceso a esta sección</h2><p>Tu cuenta no tiene permiso para abrir este módulo.</p><a class="workspace-action" href="/inicio">Volver al inicio</a></section>
+      <% } else { %>
+        <section class="workspace-empty"><span class="workspace-symbol"><%- include('../components/icon', { name: page.icon }) %></span><h2>Módulo en preparación</h2><p>Esta sección aún no está disponible.</p></section>
+      <% } %>
+      <% } %>
+    </main>
+  </div>
+  <div class="workspace-error" data-logout-error hidden role="alert"></div>
+</body>
+</html>

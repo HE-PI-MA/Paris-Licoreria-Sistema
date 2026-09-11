@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 class ActivationService {
-  constructor(activationRepository, licenseService, windowsProtection, machineFingerprint) {
-    Object.assign(this, { activationRepository, licenseService, windowsProtection, machineFingerprint });
+  constructor(activationRepository, licenseService, windowsProtection) {
+    Object.assign(this, { activationRepository, licenseService, windowsProtection });
     this.cachedData = null;
     this.decoding = null;
     this.activating = Promise.resolve();
@@ -13,6 +13,7 @@ class ActivationService {
   }
   async activate(code) {
     if (typeof code !== 'string' || !code.trim() || code.length > 512) throw new Error('ACTIVACION_CODIGO_REQUERIDO');
+    // Serializa activaciones concurrentes y conserva la fecha de una activación válida.
     const operation = this.activating.then(async () => {
       const license = await this.licenseService.getValidatedLicense();
       if (!this.hashesMatch(this.hashCode(code.trim()), license.activacionHash)) throw new Error('ACTIVACION_CODIGO_INVALIDO');
@@ -36,7 +37,8 @@ class ActivationService {
     license = license || await this.licenseService.getValidatedLicense();
     const data = await this.activationRepository.read();
     if (!data) throw new Error('ACTIVACION_REQUERIDA');
-    // Cache only the decoding of identical bytes; license/date/file are checked each request.
+    // Solo se reutiliza el descifrado de bytes idénticos; la licencia y su fecha
+    // se vuelven a validar. Si el archivo cambia, también se vuelve a descifrar.
     if (data !== this.cachedData) {
       this.cachedData = data;
       this.decoding = Promise.resolve().then(() => this.windowsProtection.unprotect(data)).then(raw => {

@@ -1,0 +1,14 @@
+<section class="module-messages" data-module-region="messages" aria-labelledby="module-messages-title">
+  <h2 id="module-messages-title">Mensajes</h2>
+  <div class="module-message" data-module-status data-kind="info" role="status" aria-live="polite" aria-atomic="true">
+    <span class="module-message-symbol" aria-hidden="true">
+      <% for (const kind of ['info', 'success', 'warning', 'loading', 'empty']) { %>
+        <span data-message-icon="<%= kind %>"<% if (kind !== 'info') { %> hidden<% } %>><%- include('../icon', { name: kind === 'loading' ? 'refresh' : kind === 'empty' ? 'box' : kind }) %></span>
+      <% } %>
+    </span>
+    <p data-module-status-text><%= moduleUi.message %></p>
+  </div>
+  <div class="module-message" data-module-error data-kind="error" role="alert" aria-atomic="true" hidden>
+    <span class="module-message-symbol"><%- include('../icon', { name: 'error' }) %></span><p data-module-error-text></p>
+  </div>
+</section>

@@ -10,6 +10,7 @@ class AuthMiddleware {
     try {
       const id = req.session?.usuario?.idUsuario;
       if (!id) return this.deny(req, res);
+      // Reconsultar permite revocar el acceso al desactivar al usuario o cambiar su rol.
       const usuario = await this.authService.getAuthenticatedUser(id);
       if (!usuario) {
         await new Promise((resolve, reject) => req.session.destroy(error => error ? reject(error) : resolve()));

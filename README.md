@@ -1,33 +1,48 @@
-# París Licorería — aplicación con parche U004
+# París Licorería
 
-Aplicación web Node.js / Express / EJS / MySQL, con servidor Windows para licencias Ed25519 y activación DPAPI.
+Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-Implementado: activación, login, consulta/cierre de sesión, revalidación del usuario activo, sesiones persistentes en MySQL, protección CSRF y límites de solicitudes. Roles: ADMINISTRADOR y ENCARGADO_VENTA; el middleware se aplica al incorporar los módulos operativos.
+## Estado del desarrollo — U007
 
-Pendiente: dashboard, productos, inventario, proveedores, compras, ventas, caja, administración web de usuarios y reportes. La base de datos V2 ya contiene parte de esas operaciones; todavía no están conectadas a pantallas.
+**Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
-## Actualizar una instalación
+**Pendiente:** conectar las pantallas con las operaciones del negocio. Inicio muestra un saludo; los otros ocho módulos muestran su espacio en preparación. Sus botones, buscadores y filtros están desactivados. Una página visible no significa que su operación ya esté implementada.
 
-Leer `docs/09_PARCHE_U004.md`. Detener el servidor, respaldar MySQL y aplicar la migración U004 antes de iniciar esta versión. La actualización no elimina tablas ni modifica automáticamente operaciones históricas.
+La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; todavía no existen las API ni los formularios que los conecten a estos módulos.
 
-La base pasa de 21 tablas de negocio a 23 tablas en total: agrega `sesion_web` y `app_migration`.
+## Documentación
 
-## Comandos
+| Documento | Qué explica |
+| --- | --- |
+| [Arquitectura](docs/01_ARQUITECTURA_DEL_SISTEMA.md) | Capas, archivos y recorrido de una petición. |
+| [Configuración y ejecución](docs/02_CONFIGURACION_Y_EJECUCION.md) | Requisitos, dependencias y arranque. |
+| [Base de datos y roles](docs/03_BASE_DE_DATOS_Y_ROLES.md) | Tablas, procedimientos y permisos actuales. |
+| [Licenciamiento](docs/04_LICENCIAMIENTO_Y_ACTIVACION.md) | Firma, equipo y activación. |
+| [Autenticación y pruebas](docs/05_AUTENTICACION_SESIONES_Y_PRUEBAS.md) | Controles implementados y límites de la verificación. |
+| [Bitácora](docs/08_BITACORA_DE_DESARROLLO.md) | Jornadas e información de horas confirmada. |
+| [Estructura común](docs/11_ESTRUCTURA_MODULOS_U006.md) | Componentes y mensajes reutilizables. |
+| [Finalidad de los módulos](docs/15_MODULOS_Y_ALCANCE.md) | Qué hará cada módulo y qué falta. |
+| [Mantenimiento del código](docs/16_GUIA_DE_MANTENIMIENTO.md) | Dónde cambiar cada parte y cómo documentarla. |
+| [Revisión U007](docs/17_REVISION_U007.md) | Limpieza, comprobaciones y publicación. |
 
-- `node --test tests/application.test.js tests/migration-runner.test.js tests/mysql.test.js`: pruebas de aplicación; MySQL se omite salvo activación explícita.
-- `node scripts/migrate.js --backup "C:/Respaldos/paris.sql"`: migración sobre la base configurada.
-- `node scripts/db-check.js`: revisión de datos existentes, solo lectura.
-- `node scripts/create-admin.js`: crear el administrador inicial o reemplazar exclusivamente su registro de demostración; no cambia cuentas reales existentes.
-- `node server.js`: iniciar, después de la migración.
+Los documentos U002–U006E registran entregas anteriores; los valores visuales vigentes se encuentran en la guía de mantenimiento.
 
-También se incluyen los equivalentes `npm test`, `npm run db:migrate`, `npm run db:check`, `npm run admin:create` y `npm start`.
+## Ejecutar la instalación existente
 
-## Configuración
+Conservar `.env`, dependencias, licencia, activación y base de datos. Si U004 ya fue instalada correctamente, esta revisión no requiere volver a migrar MySQL.
 
-Conservar el `.env` de la instalación. El ejemplo no contiene contraseñas ni claves. El secreto de sesión debe ser privado y tener al menos 32 caracteres. La clave privada de licencias continúa fuera del proyecto.
+```powershell
+node --test tests/application.test.js tests/migration-runner.test.js tests/mysql.test.js
+node scripts/db-check.js
+node server.js
+```
 
-Para desarrollo local, `NODE_ENV=development`, `HOST=127.0.0.1` y `PORT=3100`.
+El primer comando ejecuta pruebas simuladas; la integración con MySQL real se omite si no se configura expresamente. El segundo consulta la base configurada y muestra cuatro comprobaciones, sin corregir datos. El tercero inicia el servidor.
 
-Para producción, `PUBLIC_ORIGIN` debe indicar el origen HTTPS exacto. Usar certificados TLS en Node o configurar explícitamente el proxy autorizado mediante `TRUST_PROXY`. La configuración incompleta detiene el inicio con un mensaje; no se desactivan cookies seguras para eludir HTTPS.
+Para una instalación nueva, seguir la configuración y la [migración U004](docs/09_PARCHE_U004.md). Se conserva `pnpm-lock.yaml`; no se actualizan dependencias en U007.
 
-Las licencias y activaciones existentes conservan su formato y ubicación. Se requieren permisos adecuados del usuario que ejecuta Node sobre ProgramData. El código de activación es repetible en el mismo equipo sin reescribir una activación válida; no se promete consumo global de un solo uso.
+## Configuración privada
+
+`.env` contiene la conexión y el secreto de sesión; no debe subirse a Git. La clave privada, los respaldos, las licencias y la activación permanecen fuera del repositorio. La clave pública de verificación sí forma parte del código.
+
+Desarrollo local: `NODE_ENV=development`, `HOST=127.0.0.1`, `PORT=3100`. Producción: origen HTTPS exacto y TLS directo o proxy de confianza explícito. El servidor valida esta configuración antes del arranque.

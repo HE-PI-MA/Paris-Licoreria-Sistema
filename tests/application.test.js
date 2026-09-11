@@ -70,6 +70,69 @@ async function server(options={}) {
     close:async()=>{await new Promise(resolve=>http.close(resolve));app.close();}};
 }
 async function scenario(fn,options){const s=await server(options);try{await fn(s);}finally{await s.close();}}
+test('U006: shared module structure, authenticated navigation, profile and local assets',()=>scenario(async s=>{
+  const form=await s.form();
+  const login=await s.post('/api/auth/login',{nombre_usuario:'audit_user',contrasena:password},form);
+  const headers={Cookie:login.cookie};
+  for(const item of require('../src/config/navigation').modules){
+    const response=await s.request(item.href,{headers});
+    assert.equal(response.status,200,response.text);
+    assert.ok(response.text.includes(`href="${item.href}" aria-label="${item.label}" aria-current="page"`));
+    assert.ok(response.text.includes('id="profile-menu"'));
+    assert.ok(response.text.includes('name="csrf-token"'));
+    let previousRegion = -1;
+    for (const region of ['header', 'controls', 'content', 'messages']) {
+      const position = response.text.indexOf(`data-module-region="${region}"`);
+      assert.ok(position > previousRegion, `${item.id}: falta la sección ${region} o está fuera de orden`);
+      previousRegion = position;
+    }
+    assert.match(response.text, /class="module-primary-action" type="button" disabled/);
+    assert.match(response.text, /id="module-search"[^>]+disabled/);
+    assert.ok(response.text.includes('data-module-error'));
+    if(item.id!=='inicio')assert.ok(response.text.includes('Módulo en preparación'));
+  }
+  s.setUser({...user,nombre:'<script>alert(1)</script>',apellido:'& Usuario'});
+  const profile=await s.request('/perfil',{headers});
+  assert.equal(profile.status,200);
+  assert.ok(profile.text.includes('&lt;script&gt;alert(1)&lt;/script&gt;'));
+  assert.ok(!profile.text.includes('<script>alert(1)</script>'));
+  assert.ok(profile.text.includes('audit_user'));
+  assert.ok(!profile.text.includes(user.contrasena));
+  assert.ok(!profile.text.includes('data-module-layout='));
+  for(const asset of ['/css/components/sidebar.css','/js/components/sidebar.js','/js/components/sidebar-preference.js','/fonts/inter/InterVariable.woff2','/img/brand/paris-isologo.png','/css/components/module-layout.css','/js/components/module-layout.js']) {
+    assert.equal((await s.request(asset)).status,200,asset);
+  }
+}));
+test('U005: seller navigation and direct requests enforce the same role limits',()=>scenario(async s=>{
+  s.setUser({...user,id_rol:2,rol:'ENCARGADO_VENTA'});
+  const form=await s.form();
+  const login=await s.post('/api/auth/login',{nombre_usuario:'audit_user',contrasena:password},form);
+  const headers={Cookie:login.cookie};
+  const home=await s.request('/inicio',{headers});
+  for(const item of require('../src/config/navigation').modules){
+    const allowed=item.roles.includes('ENCARGADO_VENTA');
+    assert.equal(home.text.includes(`href="${item.href}" aria-label="${item.label}"`),allowed,item.id);
+    assert.equal((await s.request(item.href,{headers})).status,allowed?200:403,item.id);
+  }
+  assert.equal((await s.request('/perfil',{headers})).status,200);
+}));
+test('U005: module pages and profile require an active session and license',()=>scenario(async s=>{
+  for(const route of ['/productos','/ventas','/perfil']){
+    const response=await s.request(route);
+    assert.equal(response.status,302);
+    assert.equal(response.headers.get('location'),'/login?sesion=vencida');
+  }
+  const form=await s.form();
+  const login=await s.post('/api/auth/login',{nombre_usuario:'audit_user',contrasena:password},form);
+  s.setUser({...user,estado:'INACTIVO'});
+  const inactive=await s.request('/perfil',{headers:{Cookie:login.cookie}});
+  assert.equal(inactive.status,302);
+  s.setUser({...user});
+  s.setData(null);
+  const noActivation=await s.request('/ventas');
+  assert.equal(noActivation.status,302);
+  assert.equal(noActivation.headers.get('location'),'/activar');
+}));
 test('valid login, session rotation, me, logout and inactive user',()=>scenario(async s=>{
   const f=await s.form();const login=await s.post('/api/auth/login',{nombre_usuario:'audit_user',contrasena:password},f);
   assert.equal(login.status,200);assert.ok(login.cookie);assert.notEqual(login.cookie,f.cookie);assert.ok(!login.text.includes(user.contrasena));

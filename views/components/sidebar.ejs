@@ -1,0 +1,41 @@
+<aside class="paris-sidebar" id="paris-sidebar" aria-label="Menú principal">
+  <header class="sidebar-header">
+    <a class="sidebar-brand" href="/inicio" aria-label="París Licorería — Inicio">
+      <span class="sidebar-logo-full"><img src="/img/login/paris-login-logo.webp" alt="" width="1000" height="1000"></span>
+      <span class="sidebar-logo-symbol" aria-hidden="true"><img src="/img/brand/paris-isologo.png" alt="" width="709" height="1053"></span>
+    </a>
+    <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-controls="sidebar-navigation" aria-expanded="true" aria-label="Contraer menú">
+      <span class="sidebar-collapse-icon"><%- include('sidebar-icon', { name: 'collapse' }) %></span>
+      <span class="sidebar-close-icon"><%- include('sidebar-icon', { name: 'close' }) %></span>
+    </button>
+  </header>
+
+  <nav class="sidebar-navigation" id="sidebar-navigation" aria-label="Módulos">
+    <% navigation.forEach((group, index) => { %>
+      <section class="sidebar-group" aria-labelledby="sidebar-group-<%= index %>">
+        <h2 class="sidebar-group-title" id="sidebar-group-<%= index %>"><%= group.label %></h2>
+        <ul class="sidebar-list">
+          <% group.items.forEach(item => { %>
+            <li><a class="sidebar-link<%= page.id === item.id ? ' is-active' : '' %>" href="<%= item.href %>" aria-label="<%= item.label %>"<% if (page.id === item.id) { %> aria-current="page"<% } %> data-sidebar-label="<%= item.label %>">
+              <%- include('sidebar-icon', { name: item.icon }) %><span class="sidebar-text"><%= item.label %></span>
+            </a></li>
+          <% }); %>
+        </ul>
+      </section>
+    <% }); %>
+  </nav>
+
+  <footer class="sidebar-footer">
+    <button class="sidebar-profile" id="profile-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="profile-menu" aria-label="Opciones de usuario: <%= profile.name %>">
+      <span class="sidebar-avatar" aria-hidden="true"><%= profile.initials %></span>
+      <span class="sidebar-profile-text"><span class="sidebar-profile-name" title="<%= profile.name %>"><%= profile.name %></span><span class="sidebar-profile-role"><%= profile.role %></span></span>
+      <span class="sidebar-profile-chevron"><%- include('sidebar-icon', { name: 'up' }) %></span>
+    </button>
+    <div class="sidebar-profile-menu" id="profile-menu" role="menu" aria-labelledby="profile-trigger" hidden>
+      <a href="/perfil" role="menuitem" tabindex="-1"><%- include('sidebar-icon', { name: 'user' }) %><span>Mi perfil</span></a>
+      <button type="button" role="menuitem" tabindex="-1" data-logout><%- include('sidebar-icon', { name: 'logout' }) %><span data-logout-label>Cerrar sesión</span></button>
+    </div>
+  </footer>
+</aside>
+<div class="sidebar-backdrop" data-sidebar-backdrop aria-hidden="true" hidden></div>
+<div class="sidebar-tooltip" id="sidebar-tooltip" role="tooltip" hidden></div>

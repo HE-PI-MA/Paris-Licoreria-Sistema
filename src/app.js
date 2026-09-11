@@ -20,7 +20,6 @@ const AuthService = require('./services/AuthService');
 const AuthController = require('./controllers/AuthController');
 const AuthRoutes = require('./routes/auth.routes');
 const AuthMiddleware = require('./middleware/AuthMiddleware');
-const RoleMiddleware = require('./middleware/RoleMiddleware');
 
 const LicenseRepository = require('./repositories/LicenseRepository');
 const LicenseVerifier = require('./core/LicenseVerifier');
@@ -60,6 +59,7 @@ class App {
       next();
     });
     this.app.use(express.static(path.join(__dirname, '..', 'public')));
+    // Los límites se aplican antes de sesiones, autenticación y validación de licencia.
     this.limits = makeRateLimits();
     this.app.use(this.limits.general);
     this.app.post('/api/auth/login', this.limits.login);
@@ -78,6 +78,7 @@ class App {
       req.csrfToken = () => csrf.token(req, res);
       next();
     });
+    // Todas las escrituras de la API pasan por CSRF antes de sus rutas.
     this.app.use('/api', csrf.protect);
   }
 
@@ -90,7 +91,6 @@ class App {
     const authService = new AuthService(authRepository);
     this.authController = new AuthController(authService);
     this.authMiddleware = new AuthMiddleware(authService);
-    this.roleMiddleware = new RoleMiddleware();
 
     const licenseRepository = new LicenseRepository();
     const licenseVerifier = new LicenseVerifier();
@@ -108,8 +108,7 @@ class App {
     const activationService = new ActivationService(
       activationRepository,
       licenseService,
-      windowsProtection,
-      machineFingerprint
+      windowsProtection
     );
 
     this.licenseController = new LicenseController(
@@ -119,10 +118,7 @@ class App {
 
     this.licenseMiddleware = new LicenseMiddleware(activationService);
 
-    this.webController = new WebController(
-      licenseService,
-      activationService
-    );
+    this.webController = new WebController(activationService);
   }
 
   configureRoutes() {

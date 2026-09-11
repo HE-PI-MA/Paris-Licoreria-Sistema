@@ -1,9 +1,11 @@
 const { Store } = require('express-session');
 const safeLog = require('../utils/safeLog');
+/** Guarda las sesiones y su expiración en MySQL, compartidas entre instancias. */
 class MySqlSessionStore extends Store {
   constructor(pool) {
     super();
     this.pool = pool;
+    // Limpieza acotada; no mantiene vivo el proceso después del cierre del servidor.
     this.cleanup = setInterval(() => {
       this.pool.execute('DELETE FROM sesion_web WHERE expires_at <= ? LIMIT 1000', [Date.now()])
         .catch(error => safeLog('SESSION_CLEANUP_FAILED', error));

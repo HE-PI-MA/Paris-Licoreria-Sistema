@@ -1,4 +1,4 @@
-﻿# Bitácora de Desarrollo - París Licorería
+# Bitácora de Desarrollo - París Licorería
 
 Registro de las jornadas de desarrollo, actividades realizadas y tiempo dedicado al sistema.
 
@@ -90,3 +90,15 @@ Registro de las jornadas de desarrollo, actividades realizadas y tiempo dedicado
 El acceso al sistema funciona en el equipo de pruebas. El dashboard y los módulos de negocio siguen pendientes de desarrollo.
 
 ---
+
+## Avances posteriores al último registro horario
+
+- Sidebar con navegación por rol, perfil de consulta, cierre de sesión y adaptación a móvil.
+- Imagen independiente para el modo contraído y fuente distribuida localmente.
+- Estructura compartida de cabecera, controles, contenido y mensajes para los nueve módulos.
+- Espaciado compacto de 10 px, retirada de la ubicación repetida e iconos locales de relleno en menú y cuerpos.
+- Logos ajustados a 135 px (completo) y 100 px (símbolo); estilos consolidados y cabecera expandida compacta.
+- Preparación de U007: retirada de pantalla, script y estilos sin uso; comentarios de mantenimiento, explicación de módulos y actualización de documentación.
+- Verificación U007: 18 pruebas automáticas aprobadas; integración con MySQL real omitida en el entorno de preparación.
+
+Estos avances no asignan horas nuevas ni cierran la jornada del 10/09/2026. La hora de finalización, las pausas y el tiempo efectivo siguen pendientes de confirmación. La subida a GitHub se verifica al ejecutar el publicador del paquete, no se da por realizada en esta entrada.

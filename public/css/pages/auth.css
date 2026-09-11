@@ -124,44 +124,6 @@
   color: var(--app-text);
 }
 
-.app-access-page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: var(--app-s8);
-  background:
-    radial-gradient(circle at top left, rgba(184, 138, 68, 0.17), transparent 28%),
-    var(--app-bg);
-}
-
-.app-access-card {
-  width: min(100%, 720px);
-  padding: clamp(28px, 6vw, 52px);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  background: var(--app-surface);
-  box-shadow: var(--app-shadow-card);
-}
-
-.app-access-eyebrow {
-  color: var(--app-primary);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.78rem;
-}
-
-.app-access-title {
-  margin: var(--app-s3) 0 0;
-  font-size: clamp(2rem, 5vw, 3.4rem);
-  letter-spacing: -0.045em;
-}
-
-.app-access-copy {
-  color: var(--app-muted);
-  line-height: 1.7;
-}
-
 @media (max-width: 900px) {
   .app-auth-page {
     grid-template-columns: 1fr;

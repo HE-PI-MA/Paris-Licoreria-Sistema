@@ -1,4 +1,5 @@
-﻿class RoleMiddleware {
+/** Utilidad probada para futuras rutas de API; las páginas usan navigation.allowed. */
+class RoleMiddleware {
   allow(...roles) {
     const rolesPermitidos = roles.map((rol) => String(rol).trim().toUpperCase());
 

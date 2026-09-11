@@ -1,0 +1,10 @@
+<section class="module-controls-panel" data-module-region="controls" aria-label="Buscador y filtros">
+  <div class="module-controls-row">
+    <div class="module-search-field">
+      <label for="module-search">Buscar</label>
+      <div class="module-search-input"><%- include('../icon', { name: 'search' }) %><input id="module-search" type="search" placeholder="<%= moduleUi.searchPlaceholder %>" disabled aria-describedby="module-controls-help"></div>
+    </div>
+    <button class="module-filter-button" type="button" disabled aria-describedby="module-controls-help"><%- include('../icon', { name: 'filter' }) %><span>Filtros</span></button>
+  </div>
+  <p class="module-controls-help" id="module-controls-help">Disponible próximamente.</p>
+</section>

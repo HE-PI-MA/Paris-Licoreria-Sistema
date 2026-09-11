@@ -84,19 +84,14 @@ Luego /api/auth/me:
 Debe iniciar sesion
 Estado: EXITOSA
 
-## RoleMiddleware
+## Actualización del estado — U007
 
-RoleMiddleware queda conectado al contenedor de dependencias.
-Su aplicacion concreta se hara al desarrollar cada modulo real.
-No se crean rutas ficticias de roles.
+La pantalla temporal de acceso fue reemplazada por el espacio de trabajo con sidebar. Esa vista antigua y su JavaScript se retiraron en U007.
 
-## Interfaz
+Los nueve módulos y Mi perfil requieren licencia y usuario activo. Las páginas administrativas comprueban el rol en el servidor mediante `navigation.allowed`; el menú usa la misma definición. RoleMiddleware queda como utilidad probada para futuras API, sin una instancia sin uso en App.
 
-Esta actualizacion agrega:
-- Pantalla de activacion
-- Login visual responsive
-- Pantalla temporal de acceso autorizado
-- Mensajes propios del sistema
-- Sin alert(), confirm() ni prompt()
+Las sesiones persisten en `sesion_web`. CSRF comprueba token y origen para las escrituras JSON. Los límites se aplican antes del trabajo de autenticación/licencia. En producción se exige HTTPS directo o un proxy explícito y se utilizan cookies Secure.
 
-Los modulos operativos se desarrollaran despues.
+Comando de regresión: `node --test tests/application.test.js tests/migration-runner.test.js tests/mysql.test.js`. En la revisión U007: 18 aprobadas, ninguna fallida y una integración MySQL omitida. Las pruebas utilizan dobles de autenticación, licencia y datos; no sustituyen la comprobación en Windows.
+
+Las comprobaciones PR-SEG anteriores son un registro del 06/09/2026, no una repetición de pruebas reales de esta entrega. El usuario confirmó posteriormente login/logout en Windows y las cuatro revisiones de datos sin incidencias tras U004; U007 no vuelve a ejecutar esa revisión real desde el entorno de preparación.

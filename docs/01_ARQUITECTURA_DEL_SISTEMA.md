@@ -1,107 +1,45 @@
-﻿# 01. Arquitectura del Sistema
+# Arquitectura del sistema
 
-## 1. Proyecto
+Estado: U007. La aplicación se organiza por responsabilidades. Express recibe peticiones, EJS genera HTML y MySQL mantiene datos y sesiones.
 
-Nombre: Paris Licoreria Sistema
+## Recorrido de una petición
 
-Repositorio de aplicacion:
-https://github.com/HE-PI-MA/Paris-Licoreria-Sistema
+1. `server.js` carga la configuración y comprueba conexión y migración U004.
+2. `src/app.js` configura cabeceras, archivos públicos, límites, JSON, sesiones y CSRF; conecta dependencias y rutas.
+3. Las rutas aplican licencia, sesión y autorización según el recurso.
+4. El controlador prepara una respuesta. Un servicio resuelve las reglas y un repositorio consulta o guarda datos.
+5. Las vistas y componentes generan el HTML. El JavaScript del navegador gestiona la interacción.
 
-Repositorio de base de datos:
-https://github.com/HE-PI-MA/BD1-Paris-Licoreria
+Los archivos estáticos se sirven antes del middleware de sesión. Las escrituras actuales de la API requieren POST JSON y token CSRF. El acceso a las páginas de módulos se valida en el servidor aunque el enlace no aparezca en el menú.
 
-## 2. Objetivo
+## Directorios
 
-Desarrollar un sistema web para apoyar la gestion operativa de Paris Licoreria.
+| Ubicación | Responsabilidad |
+| --- | --- |
+| `src/config/` | Conexión, configuración de ejecución, navegación y presentación de módulos. |
+| `src/routes/` | Direcciones y orden de los controles de acceso. |
+| `src/controllers/` | Entradas HTTP, respuestas y datos para EJS. |
+| `src/services/` | Autenticación, licencia, activación y almacén de sesiones. |
+| `src/repositories/` | Consultas SQL y lectura/escritura de archivos de licencia y activación. |
+| `src/middleware/` | Sesión activa, licencia, CSRF y límites de solicitudes. |
+| `src/core/` | Esquema, serialización y firma de la licencia. |
+| `src/utils/` | Identificación del equipo, protección de Windows y registro seguro de errores. |
+| `views/layouts/` | Marco común del espacio de trabajo. |
+| `views/components/` | Sidebar, iconos, cabecera, controles y mensajes. |
+| `views/<modulo>/content.ejs` | Cuerpo específico de cada módulo; Inicio utiliza `views/dashboard/`. |
+| `public/` | Estilos, interacción, fuentes e imágenes servidos localmente. |
+| `database/` | Migración y guía de permisos mínimos. |
+| `scripts/` | Migración, comprobación de datos y creación inicial de administrador. |
+| `tests/` | Pruebas con dobles y prueba opcional de MySQL desechable. |
 
-## 3. Tecnologias
+## Una base para todos los módulos
 
-- Node.js
-- Express.js
-- EJS
-- JavaScript
-- CSS
-- MySQL 8
-- mysql2
-- PNPM
-- Git
-- GitHub
+`navigation.js` define enlaces y roles. `module-layouts.js` define la acción principal y la plantilla de contenido. `WebController.renderWorkspace` prepara el usuario, el menú filtrado y el módulo. `workspace.ejs` integra el marco y carga el contenido declarado en la configuración.
 
-## 4. Arquitectura POO
+No se repite el sidebar ni la estructura de cuatro áreas en cada pantalla. Perfil y acceso restringido utilizan el mismo espacio de trabajo con un cuerpo propio.
 
-Flujo principal:
+## Límites actuales
 
-Route -> Controller -> Service -> Repository -> MySQL
+No hay controladores ni repositorios de productos, compras, ventas o caja conectados a estas pantallas. Al implementarlos se deben validar permisos de operación y propiedad de los registros, además del permiso general de página. Las rutas de vistas no sustituyen las futuras rutas de API.
 
-Route: administra las rutas HTTP.
-Controller: recibe solicitudes y respuestas.
-Service: contiene la logica de negocio.
-Repository: centraliza el acceso a MySQL.
-Database: administra el pool de conexiones.
-
-## 5. Estructura principal
-
-- docs
-- public/css
-- public/img
-- public/js
-- src/config
-- src/controllers
-- src/core
-- src/middleware
-- src/models
-- src/repositories
-- src/routes
-- src/services
-- src/utils
-- views
-- server.js
-- package.json
-
-## 6. Base de datos
-
-Base utilizada: paris_licoreria
-Host de desarrollo: 127.0.0.1
-Puerto MySQL: 3306
-
-Las credenciales privadas se almacenan en .env.
-El archivo .env esta excluido de Git.
-
-## 7. Puerto de la aplicacion
-
-Paris Licoreria utiliza:
-http://localhost:3100
-
-El puerto 3000 se mantiene disponible para otro sistema local.
-
-## 8. Roles
-
-- ADMINISTRADOR
-- ENCARGADO_VENTA
-
-## 9. Tabla USUARIO
-
-- id_usuario
-- id_rol
-- nombre
-- apellido
-- nombre_usuario
-- contrasena
-- estado
-
-El nombre de usuario es unico.
-Los estados permitidos son ACTIVO e INACTIVO.
-
-## 10. Estado de la Etapa 1
-
-- Proyecto inicial creado
-- PNPM configurado
-- Dependencias instaladas
-- Arquitectura POO creada
-- Conexion MySQL validada
-- Puerto 3100 configurado
-- Repositorio GitHub creado
-- Primer commit realizado
-
-Commit inicial:
-5cc41aa - Crear nucleo POO de Paris Licoreria
+`RoleMiddleware` se conserva como utilidad probada para futuras API; no se instancia sin uso en `App`. La autorización actual de páginas procede de `navigation.allowed`.
