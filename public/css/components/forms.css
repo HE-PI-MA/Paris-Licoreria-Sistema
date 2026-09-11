@@ -1,3 +1,4 @@
+/* Campos comunes y validación. Los estilos propios del login permanecen en auth.css. */
 .app-field {
   display: grid;
   gap: var(--app-s2);
@@ -10,74 +11,37 @@
 
 .app-input {
   width: 100%;
-  min-height: 50px;
+  min-height: var(--app-control-height);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
   background: var(--app-surface);
   color: var(--app-text);
-  padding: 0 var(--app-s4);
+  padding: 10px;
+  font: inherit;
+  min-width: 0;
   outline: none;
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .app-input:focus {
-  border-color: var(--app-primary);
-  box-shadow: var(--app-shadow-focus);
+  border-color: var(--app-gold-600);
+  box-shadow: 0 0 0 3px rgba(217, 164, 65, .22);
 }
 
-.app-button {
-  min-height: 50px;
-  border: 0;
-  border-radius: var(--app-radius-sm);
-  padding: 0 var(--app-s5);
-  font-weight: 800;
-  transition: transform 120ms ease, opacity 120ms ease, background 120ms ease;
-}
+/* Selectores, textos extensos, ayudas y errores usan la misma escala visual. */
+textarea.app-input { min-height: 7rem; resize: vertical; }
+select.app-input { padding-right: 2rem; }
+.app-input:disabled { cursor: not-allowed; color: var(--app-muted); background: #f8f6f7; opacity: 1; }
+.app-input[aria-invalid="true"] { border-color: var(--app-danger); }
+.app-field-help, .app-field-error { margin: 0; font-size: .875rem; line-height: 1.45; overflow-wrap: anywhere; }
+.app-field-help { color: var(--app-muted); }
+.app-field-error { color: var(--app-danger); font-weight: 550; }
+.app-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--module-space); }
+.app-field--wide { grid-column: 1 / -1; }
+.app-form { display: grid; gap: var(--module-space); min-width: 0; }
+.app-checkbox { display: flex; align-items: start; gap: var(--module-space); }
+.app-checkbox input { margin-top: .35rem; accent-color: var(--app-gold-600); }
 
-.app-button:hover {
-  transform: translateY(-1px);
-}
-
-.app-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
-  transform: none;
-}
-
-.app-button--primary {
-  background: var(--app-primary);
-  color: #ffffff;
-}
-
-.app-button--primary:hover {
-  background: var(--app-primary-strong);
-}
-
-.app-alert {
-  border: 1px solid transparent;
-  border-radius: var(--app-radius-sm);
-  padding: var(--app-s3) var(--app-s4);
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
-
-.app-alert--danger {
-  color: var(--app-danger);
-  background: var(--app-danger-soft);
-  border-color: rgba(161, 43, 57, 0.2);
-}
-
-.app-alert--success {
-  color: var(--app-success);
-  background: var(--app-success-soft);
-  border-color: rgba(23, 107, 69, 0.2);
-}
-
-.app-alert--warning {
-  color: var(--app-warning);
-  background: var(--app-warning-soft);
-  border-color: rgba(139, 91, 17, 0.2);
-}
 .app-input-dark {
   color-scheme: dark;
   color: #ffffff;

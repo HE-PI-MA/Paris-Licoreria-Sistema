@@ -1,0 +1,42 @@
+/* Avisos de módulos, formularios y notificaciones: mismos colores y tipos de mensaje. */
+.app-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--module-space);
+  padding: var(--module-space);
+  border: 1px solid #c8d9f5;
+  border-radius: var(--app-radius-sm);
+  color: #285287;
+  background: #edf4ff;
+  font-size: .9375rem;
+  line-height: 1.45;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.app-alert p { flex: 1; min-width: 0; margin: 0; }
+.app-alert-icon { display: block; flex: 0 0 1.25rem; padding-top: .125rem; }
+.app-alert-icon .paris-icon { width: 1.25rem; height: 1.25rem; }
+.app-alert--danger, .app-alert[data-kind="error"] { color: var(--app-danger); background: var(--app-danger-soft); border-color: #ebbec4; }
+.app-alert--success, .app-alert[data-kind="success"] { color: var(--app-success); background: var(--app-success-soft); border-color: #bcdcca; }
+.app-alert--warning, .app-alert[data-kind="warning"] { color: var(--app-warning); background: var(--app-warning-soft); border-color: #eedaa7; }
+.app-alert[data-kind="empty"] { color: #655a60; background: #f8f6f7; border-color: var(--app-border); }
+.app-alert[data-kind="loading"] { color: #77521b; background: #fff8e9; border-color: #e8d6af; }
+.app-alert[data-kind="loading"] .app-alert-icon .paris-icon { animation: app-spin 1.2s linear infinite; }
+.app-notifications {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  z-index: 200;
+  display: grid;
+  gap: var(--module-space);
+  width: min(26rem, calc(100vw - 20px));
+  max-height: min(75vh, 40rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  pointer-events: none;
+}
+.app-toast { pointer-events: auto; box-shadow: 0 8px 24px #251f2120; }
+.app-toast .app-button { flex-shrink: 0; min-height: 2rem; min-width: 2rem; padding: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .app-alert[data-kind="loading"] .app-alert-icon .paris-icon { animation: none; }
+}

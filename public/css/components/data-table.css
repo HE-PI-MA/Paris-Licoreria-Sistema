@@ -1,0 +1,30 @@
+/* Tabla semántica con desplazamiento contenido, estados y pie de paginación compartidos. */
+.app-data-table { display: flex; flex-direction: column; flex: 1; min-width: 0; max-width: 100%; }
+.app-table-scroll { flex: 1; min-width: 0; width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+.app-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .9375rem; }
+.app-table th, .app-table td { padding: 10px; border-bottom: 1px solid var(--app-border); vertical-align: middle; overflow-wrap: anywhere; }
+.app-table th { font-weight: 600; color: #51484c; background: #f8f6f7; }
+/* El encabezado comunica el orden con aria-sort y conserva foco visible. */
+.app-table-sort { display: inline-flex; align-items: center; gap: 6px; padding: 6px 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; text-align: inherit; }
+.app-table-sort:focus-visible { outline: 2px solid var(--app-gold-600); outline-offset: 3px; border-radius: 4px; }
+.app-table-sort span { min-width: 1rem; }
+.app-table tbody tr:hover { background: #fffaf0; }
+.app-table .app-table-number { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.app-table-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.app-table-actions .app-button { font-size: .875rem; }
+.app-table-state { height: 13rem; }
+.app-table-state .app-alert { justify-content: center; }
+.app-table-state .app-button { margin-top: 10px; }
+.app-table-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--module-space); padding-top: var(--module-space); }
+.app-table-footer p { margin: 0; color: var(--app-muted); font-size: .875rem; }
+.app-table-size, .app-table-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: var(--module-space); font-size: .875rem; }
+.app-table-size .app-input { width: auto; }
+.app-badge { display: inline-block; padding: 3px 10px; border: 1px solid var(--app-border); border-radius: 20px; font-size: .8125rem; font-weight: 600; line-height: 1.5; }
+.app-badge--neutral { color: #655a60; background: #f8f6f7; }
+.app-badge--success { color: var(--app-success); background: var(--app-success-soft); border-color: #bcdcca; }
+.app-badge--warning { color: var(--app-warning); background: var(--app-warning-soft); border-color: #eedaa7; }
+.app-badge--error { color: var(--app-danger); background: var(--app-danger-soft); border-color: #ebbec4; }
+.app-badge--info { color: #285287; background: #edf4ff; border-color: #c8d9f5; }
+@media (max-width: 40rem) {
+  .app-table-pagination { width: 100%; justify-content: space-between; }
+}

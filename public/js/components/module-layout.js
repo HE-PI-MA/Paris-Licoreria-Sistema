@@ -1,3 +1,4 @@
+/** Coordina los avisos y el estado de carga del módulo mediante el presentador Message. */
 (() => {
   'use strict';
 
@@ -11,22 +12,15 @@
       this.statusText = element.querySelector('[data-module-status-text]');
       this.error = element.querySelector('[data-module-error]');
       this.errorText = element.querySelector('[data-module-error-text]');
+      this.statusMessage = new window.ParisUI.Message(this.status, { text: this.statusText, icons: element.querySelectorAll('[data-message-icon]') });
+      this.errorMessage = new window.ParisUI.Message(this.error, { text: this.errorText, icons: [] });
       this.defaultMessage = this.statusText.textContent;
-      this.defaults = {
-        info: this.defaultMessage,
-        loading: 'Cargando…',
-        success: 'Operación completada.',
-        warning: 'Revisa la información antes de continuar.',
-        error: 'No se pudo completar la acción. Inténtalo nuevamente.',
-        empty: 'No hay registros para mostrar.'
-      };
+      this.defaults = { ...window.ParisUI.Message.defaults, info: this.defaultMessage };
     }
 
     clearMessage() {
-      this.status.hidden = true;
-      this.error.hidden = true;
-      this.statusText.textContent = '';
-      this.errorText.textContent = '';
+      this.statusMessage.clear();
+      this.errorMessage.clear();
       this.content.setAttribute('aria-busy', 'false');
     }
 
@@ -37,14 +31,10 @@
       this.clearMessage();
       this.content.setAttribute('aria-busy', String(kind === 'loading'));
       if (kind === 'error') {
-        this.error.hidden = false;
-        this.errorText.textContent = text;
+        this.errorMessage.show('error', text);
         return;
       }
-      this.status.dataset.kind = kind;
-      this.element.querySelectorAll('[data-message-icon]').forEach(icon => { icon.hidden = icon.dataset.messageIcon !== kind; });
-      this.status.hidden = false;
-      this.statusText.textContent = text;
+      this.statusMessage.show(kind, text);
     }
 
     resetMessage() { this.showMessage('info', this.defaultMessage); }
@@ -60,6 +50,7 @@
     }
   }
 
+  window.ParisUI.ModuleLayout = ModuleLayout;
   const element = document.querySelector('[data-module-layout]');
   if (element) window.ParisModule = new ModuleLayout(element).getApi();
 })();

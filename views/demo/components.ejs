@@ -1,0 +1,58 @@
+<%# Demostración aislada: la clase de página mantiene los registros ficticios en memoria. %>
+<div class="components-demo" data-components-demo>
+  <div class="app-alert app-alert--warning" role="note">
+    <%- include('../components/icon', { name: 'warning' }) %>
+    <p><strong>DEMOSTRACIÓN CON DATOS FICTICIOS.</strong> Puedes probar los controles. No se guarda información del negocio.</p>
+  </div>
+  <p class="demo-toolbar-label">Pruebas de componentes</p>
+  <div class="demo-toolbar">
+    <button type="button" class="app-button app-button--secondary" data-demo="long">Formulario largo</button>
+    <button type="button" class="app-button app-button--secondary" data-demo="empty">Lista vacía</button>
+    <button type="button" class="app-button app-button--secondary" data-demo="error">Simular error de carga</button>
+    <button type="button" class="app-button app-button--secondary" data-demo="reset">Restablecer ejemplos</button>
+  </div>
+  <div class="demo-toolbar" aria-label="Probar notificaciones">
+    <% for (const [kind, label] of [['success', 'Éxito'], ['info', 'Información'], ['warning', 'Advertencia'], ['error', 'Error'], ['loading', 'Carga']]) { %>
+      <button type="button" class="app-button app-button--secondary" data-demo-notification="<%= kind %>"><%- include('../components/icon', { name: kind === 'loading' ? 'refresh' : kind }) %><span><%= label %></span></button>
+    <% } %>
+  </div>
+  <div class="demo-toolbar">
+    <label class="app-checkbox"><input type="checkbox" data-demo-menu><span>Mostrar acciones en un menú</span></label>
+    <label class="app-checkbox"><input type="checkbox" data-demo-slow><span>Simular conexión lenta (solo demostración)</span></label>
+  </div>
+  <p class="demo-description">Busca, ordena las columnas, cambia de página o prueba las acciones. Los errores y advertencias permanecen hasta que los cierres.</p>
+  <div data-demo-table></div>
+</div>
+<template id="demo-form-template">
+  <form class="app-form" novalidate>
+    <p class="demo-description">Formulario de prueba. Los cambios se mantienen solo durante esta demostración.</p>
+    <div class="app-form-grid">
+      <div class="app-field app-field--wide">
+        <label class="app-label" for="demo-name">Nombre *</label>
+        <input class="app-input" id="demo-name" name="name" required maxlength="80" aria-describedby="demo-name-help" data-modal-initial-focus>
+        <p class="app-field-help" id="demo-name-help">Escribe entre 2 y 80 caracteres.</p>
+      </div>
+      <div class="app-field">
+        <label class="app-label" for="demo-price">Precio de ejemplo (Bs) *</label>
+        <input class="app-input" id="demo-price" name="price" type="number" required min="0.01" step="0.01">
+      </div>
+      <div class="app-field">
+        <label class="app-label" for="demo-state">Estado</label>
+        <select class="app-input" id="demo-state" name="state">
+          <option value="ACTIVO">Activo</option><option value="INACTIVO">Inactivo</option>
+        </select>
+      </div>
+      <div class="app-field app-field--wide">
+        <label class="app-label" for="demo-provider">Proveedor de ejemplo</label>
+        <select class="app-input" id="demo-provider" name="provider"><option value="">Sin selección</option></select>
+      </div>
+      <div class="app-field app-field--wide">
+        <label class="app-label" for="demo-description">Descripción</label>
+        <textarea class="app-input" id="demo-description" name="description" maxlength="500" aria-describedby="demo-description-help"></textarea>
+        <p class="app-field-help" id="demo-description-help">Campo opcional, hasta 500 caracteres.</p>
+      </div>
+    </div>
+    <label class="app-checkbox"><input type="checkbox" name="fail"><span>Simular un fallo al guardar</span></label>
+    <div data-demo-form-alert></div>
+  </form>
+</template>

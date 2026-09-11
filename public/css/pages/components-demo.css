@@ -1,0 +1,6 @@
+/* Distribución exclusiva de la demostración; los controles utilizan los componentes globales. */
+.components-demo { display: flex; flex-direction: column; flex: 1; gap: var(--module-space); min-width: 0; }
+.demo-toolbar { display: flex; flex-wrap: wrap; gap: var(--module-space); }
+.demo-toolbar-label { margin: 0; font-size: .9375rem; font-weight: 600; }
+.demo-description { margin: 0; color: var(--app-muted); font-size: .9375rem; }
+.demo-filter { min-width: min(100%, 12rem); }

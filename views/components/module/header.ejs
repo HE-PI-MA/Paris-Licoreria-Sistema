@@ -1,7 +1,8 @@
+<%# Cabecera compartida: título del módulo y su acción principal. %>
 <header class="module-header" data-module-region="header" aria-labelledby="module-title">
   <div class="module-heading"><h1 id="module-title"><%= title %></h1></div>
   <div class="module-actions">
-    <button class="module-primary-action" type="button" disabled aria-describedby="module-controls-help">
+    <button class="module-primary-action app-button app-button--primary" type="button" data-module-primary <% if (!moduleUi.enabled) { %>disabled<% } %> aria-describedby="module-controls-help">
       <%- include('../icon', { name: moduleUi.actionIcon }) %><span><%= moduleUi.actionLabel %></span>
     </button>
   </div>

@@ -16,13 +16,16 @@
 | Diseño de las cuatro áreas | `public/css/components/module-layout.css` |
 | Colapsar, menú móvil, perfil y logout | `public/js/components/sidebar.js` |
 | Restaurar preferencia antes del primer renderizado | `public/js/components/sidebar-preference.js` |
+| Búsquedas, filtros, selectores y fechas | `public/js/components/filter-bar.js`, `search-select.js`, `date-range.js` |
+| Ordenamiento y menú de acciones | `public/js/components/data-table.js`, `action-menu.js` |
+| Medir navegación local | `scripts/diagnosticar-navegacion.js` |
 | Mensajes compartidos | `public/js/components/module-layout.js` |
 | Estilos y comportamiento de login/activación | `public/css/pages/auth.css` y `public/js/pages/` |
 | Configuración general de Express y orden del middleware | `src/app.js` |
 
 ## Valores visuales vigentes
 
-En `sidebar.css`, modificar las variables de `:root`, sin agregar bloques repetidos al final del archivo:
+Modificar las variables de `:root` en `sidebar.css`; `--module-space` está centralizada en `base/tokens.css`. Evitar bloques repetidos al final del archivo:
 
 | Variable | Valor actual | Uso |
 | --- | --- | --- |
@@ -65,3 +68,11 @@ Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`,
 Modificar el flujo común de login/activación en AuthForm, y sus reglas específicas en LoginPage o ActivationPage. Sidebar y ModuleLayout agrupan estado y métodos de sus componentes. Mantener `auth-form.js` antes del script de página y `sidebar-preference.js` antes de `sidebar.js`.
 
 Las clases no reemplazan los componentes EJS ni las hojas CSS. La guía `18_ORGANIZACION_POO_U008.md` describe esa separación. Usar `node --test tests/frontend.test.js` para comprobar los eventos y el estado de las clases con dobles de elementos; las comprobaciones visuales se realizan en el navegador de la instalación.
+
+## Componentes compartidos desde U009
+
+Consultar `20_COMPONENTES_COMPARTIDOS_U009.md` antes de desarrollar Productos. Reutilizar Button, Message, Modal, Confirm, FormController, NotificationCenter y DataTable. La clase propia del módulo coordina las operaciones y conserva las llamadas al servidor. El pie de paginación pertenece a DataTable.
+
+Cada archivo nuevo o modificado lleva un comentario inicial en español con su propósito, y comentarios en las decisiones relevantes. CSS agrupa las definiciones originales por componente. Los iconos JavaScript proceden de las plantillas EJS del catálogo local.
+
+Para filtros y listados nuevos, consultar `docs/21_FILTROS_SELECTORES_Y_LISTADOS_U010.md`.

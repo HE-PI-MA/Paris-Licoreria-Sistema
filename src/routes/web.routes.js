@@ -1,3 +1,4 @@
+/** Registra páginas públicas, módulos autorizados y la demostración exclusiva de administración. */
 const express = require("express");
 const navigation = require('../config/navigation');
 
@@ -28,6 +29,15 @@ class WebRoutes {
       this.authMiddleware.requireAuth,
       this.webController.perfil
     );
+
+    // La demostración está fuera del menú operativo y utiliza datos ficticios del navegador.
+    this.router.get('/demostracion/componentes', this.licenseMiddleware.requireActivation,
+      this.authMiddleware.requireAuth, (req, res) => {
+        const page = req.authUser.rol === 'ADMINISTRADOR'
+          ? { id: 'demo-componentes', label: 'Demostración de componentes', icon: 'box' }
+          : { id: 'forbidden', label: 'Acceso restringido', icon: 'lock' };
+        return this.webController.renderWorkspace(req, res, page, page.id === 'forbidden' ? 403 : 200);
+      });
 
     // Ocultar un enlace no autoriza el recurso: comprobar también las peticiones directas.
     for (const item of navigation.modules.filter(item => item.id !== 'inicio')) {

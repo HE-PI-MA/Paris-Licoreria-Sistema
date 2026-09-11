@@ -1,6 +1,7 @@
 // Solo presentación. Las rutas y los permisos permanecen en navigation.js.
 // Cada módulo tiene su propio archivo de contenido dentro del marco compartido.
 const definitions = {
+  'demo-componentes': { actionLabel: 'Nuevo registro de prueba', actionIcon: 'plus', contentView: 'demo/components', enabled: true },
   inicio: { actionLabel: 'Actualizar resumen', actionIcon: 'refresh', contentView: 'dashboard/content' },
   ventas: { actionLabel: 'Nueva venta', actionIcon: 'plus', contentView: 'ventas/content' },
   caja: { actionLabel: 'Abrir caja', actionIcon: 'plus', contentView: 'caja/content' },
@@ -21,7 +22,9 @@ function forPage(page) {
     ...definitions[page.id],
     id: page.id,
     searchPlaceholder: `Buscar en ${page.label.toLocaleLowerCase('es')}…`,
-    message: 'Los controles se habilitarán cuando este módulo esté disponible.'
+    message: page.id === 'demo-componentes'
+      ? 'Demostración: los cambios usan datos ficticios y se pierden al recargar.'
+      : 'Los controles se habilitarán cuando este módulo esté disponible.'
   };
 }
 

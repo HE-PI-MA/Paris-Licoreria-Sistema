@@ -1,0 +1,18 @@
+/* Filtros activos, selectores y fechas comparten la tipografía y los controles de forms.css. */
+.app-filter-summary { display: flex; flex-wrap: wrap; gap: var(--module-space); align-items: center; margin-top: var(--module-space); }
+.app-filter-summary:empty { display: none; }
+.app-filter-summary .app-button { font-size: .875rem; min-height: 36px; }
+.app-date-range { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--module-space); border: 0; padding: 0; margin: 0; min-width: 0; }
+.app-date-range legend { padding: 0 0 var(--module-space); }
+.app-date-range .app-field-error { grid-column: 1 / -1; }
+.app-search-select { min-width: 0; position: relative; }
+.app-search-select-control { display: flex; gap: 6px; align-items: center; }
+.app-search-select-control .app-input { flex: 1; }
+.app-search-select-panel { border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); padding: 6px; background: var(--app-surface); margin-top: 6px; }
+.app-search-select-list { max-height: 12rem; overflow-y: auto; overscroll-behavior: contain; }
+.app-search-select-option { padding: 10px; border-radius: 6px; cursor: pointer; overflow-wrap: anywhere; }
+.app-search-select-option[aria-selected="true"] { background: var(--app-gold-100, #fff1ce); }
+.app-search-select-option[data-active="true"] { outline: 2px solid var(--app-gold-600); outline-offset: -2px; }
+.app-search-select-panel .app-alert { font-size: .875rem; }
+.app-search-select-panel > .app-button { margin-top: 6px; }
+@media (max-width: 30rem) { .app-date-range { grid-template-columns: minmax(0, 1fr); } }

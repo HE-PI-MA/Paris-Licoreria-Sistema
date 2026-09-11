@@ -1,10 +1,11 @@
+<%# Buscador y filtros compartidos; se habilitan únicamente para páginas implementadas. %>
 <section class="module-controls-panel" data-module-region="controls" aria-label="Buscador y filtros">
   <div class="module-controls-row">
     <div class="module-search-field">
-      <label for="module-search">Buscar</label>
-      <div class="module-search-input"><%- include('../icon', { name: 'search' }) %><input id="module-search" type="search" placeholder="<%= moduleUi.searchPlaceholder %>" disabled aria-describedby="module-controls-help"></div>
+      <label class="app-label" for="module-search">Buscar</label>
+      <div class="module-search-input"><%- include('../icon', { name: 'search' }) %><input class="app-input" id="module-search" type="search" placeholder="<%= moduleUi.searchPlaceholder %>" <% if (!moduleUi.enabled) { %>disabled<% } %> aria-describedby="module-controls-help"></div>
     </div>
-    <button class="module-filter-button" type="button" disabled aria-describedby="module-controls-help"><%- include('../icon', { name: 'filter' }) %><span>Filtros</span></button>
+    <button class="module-filter-button app-button app-button--secondary" type="button" <% if (!moduleUi.enabled) { %>disabled<% } %> aria-describedby="module-controls-help"><%- include('../icon', { name: 'filter' }) %><span>Filtros</span></button>
   </div>
-  <p class="module-controls-help" id="module-controls-help">Disponible próximamente.</p>
+  <p class="module-controls-help" id="module-controls-help"><%= moduleUi.enabled ? 'Filtra los registros ficticios de esta demostración.' : 'Disponible próximamente.' %></p>
 </section>

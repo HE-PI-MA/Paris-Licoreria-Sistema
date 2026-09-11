@@ -14,7 +14,6 @@
 
 /* Configuración del sidebar y del espacio de trabajo. */
 :root {
-  --module-space: 10px;
   --sidebar-width: 17.5rem;
   --sidebar-rail: 5.5rem;
   --sidebar-current-width: var(--sidebar-width);
@@ -48,12 +47,12 @@ html[data-sidebar-collapsed="true"] {
   font: inherit;
 }
 
-.paris-app button:disabled {
-  cursor: wait;
+.paris-sidebar button:disabled {
+  cursor: not-allowed;
   opacity: .6;
 }
 
-.paris-app :is(a, button):focus-visible {
+.paris-sidebar :is(a, button):focus-visible, .workspace-menu-button:focus-visible {
   outline: 3px solid #d9a441;
   outline-offset: 3px;
 }

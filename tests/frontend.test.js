@@ -1,3 +1,4 @@
+/** Pruebas de clases de interfaz con dobles de elementos; conservan la cobertura de U008. */
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('fs'),path=require('path'),vm=require('vm');
@@ -81,7 +82,7 @@ test('U008: ModuleLayout conserva API, carga, tipos validos y texto sin HTML',()
   const e=environment(),layout=e.element();layout.dataset.moduleLayout='productos';e.document.queries.set('[data-module-layout]',layout);
   const nodes={};for(const key of ['content','status','status-text','error','error-text']){nodes[key]=e.element();layout.queries.set(key==='content'?'[data-module-region="content"]':`[data-module-${key}]`,nodes[key]);}
   const icons=['info','loading','success','warning','empty'].map(kind=>{const icon=e.element();icon.dataset.messageIcon=kind;return icon;});
-  layout.queries.set('[data-message-icon]',icons);nodes['status-text'].textContent='Mensaje inicial';e.load('components/module-layout.js');
+  layout.queries.set('[data-message-icon]',icons);nodes['status-text'].textContent='Mensaje inicial';e.window.ParisUI={};e.load('components/messages.js');e.load('components/module-layout.js');
   const api=e.window.ParisModule;assert.equal(api.id,'productos');assert.equal(Object.isFrozen(api),true);
   const detached=api.showMessage;detached('loading');assert.equal(nodes.content.getAttribute('aria-busy'),'true');
   detached('error','<img src=x onerror=alert(1)>');assert.equal(nodes.content.getAttribute('aria-busy'),'false');

@@ -1,3 +1,4 @@
+<%# Marco autenticado: sidebar, componentes comunes y cuerpo específico de cada módulo. %>
 <!doctype html>
 <html lang="es">
 <head>
@@ -10,12 +11,26 @@
   <link rel="stylesheet" href="/css/app.css">
   <link rel="stylesheet" href="/css/components/sidebar.css">
   <script src="/js/components/sidebar.js" defer></script>
+  <script src="/js/components/ui-core.js" defer></script>
+  <script src="/js/components/messages.js" defer></script>
+  <script src="/js/components/modal.js" defer></script>
+  <script src="/js/components/form-controller.js" defer></script>
+  <script src="/js/components/search-select.js" defer></script>
+  <script src="/js/components/date-range.js" defer></script>
+  <script src="/js/components/filter-bar.js" defer></script>
+  <script src="/js/components/action-menu.js" defer></script>
+  <script src="/js/components/data-table.js" defer></script>
   <% if (moduleUi) { %>
     <link rel="stylesheet" href="/css/components/module-layout.css">
     <script src="/js/components/module-layout.js" defer></script>
   <% } %>
+  <% if (page.id === 'demo-componentes') { %>
+    <link rel="stylesheet" href="/css/pages/components-demo.css">
+    <script src="/js/pages/components-demo.js" defer></script>
+  <% } %>
 </head>
 <body class="paris-app">
+  <%- include('../components/ui-icons') %>
   <a class="paris-skip-link" href="#module-content">Ir al contenido</a>
   <%- include('../components/sidebar') %>
   <div class="paris-workspace" id="paris-workspace">

@@ -1,0 +1,35 @@
+/* Modal general: cabecera y pie visibles; el cuerpo largo tiene desplazamiento propio. */
+body.app-modal-open { overflow: hidden; }
+.app-modal {
+  width: min(38rem, calc(100vw - 20px));
+  max-width: calc(100vw - 20px);
+  max-height: calc(100vh - 20px);
+  max-height: calc(100dvh - 20px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface);
+  color: var(--app-text);
+  box-shadow: var(--app-shadow-card);
+  overflow: hidden;
+}
+.app-modal[open] { display: flex; flex-direction: column; }
+.app-modal--small { width: min(28rem, calc(100vw - 20px)); }
+.app-modal--large { width: min(58rem, calc(100vw - 20px)); }
+.app-modal::backdrop { background: rgba(17, 16, 14, .6); }
+.app-modal-header, .app-modal-footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--module-space);
+  padding: var(--module-space);
+}
+.app-modal-header { justify-content: space-between; border-bottom: 1px solid var(--app-border); }
+.app-modal-header h2 { margin: 0; font-size: 1.25rem; line-height: 1.4; overflow-wrap: anywhere; }
+.app-modal-header .app-button { flex-shrink: 0; }
+.app-modal-body { min-height: 0; min-width: 0; padding: var(--module-space); overflow-y: auto; overscroll-behavior: contain; overflow-wrap: anywhere; }
+.app-modal-footer { justify-content: flex-end; flex-wrap: wrap; border-top: 1px solid var(--app-border); }
+@media (max-width: 30rem) {
+  .app-modal-footer .app-button { flex: 1 1 auto; }
+}

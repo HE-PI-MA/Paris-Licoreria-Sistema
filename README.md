@@ -49,3 +49,15 @@ Para una instalación nueva, seguir la configuración y la [migración U004](doc
 `.env` contiene la conexión y el secreto de sesión; no debe subirse a Git. La clave privada, los respaldos, las licencias y la activación permanecen fuera del repositorio. La clave pública de verificación sí forma parte del código.
 
 Desarrollo local: `NODE_ENV=development`, `HOST=127.0.0.1`, `PORT=3100`. Producción: origen HTTPS exacto y TLS directo o proxy de confianza explícito. El servidor valida esta configuración antes del arranque.
+
+## Componentes compartidos U009
+
+La base visual reutilizable incluye botones, campos, modales, confirmaciones, mensajes, notificaciones y tablas. Guía y ejemplos: [Componentes compartidos](docs/20_COMPONENTES_COMPARTIDOS_U009.md).
+
+La demostración está en `/demostracion/componentes`, disponible con licencia y sesión de administrador. Utiliza datos ficticios en memoria; las operaciones reales de Productos siguen pendientes.
+
+## Controles compartidos U010
+
+La demostración `/demostracion/componentes` incorpora filtros configurables, selectores con búsqueda, fechas, ordenamiento y menú de acciones. Sus datos son ficticios. Guía de integración: [Filtros, selectores y listados U010](docs/21_FILTROS_SELECTORES_Y_LISTADOS_U010.md).
+
+Para medir navegación local: detener el servidor y ejecutar `node scripts/diagnosticar-navegacion.js`. El arranque habitual `node server.js` mantiene las mediciones desactivadas.

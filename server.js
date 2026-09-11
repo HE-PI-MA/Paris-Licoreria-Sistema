@@ -6,11 +6,12 @@ const database = require('./src/config/database');
 const runtime = require('./src/config/runtime');
 const safeLog = require('./src/utils/safeLog');
 
-async function start() {
+/** Application permite ejecutar el mismo arranque con mediciones locales opcionales. */
+async function start({ Application = App } = {}) {
   const config = runtime();
   await database.testConnection();
   await database.assertSchema();
-  const application = new App();
+  const application = new Application();
   const handler = application.getExpressApp();
   const server = config.tls
     ? https.createServer({ cert: fs.readFileSync(process.env.TLS_CERT_PATH), key: fs.readFileSync(process.env.TLS_KEY_PATH) }, handler)

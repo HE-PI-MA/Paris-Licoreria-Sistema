@@ -1,0 +1,10 @@
+/* El menú aparece en la capa de popovers, sin aumentar el ancho ni recortar la tabla. */
+.app-action-menu { display: inline-flex; }
+.app-action-menu-panel {
+  position: fixed; inset: auto; margin: 0; padding: 6px;
+  width: max-content; max-width: calc(100vw - 20px); overflow: auto;
+  border: 1px solid var(--app-border); border-radius: var(--app-radius-sm);
+  color: var(--app-text); background: var(--app-surface); box-shadow: 0 8px 25px #0002; z-index: 50;
+}
+.app-action-menu-panel:not([hidden]) { display: grid; gap: 4px; }
+.app-action-menu-panel .app-button { justify-content: flex-start; text-align: left; border-color: transparent; }
