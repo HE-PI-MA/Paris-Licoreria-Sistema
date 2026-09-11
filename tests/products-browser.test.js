@@ -40,12 +40,12 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
  const menu=async(name)=>{await page.getByRole('button',{name:'Acciones del registro 1',exact:true}).first().click();await page.getByRole('menuitem',{name,exact:true}).click();};
  try{
   await page.goto(app.base+'/login');await page.locator('[name=nombre_usuario]').fill('audit_user');await page.locator('[name=contrasena]').fill(password);await page.locator('[data-login-submit]').click();await page.waitForURL('**/inicio');
-  await t.test('consulta remota, paginación, vacío, error y reintento',async()=>{
-   await page.goto(app.base+'/productos');await visible('Mostrando 1–10 de 12 registros');
-   await page.getByRole('button',{name:'Siguiente',exact:true}).click();await visible('Mostrando 11–12 de 12 registros');
+  await t.test('consulta remota completa, vacío, error y reintento',async()=>{
+   await page.goto(app.base+'/productos');await visible('Mostrando 1–12 de 12 registros');
+   assert.equal(await page.locator('#products-table .app-table-pagination').count(),0);
    await page.locator('#module-search').fill('ausente');await visible('No hay registros para mostrar.');
    failList=true;await page.locator('#module-search').fill('Producto');await visible('No se pudo cargar el listado. Inténtalo nuevamente.');
-   failList=false;await page.getByRole('button',{name:'Reintentar',exact:true}).click();await visible('Mostrando 1–10 de 12 registros');
+   failList=false;await page.getByRole('button',{name:'Reintentar',exact:true}).click();await visible('Mostrando 1–12 de 12 registros');
   });
   await t.test('teclado, descarte de cambios y retorno de foco',async()=>{
    await page.locator('[data-module-primary]').click();await page.getByRole('textbox',{name:'Nombre del producto *',exact:true}).fill('Pendiente');
@@ -64,7 +64,7 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
    await page.locator('dialog[open] form').evaluate(form=>form.dispatchEvent(new Event('submit',{cancelable:true})));
    await page.waitForFunction(()=>document.querySelector('dialog[open]').getAttribute('aria-busy')==='true');
    releaseSave();saveGate=null;await visible('No se pudo confirmar la operación. Revisa la conexión y vuelve a intentarlo desde este formulario.');
-   assert.equal(calls.length,1);await page.getByRole('button',{name:'Guardar',exact:true}).click();await visible('Mostrando 1–10 de 13 registros');
+   assert.equal(calls.length,1);await page.getByRole('button',{name:'Guardar',exact:true}).click();await visible('Mostrando 1–13 de 13 registros');
    assert.equal(calls.length,2);assert.equal(calls[0].key,calls[1].key);assert.equal(rows.filter(r=>r.name==='Producto nuevo').length,1);
   });
   await t.test('edición protege unidad; presentaciones protegen factor usado y guardan decimales',async()=>{

@@ -6,12 +6,12 @@
     constructor(element) {
       this.element = element; this.api = new Catalog.ProductsApi(); this.notifications = new UI.NotificationCenter();
       this.events = new AbortController(); this.operations = new Map(); this.dialogs = new Set();
-      this.table = new UI.DataTable({ container: element, caption: 'Productos', load: params => this.api.list(params), actionDisplay: 'menu',
+      this.table = new UI.DataTable({ container: element, caption: 'Productos', mode: 'scroll', numbered: true, pageSize: 50, load: params => this.api.list(params), actionDisplay: 'menu',
         columns: [
-          { key: 'name', label: 'Producto', sortable: true }, { key: 'category', label: 'Categoría', sortable: true },
-          { key: 'unit', label: 'Unidad base' }, { key: 'presentations', label: 'Presentaciones', type: 'number' },
-          { key: 'stock', label: 'Stock disponible', type: 'quantity', sortable: true },
-          { key: 'minimum', label: 'Stock mínimo', type: 'quantity', sortable: true }, { key: 'state', label: 'Estado', type: 'state', sortable: true, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'neutral' } } }
+          { key: 'name', label: 'Producto', sortable: true }, { key: 'category', label: 'Categoría', sortable: true, priority: 2 },
+          { key: 'unit', label: 'Unidad base', priority: 3 }, { key: 'presentations', label: 'Presentaciones', type: 'number', priority: 3 },
+          { key: 'stock', label: 'Stock disponible', type: 'quantity', sortable: true, priority: 1 },
+          { key: 'minimum', label: 'Stock mínimo', type: 'quantity', sortable: true, priority: 2 }, { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'neutral' } } }
         ], sort: { key: 'name', direction: 'asc' },
         actions: [{ id: 'detail', label: 'Ver detalle', icon: 'info' }, { id: 'edit', label: 'Editar', icon: 'edit' },
           { id: 'presentations', label: 'Presentaciones', icon: 'box' }, ...this.stateActions()],
@@ -99,9 +99,9 @@
       this.dialogs.add(form.modal);
       };
       add.addEventListener('click', () => edit(null, add), { signal: modal.events.signal });
-      table = new UI.DataTable({ container: host, caption: 'Presentaciones de ' + product.name, load: params => this.api.presentations(product.id, params),
+      table = new UI.DataTable({ container: host, caption: 'Presentaciones de ' + product.name, numbered: true, load: params => this.api.presentations(product.id, params),
         columns: [{ key: 'name', label: 'Presentación', sortable: true }, { key: 'factor', label: 'Equivalencia', type: 'quantity', sortable: true },
-          { key: 'barcode', label: 'Código de barras' }, { key: 'price', label: 'Precio (Bs)', type: 'price', sortable: true }, { key: 'state', label: 'Estado', type: 'state', sortable: true, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'neutral' } } }],
+          { key: 'barcode', label: 'Código de barras' }, { key: 'price', label: 'Precio (Bs)', type: 'price', sortable: true }, { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'neutral' } } }],
         sort: { key: 'name', direction: 'asc' }, actionDisplay: 'menu', actions: [{ id: 'edit', label: 'Editar', icon: 'edit' }, ...this.stateActions()],
         onAction: ({ action, record, button }) => this.handle(async () => {
           alert.clear();

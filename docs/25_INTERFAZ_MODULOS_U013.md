@@ -1,5 +1,7 @@
 # Interfaz compartida de módulos — U013
 
+Esta revisión documenta U013. Las medidas, colores y modalidad de listado vigentes están en [Tablas y estilo U014](26_TABLAS_Y_ESTILO_U014.md).
+
 La cabecera del módulo comparte el fondo negro y la altura del sidebar en escritorio. Productos muestra directamente un buscador y un selector nativo de categoría, sin tarjeta exterior ni modal de filtros. Las consultas del catálogo siguen paginadas en el servidor.
 
 ## Archivos y responsabilidades

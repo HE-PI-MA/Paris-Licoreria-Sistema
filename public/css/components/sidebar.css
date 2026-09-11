@@ -1,6 +1,6 @@
 /*
  * París Licorería: sidebar, perfil y contenedor de módulos.
- * Logotipo con letras: 135 px. Símbolo contraído: 100 px.
+ * Cabeceras compactas de 84 px; imágenes proporcionadas, sin recortes.
  * La altura de cabecera se comparte con los módulos; el ancho compacto es 14rem.
  * Cambia las medidas únicamente en las variables de :root.
  */
@@ -18,10 +18,10 @@
   --sidebar-width: 14rem;
   --sidebar-rail: 5.5rem;
   --sidebar-current-width: var(--sidebar-width);
-  --sidebar-full-logo-height: 135px;
-  --sidebar-symbol-logo-height: 100px;
-  --sidebar-brand-height: calc(var(--sidebar-symbol-logo-height) + 10px);
-  --sidebar-header-height: calc(var(--sidebar-brand-height) + 1px);
+  --sidebar-full-logo-height: 82px;
+  --sidebar-symbol-logo-height: 42px;
+  --sidebar-header-height: 84px;
+  --sidebar-brand-height: calc(var(--sidebar-header-height) - 1px);
   --sidebar-bg: #11100e;
   --sidebar-line: #343029;
   --sidebar-gold: #d9a441;
@@ -34,7 +34,7 @@ html[data-sidebar-collapsed="true"] {
 
 .paris-app {
   margin: 0;
-  background: #f5f2f3;
+  background: #eeeae2;
   color: #251f21;
   font-size: 1rem;
   line-height: 1.5;
@@ -520,8 +520,8 @@ html[data-sidebar-collapsed="true"] {
 
 /* Sidebar contraído en escritorio. */
 @media (min-width: 48.001rem) {
-  html[data-sidebar-collapsed="true"] {
-    --sidebar-header-height: calc(var(--sidebar-brand-height) + 2.5rem + .625rem);
+  html[data-sidebar-collapsed="true"] .sidebar-brand {
+    height: 48px;
   }
 
   html[data-sidebar-collapsed="true"] .sidebar-logo-full {
@@ -534,7 +534,9 @@ html[data-sidebar-collapsed="true"] {
 
   html[data-sidebar-collapsed="true"] .sidebar-toggle {
     top: auto;
-    bottom: .625rem;
+    bottom: 4px;
+    width: 28px;
+    height: 28px;
     right: 50%;
     transform: translateX(50%);
   }

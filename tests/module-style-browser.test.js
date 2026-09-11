@@ -24,7 +24,7 @@ test('U013: cabecera compartida y filtro directo', { skip: process.env.PARIS_UI_
     }
     const query = Object.fromEntries(url.searchParams); lists.push(query);
     const start = (Number(query.page) - 1) * Number(query.pageSize);
-    return send({ records: Array.from({ length: 10 }, (_, i) => ({ id: start + i + 1, name: 'Producto de prueba ' + (start + i + 1), category: 'Bebidas alcohólicas', unit: 'Unidad', presentations: 2, stock: 30, minimum: 10, state: 'ACTIVO' })), total: 30 });
+    return send({ records: Array.from({ length: Math.min(Number(query.pageSize), 130 - start) }, (_, i) => ({ id: start + i + 1, name: 'Producto de prueba ' + (start + i + 1), category: 'Bebidas alcohólicas', unit: 'Unidad', presentations: 2, stock: 30, minimum: 10, state: 'ACTIVO' })), total: 130 });
   });
   try {
     await page.goto(app.base + '/login');
@@ -47,12 +47,12 @@ test('U013: cabecera compartida y filtro directo', { skip: process.env.PARIS_UI_
       assert.equal(await page.locator('.app-filter-feedback').isVisible(), false);
     });
     await t.test('selección inmediata conserva búsqueda pendiente y vuelve a la página uno', async () => {
-      await page.getByRole('button', { name: 'Siguiente', exact: true }).click();
-      await page.getByText('Página 2 de 3', { exact: true }).waitFor();
+      await page.getByRole('button', { name: 'Cargar más', exact: true }).click();
+      await page.getByText('Mostrando 1–100 de 130 registros', { exact: true }).waitFor();
       const before = lists.length;
       await page.locator('#module-search').fill('nuevo término');
       await page.locator('#module-category').selectOption('2');
-      await page.getByText('Página 1 de 3', { exact: true }).waitFor();
+      await page.getByText('Mostrando 1–50 de 130 registros', { exact: true }).waitFor();
       await page.waitForTimeout(350);
       assert.equal(lists.length, before + 1);
       assert.equal(lists.at(-1).term, 'nuevo término'); assert.equal(lists.at(-1).categoryId, '2');
@@ -87,17 +87,26 @@ test('U013: cabecera compartida y filtro directo', { skip: process.env.PARIS_UI_
             searchBackground: getComputedStyle(document.querySelector('.module-controls-panel')).backgroundColor };
         });
         assert.ok(Math.abs(sizes.main - sizes.side) <= 1, JSON.stringify(sizes));
+        assert.ok(sizes.main <= 85, 'Cabecera compacta en ambos estados');
         assert.equal(sizes.background, sizes.sideBackground); assert.equal(sizes.searchBackground, 'rgba(0, 0, 0, 0)');
       }
       await page.evaluate(() => { document.documentElement.dataset.sidebarCollapsed = 'false'; });
+      assert.equal(await page.locator('.module-panel-heading').count(), 0);
+      assert.equal(await page.locator('#products-table .app-table-sort span').count(), 0);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1), true);
+      await page.locator('#module-search').blur();
       if (process.env.PARIS_UI_SCREENSHOTS) {
         fs.mkdirSync(process.env.PARIS_UI_SCREENSHOTS, { recursive: true });
-        await page.screenshot({ path: path.join(process.env.PARIS_UI_SCREENSHOTS, 'productos-u013-desktop.png'), fullPage: true });
+        await page.screenshot({ path: path.join(process.env.PARIS_UI_SCREENSHOTS, 'productos-u014-desktop.png'), fullPage: true });
       }
       for (const width of [900, 390, 320]) {
         await page.setViewportSize({ width, height: 900 });
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, 'Ancho ' + width);
         assert.equal(await page.locator('#module-category').isVisible(), true);
+        if (width === 390 && process.env.PARIS_UI_SCREENSHOTS) {
+          await page.locator('#products-table [data-table-details="0"]').click();
+          await page.screenshot({ path: path.join(process.env.PARIS_UI_SCREENSHOTS, 'productos-u014-mobile.png') });
+        }
         await page.locator('[data-module-primary]').click(); await page.getByRole('dialog').first().waitFor();
         await page.keyboard.press('Escape');
         assert.equal(await page.locator('dialog[open]').count(), 0);

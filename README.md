@@ -2,13 +2,13 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U013
+## Estado del desarrollo — U014
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
 **Productos U012:** catálogo conectado a MySQL, búsqueda y filtros remotos, edición, estados, eliminación protegida y presentaciones con equivalencias, barras y precios. Acceso de administrador. El stock se consulta, no se edita aquí.
 
-**Interfaz U013:** cabecera negra alineada con el sidebar compacto, botones compartidos y buscador sin tarjeta. Productos filtra por categoría mediante un selector visible.
+**Interfaz U014:** cabeceras compactas, botones azules de color uniforme y tabla en tonos arena/carbón. Productos mantiene buscador y categoría, y usa scroll interno con carga por bloques, numeración y prioridades de columnas.
 
 **Pendiente:** las operaciones de los otros módulos. Inicio conserva el saludo y las pantallas restantes conservan sus espacios de preparación.
 
@@ -20,6 +20,7 @@ La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, moda
 
 | Documento | Qué explica |
 | --- | --- |
+| [Tablas y estilo U014](docs/26_TABLAS_Y_ESTILO_U014.md) | Scroll continuo, numeración, prioridades, estilo e integración. |
 | [Interfaz U013](docs/25_INTERFAZ_MODULOS_U013.md) | Cabecera, botones, categoría directa, integración y comprobaciones. |
 | [Productos U012](docs/24_PRODUCTOS_U012.md) | Instalación, permisos, clases, API, formularios y comprobaciones del catálogo. |
 | [Arquitectura](docs/01_ARQUITECTURA_DEL_SISTEMA.md) | Capas, archivos y recorrido de una petición. |

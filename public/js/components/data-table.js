@@ -1,5 +1,6 @@
 /**
- * Tabla compartida con paginación local o una función de consulta al servidor.
+ * Tabla compartida con paginación o scroll continuo, numeración y prioridades de columnas.
+ * Carga el servidor por bloques; las columnas secundarias se consultan en el detalle de la fila.
  * Presenta valores como texto. Las acciones se delegan a la clase del módulo mediante onAction.
  */
 (() => {
@@ -10,7 +11,7 @@
   class DataTable {
     constructor({ container, columns, records = [], load, actions = [], onAction,
       getRowId = record => record.id, pageSize = 10, pageSizes = [5, 10, 25, 50],
-      caption = 'Listado de registros', locale = 'es-BO', currency = 'BOB', actionDisplay = 'buttons', sort = null } = {}) {
+      caption = 'Listado de registros', locale = 'es-BO', currency = 'BOB', actionDisplay = 'buttons', sort = null, mode = 'pages', numbered = false } = {}) {
       if (!(container instanceof HTMLElement) || !Array.isArray(columns) || !columns.length) {
         throw new TypeError('La tabla necesita un contenedor y columnas.');
       }
@@ -29,10 +30,15 @@
           new Set(actions.map(action => action.id)).size !== actions.length) {
         throw new TypeError('Las acciones necesitan nombres e identificadores únicos.');
       }
-      if (!['buttons', 'menu'].includes(actionDisplay) || new Set(columns.map(column => column.key)).size !== columns.length) {
+      if (!['pages', 'scroll'].includes(mode) || typeof numbered !== 'boolean' || !['buttons', 'menu'].includes(actionDisplay) || new Set(columns.map(column => column.key)).size !== columns.length) {
         throw new TypeError('Presentación de acciones o columnas no válida.');
       }
-      Object.assign(this, { container, columns, load, actions, onAction, getRowId, pageSize, pageSizes, locale, currency, actionDisplay });
+      if (columns.some(column => ![0, 1, 2, 3].includes(column.priority ?? 0)) || (columns[0].priority ?? 0) !== 0) {
+        throw new TypeError('La primera columna debe ser principal; las prioridades van de 0 a 3.');
+      }
+      Object.assign(this, { container, columns, load, actions, onAction, getRowId, pageSize, pageSizes, locale, currency, actionDisplay, mode, numbered });
+      this.visibleKeys = new Set(columns.map(column => column.key));
+      this.expanded = new Set();
       this.sort = this.validateSort(sort);
       this.menus = [];
       this.collator = new Intl.Collator(locale, { numeric: true, sensitivity: 'base' });
@@ -47,6 +53,12 @@
       container.dataset.dataTableMounted = 'true';
       container.classList.add('app-data-table');
       this.build(caption);
+      container.classList.toggle('app-data-table--scroll', mode === 'scroll');
+      this.observer = new ResizeObserver(() => this.updatePriorities());
+      this.observer.observe(container);
+      this.scroll.addEventListener('scroll', () => {
+        if (this.mode === 'scroll' && this.scroll.scrollTop > 0 && this.scroll.scrollHeight - this.scroll.scrollTop - this.scroll.clientHeight < 120) this.loadMore();
+      }, { signal: this.events.signal });
       container.addEventListener('click', event => this.onClick(event), { signal: this.events.signal });
       this.sizeSelect.addEventListener('change', () => {
         this.pageSize = Number(this.sizeSelect.value);
@@ -57,7 +69,7 @@
     }
 
     build(caption) {
-      const id = 'paris-table-' + (++sequence);
+      const id = this.id = 'paris-table-' + (++sequence);
       this.scroll = UI.element('div', 'app-table-scroll');
       this.scroll.tabIndex = 0;
       this.scroll.setAttribute('role', 'region');
@@ -65,13 +77,13 @@
       this.table = UI.element('table', 'app-table');
       this.table.append(UI.element('caption', 'app-sr-only', caption));
       const head = UI.element('thead'), row = UI.element('tr');
+      if (this.numbered) { const cell = UI.element('th', 'app-table-sequence', 'N.º'); cell.scope = 'col'; row.append(cell); }
       for (const column of this.columns) {
         const cell = UI.element('th', ['number', 'quantity', 'price'].includes(column.type) ? 'app-table-number' : '', column.label);
-        cell.scope = 'col';
+        cell.scope = 'col'; cell.dataset.columnKey = column.key;
         if (column.sortable) {
           const button = UI.element('button', 'app-table-sort', column.label); button.type = 'button';
           button.dataset.tableSort = column.key; button.setAttribute('aria-label', 'Ordenar por ' + column.label);
-          const arrow = UI.element('span', '', '↕'); arrow.setAttribute('aria-hidden', 'true'); button.append(arrow);
           cell.dataset.sortColumn = column.key; cell.replaceChildren(button);
         }
         row.append(cell);
@@ -106,7 +118,13 @@
       this.next.dataset.tablePage = 'next';
       this.pageLabel = UI.element('span');
       nav.append(this.previous, this.pageLabel, this.next);
-      this.footer.append(this.summary, sizeGroup, nav);
+      if (this.mode === 'scroll') {
+        this.more = UI.Button.create({ label: 'Cargar más', icon: 'plus' }); this.more.classList.add('app-table-more'); this.more.dataset.tableMore = '';
+        this.continuation = UI.element('div', 'app-table-continuation');
+        this.continuationMessage = UI.Message.create(this.continuation); this.continuation.hidden = true;
+        const refresh = UI.Button.create({ label: 'Actualizar lista', icon: 'refresh' }); refresh.dataset.tableRetry = ''; this.continuation.append(refresh);
+        this.footer.append(this.summary, this.more, this.continuation);
+      } else this.footer.append(this.summary, sizeGroup, nav);
       this.container.replaceChildren(this.scroll, this.footer);
       this.updateSortHeaders();
     }
@@ -124,7 +142,7 @@
       for (const cell of this.table.querySelectorAll('[data-sort-column]')) {
         const direction = this.sort?.key === cell.dataset.sortColumn ? this.sort.direction : null;
         cell.setAttribute('aria-sort', direction === 'asc' ? 'ascending' : direction === 'desc' ? 'descending' : 'none');
-        cell.querySelector('span').textContent = direction === 'asc' ? '↑' : direction === 'desc' ? '↓' : '↕';
+        cell.querySelector('button').title = direction ? 'Orden ' + (direction === 'asc' ? 'ascendente' : 'descendente') + '. Pulsa para cambiarlo.' : 'Pulsa para ordenar.';
       }
     }
     sortRecords(records) {
@@ -152,7 +170,7 @@
     get totalPages() { return Math.max(1, Math.ceil(this.total / this.pageSize)); }
 
     updateFooter() {
-      const first = this.total ? (this.page - 1) * this.pageSize + 1 : 0;
+      const first = this.total ? (this.mode === 'scroll' ? 1 : (this.page - 1) * this.pageSize + 1) : 0;
       const last = this.total ? first + this.rows.length - 1 : 0;
       this.summary.textContent = this.state === 'loading' ? 'Cargando registros…' :
         this.state === 'error' ? 'La carga no se completó.' :
@@ -162,6 +180,14 @@
       this.previous.disabled = blocked || this.page <= 1;
       this.next.disabled = blocked || this.page >= this.totalPages;
       this.sizeSelect.disabled = blocked;
+      if (this.more) {
+        const hadFocus = document.activeElement === this.more;
+        this.more.hidden = this.state !== 'ready' || this.rows.length >= this.total;
+        if (hadFocus && this.more.hidden) this.scroll.focus({ preventScroll: true });
+        this.more.disabled = Boolean(this.loadingMore);
+        this.more.textContent = this.loadingMore ? 'Cargando…' : this.appendError ? 'Reintentar' : 'Cargar más';
+        this.more.setAttribute('aria-busy', String(Boolean(this.loadingMore)));
+      }
     }
 
     showState(kind, message) {
@@ -169,7 +195,7 @@
       this.state = kind;
       this.container.setAttribute('aria-busy', String(kind === 'loading'));
       const row = UI.element('tr'), cell = UI.element('td', 'app-table-state');
-      cell.colSpan = this.columns.length + (this.actions.length ? 1 : 0);
+      cell.colSpan = this.columnCount;
       const status = UI.Message.create(cell);
       status.show(kind, message);
       if (kind === 'error') {
@@ -182,52 +208,74 @@
       this.updateFooter();
     }
 
-    /** Recibir consultas no implica cargar toda la base: load devuelve solo la página solicitada. */
-    async refresh({ corrected = false } = {}) {
+    /** Reinicia búsquedas/orden; un append fallido conserva las filas que ya estaban disponibles. */
+    async refresh({ corrected = false, append = false } = {}) {
       if (this.destroyed) return;
-      const requestId = ++this.requestId;
-      this.request?.abort();
-      this.request = new AbortController();
-      this.showState('loading', 'Cargando…');
+      const requestId = ++this.requestId, requestedPage = append ? this.page + 1 : this.page;
+      const restoreMore = append && document.activeElement === this.more;
+      this.request?.abort(); this.request = new AbortController();
+      if (append) {
+        this.loadingMore = true; this.appendError = false; this.clearContinuation(); this.updateFooter();
+      } else {
+        if (this.mode === 'scroll') this.page = 1;
+        this.loadingMore = false; this.appendError = false; this.rows = []; this.expanded.clear();
+        this.clearContinuation(); this.scroll.scrollTop = 0; this.showState('loading', 'Cargando…');
+      }
+      const queryPage = append ? requestedPage : this.page;
       try {
         let result;
         if (this.load) {
-          result = await this.load({ page: this.page, pageSize: this.pageSize, query: structuredClone(this.query), sort: this.sort && { ...this.sort }, signal: this.request.signal });
+          result = await this.load({ page: queryPage, pageSize: this.pageSize, query: structuredClone(this.query), sort: this.sort && { ...this.sort }, signal: this.request.signal });
         } else {
           const term = String(this.query.term || '').toLocaleLowerCase(this.locale);
           const filtered = this.records.filter(record => !term || this.columns.some(
             column => String(record[column.key] ?? '').toLocaleLowerCase(this.locale).includes(term)
           ));
           const sorted = this.sortRecords(filtered);
-          result = { records: sorted.slice((this.page - 1) * this.pageSize, this.page * this.pageSize), total: filtered.length };
+          result = { records: sorted.slice((queryPage - 1) * this.pageSize, queryPage * this.pageSize), total: filtered.length };
         }
-        // Una búsqueda posterior tiene prioridad aunque la anterior ignore AbortSignal.
         if (this.destroyed || requestId !== this.requestId) return;
         if (!result || !Array.isArray(result.records) || !Number.isSafeInteger(result.total) || result.total < 0 ||
-            result.records.length > this.pageSize || result.records.length > result.total) {
-          throw new TypeError('Respuesta de listado no válida.');
-        }
-        if (result.records.some(record => !record || typeof record !== 'object')) throw new TypeError('Registro no válido.');
-        if (this.actions.length) {
-          const ids = result.records.map(record => this.getRowId(record));
+            result.records.length > this.pageSize || result.records.length > result.total ||
+            result.records.some(record => !record || typeof record !== 'object')) throw new TypeError('Respuesta de listado no válida.');
+        if (this.actions.length || this.mode === 'scroll') {
+          const ids = [...(append ? this.rows : []), ...result.records].map(record => this.getRowId(record));
           if (ids.some(id => !['string', 'number'].includes(typeof id) || String(id) === '') ||
               new Set(ids.map(String)).size !== ids.length) throw new TypeError('Cada fila necesita un identificador único.');
         }
+        if (this.mode === 'scroll' && (result.records.length !== Math.max(0, Math.min(this.pageSize, result.total - (queryPage - 1) * this.pageSize)) ||
+            (append && result.total !== this.total))) throw new Error('El listado cambió o llegó incompleto.');
         this.total = result.total;
-        if (this.page > this.totalPages) {
+        if (this.mode === 'pages' && this.page > this.totalPages) {
           if (corrected) throw new Error('El listado cambió durante la consulta.');
-          this.page = this.totalPages;
-          return this.refresh({ corrected: true });
+          this.page = this.totalPages; return this.refresh({ corrected: true });
         }
-        this.rows = result.records;
+        const from = append ? this.rows.length : 0;
+        this.rows = append ? [...this.rows, ...result.records] : result.records;
+        this.page = queryPage; this.loadingMore = false;
         if (this.total > 0 && !this.rows.length) throw new Error('Página incompleta.');
         if (!this.rows.length) return this.showState('empty', 'No hay registros para mostrar.');
-        this.renderRows();
+        this.renderRows({ append, from });
+        this.restoreMoreFocus(restoreMore);
       } catch (error) {
         if (!this.destroyed && requestId === this.requestId) {
-          this.showState('error', 'No se pudo cargar el listado. Inténtalo nuevamente.');
+          this.loadingMore = false;
+          if (append) {
+            this.appendError = true; this.continuation.hidden = false;
+            this.continuationMessage.show('error', 'No se pudo continuar el listado. Reintenta o actualiza la lista si cambió.');
+            this.updateFooter(); this.restoreMoreFocus(restoreMore);
+          } else this.showState('error', 'No se pudo cargar el listado. Inténtalo nuevamente.');
         }
       }
+    }
+    restoreMoreFocus(hadFocus) {
+      if (hadFocus && !UI.Modal?.top && document.activeElement === document.body) (this.more.hidden ? this.scroll : this.more).focus({ preventScroll: true });
+    }
+    clearContinuation() { if (this.continuation) { this.continuationMessage.clear(); this.continuation.hidden = true; } }
+    loadMore({ retry = false } = {}) {
+      if (this.destroyed || this.mode !== 'scroll' || this.state !== 'ready' || this.loadingMore ||
+          (this.appendError && !retry) || this.rows.length >= this.total) return Promise.resolve();
+      return this.refresh({ append: true });
     }
 
     setQuery(query = {}) { this.query = { ...query }; this.page = 1; return this.refresh(); }
@@ -256,22 +304,28 @@
       return String(value);
     }
 
-    renderRows() {
-      this.clearMenus();
+    renderRows({ append = false, from = 0 } = {}) {
+      if (!append) this.clearMenus();
       this.state = 'ready';
       this.container.setAttribute('aria-busy', 'false');
       const fragment = document.createDocumentFragment();
-      this.rows.forEach((record, index) => {
+      this.rows.slice(from).forEach((record, offset) => {
+        const index = from + offset;
         const row = UI.element('tr');
-        row.dataset.rowIndex = String(index);
+        row.dataset.rowIndex = String(index); row.dataset.rowTone = index % 2 ? 'alternate' : 'base';
+        if (this.numbered) row.append(UI.element('td', 'app-table-sequence', this.rowNumber(index)));
         for (const column of this.columns) {
           const cell = UI.element('td', ['number', 'quantity', 'price'].includes(column.type) ? 'app-table-number' : '');
-          const value = record[column.key];
-          if (column.type === 'state') {
-            const state = column.states && Object.hasOwn(column.states, value) ? column.states[value] : null;
-            const tone = state && ['success', 'warning', 'error', 'info', 'neutral'].includes(state.tone) ? state.tone : 'neutral';
-            cell.append(UI.element('span', 'app-badge app-badge--' + tone, state?.label || this.format(value, column, record)));
-          } else cell.textContent = this.format(value, column, record);
+          cell.dataset.columnKey = column.key;
+          this.fillCell(cell, column, record);
+          if (column === this.columns[0] && this.columns.some(item => (item.priority ?? 0) > 0)) {
+            cell.classList.add('app-table-primary');
+            const toggle = UI.element('button', 'app-table-details-toggle', 'Ver más'); toggle.type = 'button';
+            toggle.dataset.tableDetails = String(index); toggle.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-controls', this.id + '-details-' + index);
+            toggle.setAttribute('aria-label', 'Ver más datos de la fila ' + this.rowNumber(index));
+            toggle.hidden = true; cell.append(toggle);
+          }
           row.append(cell);
         }
         if (this.actions.length) {
@@ -297,9 +351,63 @@
           cell.append(group); row.append(cell);
         }
         fragment.append(row);
+        if (!this.columns.some(item => (item.priority ?? 0) > 0)) return;
+        const details = UI.element('tr', 'app-table-details'); details.id = this.id + '-details-' + index;
+        details.dataset.detailsIndex = String(index); details.hidden = true;
+        const detailsCell = UI.element('td'); detailsCell.colSpan = this.columnCount;
+        const list = UI.element('dl');
+        for (const column of this.columns.filter(item => (item.priority ?? 0) > 0)) {
+          const group = UI.element('div'); group.dataset.detailColumn = column.key;
+          const value = UI.element('dd'); this.fillCell(value, column, record);
+          group.append(UI.element('dt', '', column.label), value); list.append(group);
+        }
+        detailsCell.append(list); details.append(detailsCell); fragment.append(details);
       });
-      this.body.replaceChildren(fragment);
-      this.updateFooter();
+      if (append) this.body.append(fragment); else this.body.replaceChildren(fragment);
+      this.updatePriorities(true); this.updateFooter();
+    }
+
+    /** Un único formateador sirve para celdas y detalles; ningún valor del usuario se interpreta como HTML. */
+    fillCell(cell, column, record) {
+      const value = record[column.key];
+      if (column.type === 'state') {
+        const state = column.states && Object.hasOwn(column.states, value) ? column.states[value] : null;
+        const tone = state && ['success', 'warning', 'error', 'info', 'neutral'].includes(state.tone) ? state.tone : 'neutral';
+        cell.append(UI.element('span', 'app-badge app-badge--' + tone, state?.label || this.format(value, column, record)));
+      } else cell.textContent = this.format(value, column, record);
+    }
+    rowNumber(index) { return (this.mode === 'scroll' ? 0 : (this.page - 1) * this.pageSize) + index + 1; }
+    get columnCount() { return this.visibleKeys.size + Number(this.numbered) + (this.actions.length ? 1 : 0); }
+    /** Prioridad 0 siempre visible; 1, 2 y 3 aparecen a partir de 520, 780 y 1100 px disponibles. */
+    updatePriorities(force = false) {
+      if (this.destroyed) return;
+      const width = this.container.getBoundingClientRect().width;
+      const visible = new Set(this.columns.filter(column => width >= [0, 520, 780, 1100][column.priority ?? 0]).map(column => column.key));
+      if (!force && [...visible].join('|') === [...this.visibleKeys].join('|')) return;
+      this.visibleKeys = visible;
+      for (const cell of this.table.querySelectorAll('[data-column-key]')) {
+        if (!visible.has(cell.dataset.columnKey) && cell.contains(document.activeElement)) this.scroll.focus({ preventScroll: true });
+        cell.hidden = !visible.has(cell.dataset.columnKey);
+      }
+      const hasDetails = visible.size < this.columns.length;
+      for (const button of this.body.querySelectorAll('[data-table-details]')) {
+        if (!hasDetails && button === document.activeElement) this.scroll.focus({ preventScroll: true });
+        button.hidden = !hasDetails;
+        const open = this.expanded.has(Number(button.dataset.tableDetails));
+        button.textContent = open ? 'Ver menos' : 'Ver más'; button.setAttribute('aria-expanded', String(open));
+        button.setAttribute('aria-label', (open ? 'Ocultar' : 'Ver más') + ' datos de la fila ' + this.rowNumber(Number(button.dataset.tableDetails)));
+      }
+      for (const row of this.body.querySelectorAll('[data-details-index]')) {
+        row.hidden = !hasDetails || !this.expanded.has(Number(row.dataset.detailsIndex));
+        row.firstElementChild.colSpan = this.columnCount;
+        for (const group of row.querySelectorAll('[data-detail-column]')) group.hidden = visible.has(group.dataset.detailColumn);
+      }
+      const state = this.body.querySelector('.app-table-state'); if (state) state.colSpan = this.columnCount;
+    }
+    toggleDetails(button) {
+      const index = Number(button.dataset.tableDetails), open = !this.expanded.has(index);
+      if (open) this.expanded.add(index); else this.expanded.delete(index);
+      this.updatePriorities(true);
     }
 
     async onClick(event) {
@@ -309,6 +417,8 @@
         const key = button.dataset.tableSort;
         return this.setSort({ key, direction: this.sort?.key === key && this.sort.direction === 'asc' ? 'desc' : 'asc' });
       }
+      if (button.hasAttribute('data-table-details')) return this.toggleDetails(button);
+      if (button.hasAttribute('data-table-more')) return this.loadMore({ retry: true });
       if (button.hasAttribute('data-table-retry')) return this.refresh();
       if (button.dataset.tablePage) {
         const page = this.page + (button.dataset.tablePage === 'next' ? 1 : -1);
@@ -371,10 +481,11 @@
       this.destroyed = true;
       ++this.requestId;
       this.request?.abort();
+      this.observer?.disconnect();
       this.clearMenus();
       this.events.abort();
       delete this.container.dataset.dataTableMounted;
-      this.container.classList.remove('app-data-table');
+      this.container.classList.remove('app-data-table', 'app-data-table--scroll');
       this.container.removeAttribute('aria-busy');
       this.container.replaceChildren();
     }

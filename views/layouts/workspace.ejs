@@ -35,7 +35,7 @@
     <script src="/js/pages/components-demo.js" defer></script>
   <% } %>
 </head>
-<body class="paris-app">
+<body class="paris-app<%= moduleUi && moduleUi.contentVariant === 'listing' ? ' paris-app--listing' : '' %>">
   <%- include('../components/ui-icons') %>
   <a class="paris-skip-link" href="#module-content">Ir al contenido</a>
   <%- include('../components/sidebar') %>
@@ -47,11 +47,11 @@
     <main class="workspace-main" id="module-content" tabindex="-1">
       <% if (moduleUi) { %>
         <%# El marco se comparte; contentView viene de module-layouts.js. %>
-        <div class="module-layout" data-module-layout="<%= page.id %>">
+        <div class="module-layout<%= moduleUi.contentVariant === 'listing' ? ' module-layout--listing' : '' %>" data-module-layout="<%= page.id %>">
           <%- include('../components/module/header') %>
           <%- include('../components/module/controls') %>
-          <section class="module-content-panel" data-module-region="content" aria-labelledby="module-content-title" aria-busy="false">
-            <header class="module-panel-heading"><h2 id="module-content-title">Contenido</h2></header>
+          <section class="module-content-panel" data-module-region="content" aria-label="<%= title %>" aria-busy="false">
+            <% if (moduleUi.contentVariant !== 'listing') { %><header class="module-panel-heading"><h2 id="module-content-title">Contenido</h2></header><% } %>
             <div class="module-content-area"><%- include('../' + moduleUi.contentView) %></div>
           </section>
           <%- include('../components/module/messages') %>
