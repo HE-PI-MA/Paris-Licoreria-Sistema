@@ -1,3 +1,4 @@
+/** Protege y recupera la activación con DPAPI de Windows; ejecuta PowerShell sin bloquear el hilo de Node. */
 const { execFile } = require("child_process");
 const { promisify } = require("util");
 const run = promisify(execFile);

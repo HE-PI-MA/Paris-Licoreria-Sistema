@@ -1,3 +1,4 @@
+/** Emite el token de sesión y comprueba token, origen y JSON en las escrituras de la API. */
 const crypto = require('crypto');
 class CsrfMiddleware {
   constructor(origin) { this.origin = origin; this.protect = this.protect.bind(this); }

@@ -1,3 +1,4 @@
+/** Valida la configuración del servidor, secretos, origen HTTPS y proxies antes de aceptar peticiones. */
 const net = require('net');
 class ConfigurationError extends Error { constructor(message) { super(message); this.name = 'ConfigurationError'; } }
 function runtime(env = process.env) {

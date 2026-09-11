@@ -1,7 +1,7 @@
+/** Estado e interacción del menú lateral. Los permisos siguen en el servidor. */
 (() => {
   'use strict';
 
-  /** Estado e interacción del menú lateral. Los permisos siguen en el servidor. */
   class Sidebar {
     constructor(element) {
       this.element = element;

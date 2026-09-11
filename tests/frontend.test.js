@@ -59,6 +59,7 @@ test('U008: login valida, conserva CSRF, evita doble envio y limpia la contraseÃ
   assert.deepEqual(JSON.parse(r.options.body),{nombre_usuario:'admin',contrasena:'clave-ficticia'});
   resolve({ok:true,json:async()=>({})});await sending;
   assert.equal(e.fields.contrasena.value,'');assert.equal(e.success.hidden,false);assert.equal(e.submit.innerHTML,'<span>Enviar</span>');
+  assert.equal(e.submit.disabled,true);await e.form.emit('submit');assert.equal(e.requests.length,1);
   e.timers[0]();assert.deepEqual(e.redirects,['/inicio']);
 });
 test('U008: fallo de login o red permite reintentar sin redireccion',async()=>{
@@ -76,6 +77,7 @@ test('U008: activacion respeta bloqueo, validacion, errores y exito',async()=>{
   e.respond(async()=>({ok:true,json:async()=>({})}));await e.form.emit('submit');
   assert.equal(e.requests[1].url,'/api/licencia/activar');assert.deepEqual(JSON.parse(e.requests[1].options.body),{codigo:'codigo-ficticio'});
   assert.equal(e.requests[1].options.headers['X-CSRF-Token'],'test-csrf');assert.equal(e.fields.codigo.value,'');
+  assert.equal(e.submit.disabled,true);await e.form.emit('submit');assert.equal(e.requests.length,2);
   e.timers[0]();assert.deepEqual(e.redirects,['/login']);
 });
 test('U008: ModuleLayout conserva API, carga, tipos validos y texto sin HTML',()=>{

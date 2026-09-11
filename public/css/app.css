@@ -1,4 +1,4 @@
-/* Entrada de estilos: base, controles compartidos y presentación específica de autenticación. */
+/* Entrada de estilos: base y controles compartidos. Las páginas de acceso cargan su propio CSS. */
 @import url("./base/tokens.css");
 @import url("./base/reset.css");
 @import url("./components/buttons.css");
@@ -8,4 +8,3 @@
 @import url("./components/data-table.css");
 @import url("./components/filters.css");
 @import url("./components/action-menu.css");
-@import url("./pages/auth.css");

@@ -1,7 +1,7 @@
+/** Especializa el formulario común con el código y los mensajes de licencia. */
 (() => {
   'use strict';
 
-  /** Especializa el formulario común con el código y los mensajes de licencia. */
   class ActivationPage extends window.ParisUI.AuthForm {
     constructor(form) {
       super({

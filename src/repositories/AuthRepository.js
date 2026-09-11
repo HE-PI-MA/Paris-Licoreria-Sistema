@@ -1,3 +1,4 @@
+/** Consulta usuarios y roles con parámetros SQL; el servicio decide si pueden autenticarse. */
 const database = require('../config/database');
 
 class AuthRepository {

@@ -1,6 +1,6 @@
 # Arquitectura del sistema
 
-Estado: U008. La aplicación se organiza por responsabilidades. Express recibe peticiones, EJS genera HTML y MySQL mantiene datos y sesiones.
+Estado: U011. La aplicación se organiza por responsabilidades. Express recibe peticiones, EJS genera HTML y MySQL mantiene datos y sesiones.
 
 ## Recorrido de una petición
 
@@ -22,7 +22,7 @@ Los archivos estáticos se sirven antes del middleware de sesión. Las escritura
 | `src/services/` | Autenticación, licencia, activación y almacén de sesiones. |
 | `src/repositories/` | Consultas SQL y lectura/escritura de archivos de licencia y activación. |
 | `src/middleware/` | Sesión activa, licencia, CSRF y límites de solicitudes. |
-| `src/core/` | Esquema, serialización y firma de la licencia. |
+| `src/core/` | Esquema, serialización y firma de la licencia; caché de plantillas compiladas EJS. |
 | `src/utils/` | Identificación del equipo, protección de Windows y registro seguro de errores. |
 | `views/layouts/` | Marco común del espacio de trabajo. |
 | `views/components/` | Sidebar, iconos, cabecera, controles y mensajes. |
@@ -46,4 +46,6 @@ No hay controladores ni repositorios de productos, compras, ventas o caja conect
 
 ## Clases de la interfaz
 
-AuthForm concentra los comportamientos de formulario y LoginPage/ActivationPage especializan sus campos y respuestas. Sidebar coordina el menú y utiliza SidebarPreference. ModuleLayout mantiene la API de mensajes compartidos. Ver `18_ORGANIZACION_POO_U008.md` para responsabilidades y orden de carga.
+AuthForm concentra el acceso y LoginPage/ActivationPage especializan sus campos. Sidebar coordina el menú y utiliza SidebarPreference. ModuleLayout mantiene la API de mensajes y reutiliza Message. Button, FormController, Modal, Confirm, NotificationCenter, DataTable, FilterBar, SearchSelect, DateRange y ActionMenu forman la base visual compartida. Las clases del módulo reciben acciones y consultan sus API; DataTable no guarda productos. Ver las guías U009 y U010 para contratos y orden de carga.
+
+TemplateCache pertenece al servidor: guarda funciones de EJS, no el resultado HTML. La caché del navegador para páginas privadas continúa desactivada. La revalidación de sesión y licencia se ejecuta antes de renderizar cada página.

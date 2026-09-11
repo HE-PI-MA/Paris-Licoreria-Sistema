@@ -70,6 +70,8 @@
         const button = UI.Button.create({ label: item.label + ': ' + item.text, icon: 'close' });
         button.setAttribute('aria-label', 'Quitar filtro ' + item.label + ': ' + item.text);
         button.addEventListener('click', () => {
+          // Conservar la escritura reciente aunque todavía no termine la espera del buscador.
+          this.flushSearch();
           const query = this.getValue(); query[item.key] = this.fields.find(field => field.name === item.key)?.type === 'dates' ? {} : '';
           this.setValue(query); this.searchInput.focus();
         }, { once: true });

@@ -1,3 +1,4 @@
+/** Entrega el estado técnico permitido por sus rutas sin mostrar credenciales ni detalles de conexión. */
 const safeLog = require('../utils/safeLog');
 class SystemController {
   constructor(systemService) {

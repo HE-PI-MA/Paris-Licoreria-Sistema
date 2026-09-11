@@ -344,6 +344,10 @@
         this.pendingRows.delete(rowId);
         UI.Button.setBusy(button, false);
         siblings.forEach((item, index) => { item.disabled = disabledBefore[index]; });
+        // El modal pudo devolver el foco al main mientras la fila seguía bloqueada.
+        // Al cancelar, recuperar el botón ahora habilitado sin interrumpir otro diálogo o control.
+        if (!this.destroyed && !UI.Modal?.top && button.isConnected && !button.disabled &&
+            document.activeElement === document.getElementById('module-content')) button.focus({ preventScroll: true });
         // Una actualización durante la acción pudo crear botones nuevos para esa misma fila.
         if (!this.destroyed && this.state === 'ready') {
           for (const menu of this.menus) {

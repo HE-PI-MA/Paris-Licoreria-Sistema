@@ -1,3 +1,4 @@
+/** Lee y guarda los bytes protegidos de activación en su ruta privada mediante reemplazo temporal. */
 const fs = require('fs/promises');
 const path = require('path');
 const crypto = require('crypto');

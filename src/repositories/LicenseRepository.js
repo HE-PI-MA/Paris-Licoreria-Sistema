@@ -1,3 +1,4 @@
+/** Lee la licencia instalada desde su ruta privada y distingue ausencia de errores de lectura. */
 const fs = require('fs/promises');
 const path = require('path');
 class LicenseRepository {

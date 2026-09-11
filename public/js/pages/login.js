@@ -1,7 +1,7 @@
+/** Define los campos y las acciones propias de la página de inicio de sesión. */
 (() => {
   'use strict';
 
-  /** Define los campos y las acciones propias de la página de inicio de sesión. */
   class LoginPage extends window.ParisUI.AuthForm {
     constructor(form) {
       super({
@@ -20,6 +20,7 @@
     }
 
     init() {
+      if (this.initialized) return;
       super.init();
       this.toggle?.addEventListener('click', () => this.togglePassword());
     }

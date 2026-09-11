@@ -1,3 +1,4 @@
+/** Catálogo de navegación y roles permitidos: lo comparten el sidebar y la autorización de las páginas. */
 const ALL_ROLES = ['ADMINISTRADOR', 'ENCARGADO_VENTA'];
 const ADMIN = ['ADMINISTRADOR'];
 

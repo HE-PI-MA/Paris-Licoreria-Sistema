@@ -1,7 +1,7 @@
+/** Solo guarda la preferencia visual, nunca información de la sesión. */
 (() => {
   'use strict';
 
-  /** Solo guarda la preferencia visual, nunca información de la sesión. */
   class SidebarPreference {
     constructor(root) { this.root = root; }
 

@@ -21,6 +21,7 @@
 | Medir navegación local | `scripts/diagnosticar-navegacion.js` |
 | Mensajes compartidos | `public/js/components/module-layout.js` |
 | Estilos y comportamiento de login/activación | `public/css/pages/auth.css` y `public/js/pages/` |
+| Compilación y actualización de plantillas EJS | `src/core/TemplateCache.js` |
 | Configuración general de Express y orden del middleware | `src/app.js` |
 
 ## Valores visuales vigentes
@@ -61,7 +62,7 @@ Los include de EJS proceden de la configuración del servidor. Los datos de usua
 
 Usar las pruebas existentes para comprobar sesión, licencia, permisos y páginas compartidas. Añadir pruebas cuando aparezcan operaciones de negocio o se corrija un fallo concreto. La prueba MySQL requiere una base desechable independiente; no activar esa prueba contra datos reales.
 
-Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. U007 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
+Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. El paquete U011 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
 
 ## Organización JavaScript desde U008
 
@@ -76,3 +77,11 @@ Consultar `20_COMPONENTES_COMPARTIDOS_U009.md` antes de desarrollar Productos. R
 Cada archivo nuevo o modificado lleva un comentario inicial en español con su propósito, y comentarios en las decisiones relevantes. CSS agrupa las definiciones originales por componente. Los iconos JavaScript proceden de las plantillas EJS del catálogo local.
 
 Para filtros y listados nuevos, consultar `docs/21_FILTROS_SELECTORES_Y_LISTADOS_U010.md`.
+
+## Auditoría U011
+
+El mapa `23_MAPA_ARCHIVOS_Y_COMENTARIOS.md` identifica la responsabilidad de cada archivo JavaScript y hoja de estilo. Al añadir código, documentar propósito y contratos; comentar decisiones de seguridad, foco, concurrencia o recuperación cuando ayuden a mantenerlo. No convertir datos de configuración o funciones sin estado en clases vacías.
+
+Las hojas de autenticación se enlazan únicamente en login y activación; no volver a importarlas desde `app.css`. Reutilizar `.app-sr-only` para texto accesible oculto.
+
+Después de editar una vista EJS en desarrollo, TemplateCache invalida las funciones compiladas. Si la carpeta está en un recurso de red que no comunica cambios, reiniciar el servidor o desactivar la caché al construir App con `{ templateCache: false }`. En producción, reiniciar el proceso al desplegar.

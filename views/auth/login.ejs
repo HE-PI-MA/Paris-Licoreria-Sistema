@@ -1,3 +1,4 @@
+<%# Acceso al sistema: formulario protegido por CSRF y estilos propios de autenticación. %>
 <!doctype html>
 <html lang="es">
 <head>
@@ -7,6 +8,7 @@
   <meta name="theme-color" content="#070706">
   <title><%= title %> | Paris Licoreria</title>
   <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/pages/auth.css">
   <script src="/js/components/auth-form.js" defer></script>
   <script src="/js/pages/login.js" defer></script>
 </head>
@@ -54,7 +56,7 @@
 
         <form class="app-login-form" data-login-form novalidate>
           <div class="app-login-field">
-            <label class="app-visually-hidden" for="nombre_usuario">Usuario</label>
+            <label class="app-sr-only" for="nombre_usuario">Usuario</label>
             <div class="app-login-input-wrap">
               <svg class="app-login-field-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M20 21a8 8 0 0 0-16 0"></path>
@@ -76,7 +78,7 @@
           </div>
 
           <div class="app-login-field">
-            <label class="app-visually-hidden" for="contrasena">Contrasena</label>
+            <label class="app-sr-only" for="contrasena">Contrasena</label>
             <div class="app-login-input-wrap">
               <svg class="app-login-field-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <rect x="5" y="10" width="14" height="11" rx="2"></rect>

@@ -1,3 +1,4 @@
+/** Obtiene la huella estable del equipo de forma asíncrona y comparte el cálculo entre solicitudes concurrentes. */
 const crypto = require('crypto');
 const { execFile } = require('child_process');
 const { promisify } = require('util');

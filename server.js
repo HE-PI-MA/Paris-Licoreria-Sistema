@@ -1,3 +1,4 @@
+/** Arranca HTTP/HTTPS después de validar configuración y MySQL; cierra conexiones y recursos al detenerse. */
 require('dotenv').config({ quiet: true });
 const fs = require('fs');
 const https = require('https');
@@ -40,7 +41,7 @@ async function start({ Application = App } = {}) {
 if (require.main === module) start().catch(async error => {
   safeLog('STARTUP_FAILED', error);
   console.error('No se pudo iniciar. Comprueba la configuracion, MySQL y la migracion U004.');
-  // Config errors are fixed strings; never print connection/driver messages.
+  // Los errores de configuración son textos controlados; no imprimir mensajes del controlador de MySQL.
   if (error.name === 'ConfigurationError') console.error(error.message);
   await database.getPool().end();
   process.exitCode = 1;

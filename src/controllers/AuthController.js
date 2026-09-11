@@ -1,3 +1,4 @@
+/** Responde al login, logout y consulta de sesión; regenera el identificador al autenticar y evita exponer errores internos. */
 const safeLog = require('../utils/safeLog');
 class AuthController {
   constructor(authService) {

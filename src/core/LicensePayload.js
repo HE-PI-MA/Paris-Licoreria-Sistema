@@ -1,4 +1,5 @@
-﻿class LicensePayload {
+/** Serializa únicamente los campos firmados de la licencia en un orden estable para verificar su firma. */
+class LicensePayload {
   static serialize(license) {
     const payload = {
       version: license.version,

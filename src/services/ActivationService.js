@@ -1,3 +1,4 @@
+/** Valida la activación vinculada al equipo; reutiliza el descifrado solo mientras sus bytes permanezcan iguales. */
 const crypto = require('crypto');
 class ActivationService {
   constructor(activationRepository, licenseService, windowsProtection) {

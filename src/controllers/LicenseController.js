@@ -1,3 +1,4 @@
+/** Expone el estado y la activación de la licencia; delega la validación criptográfica a los servicios. */
 const safeLog = require('../utils/safeLog');
 class LicenseController {
   constructor(licenseService, activationService) {

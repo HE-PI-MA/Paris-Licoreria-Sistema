@@ -1,3 +1,4 @@
+/** Declara las rutas de autenticación y el orden de los controles de licencia y sesión. */
 const express = require("express");
 
 class AuthRoutes {

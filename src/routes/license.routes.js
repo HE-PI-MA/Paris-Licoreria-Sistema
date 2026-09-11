@@ -1,4 +1,5 @@
-﻿const express = require("express");
+/** Conecta las rutas HTTP de consulta y activación con LicenseController. */
+const express = require("express");
 
 class LicenseRoutes {
   constructor(licenseController) {

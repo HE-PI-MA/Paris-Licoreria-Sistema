@@ -1,17 +1,20 @@
+/** Comportamiento compartido por login y activación: mensajes, envío y espera. */
 (() => {
   'use strict';
 
-  /** Comportamiento compartido por login y activación: mensajes, envío y espera. */
   class AuthForm {
     constructor({ form, submit, errorBox, successBox, endpoint, busyText, successText, networkError, destination, delay }) {
       Object.assign(this, { form, submit, errorBox, successBox, endpoint, busyText, successText, networkError, destination, delay });
       this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
       this.submitDefaultHtml = submit.innerHTML;
       this.busy = false;
+      this.completed = false;
     }
 
     init() {
       // La función conserva el objeto al recibir un evento del formulario.
+      if (this.initialized) return;
+      this.initialized = true;
       this.form.addEventListener('submit', event => this.onSubmit(event));
     }
 
@@ -53,16 +56,20 @@
           this.show(this.errorBox, this.getErrorMessage(data));
           return;
         }
+        this.completed = true;
         this.clearSensitiveInput();
         this.show(this.successBox, this.successText);
         window.setTimeout(() => window.location.assign(this.destination), this.delay);
       } catch (_) {
         this.show(this.errorBox, this.networkError);
       } finally {
-        this.busy = false;
-        this.submit.disabled = false;
-        // Solo se recupera el HTML original del botón, nunca HTML de una respuesta.
-        this.submit.innerHTML = this.submitDefaultHtml;
+        // Tras un éxito, mantener el bloqueo hasta que termine la redirección.
+        if (!this.completed) {
+          this.busy = false;
+          this.submit.disabled = false;
+          // Recupera únicamente el contenido original del botón.
+          this.submit.innerHTML = this.submitDefaultHtml;
+        }
       }
     }
   }

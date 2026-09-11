@@ -1,3 +1,4 @@
+/** Revalida el usuario de la sesión en cada petición; rechaza cuentas inactivas y distingue páginas de API. */
 const safeLog = require('../utils/safeLog');
 class AuthMiddleware {
   constructor(authService) { this.authService = authService; this.requireAuth = this.requireAuth.bind(this); }

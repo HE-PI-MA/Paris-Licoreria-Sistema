@@ -1,6 +1,7 @@
+/** Separa las sentencias de los archivos SQL del proyecto, respetando sus bloques DELIMITER. */
 const fs = require('fs');
-// Files in this package use one statement terminator at the end of a line.
-// Internal semicolons are retained between DELIMITER // and DELIMITER ;.
+// Estos archivos terminan cada sentencia al final de una línea.
+// Los puntos y coma internos se conservan entre DELIMITER // y DELIMITER ;.
 function splitSql(sql) {
   let delimiter = ';', pending = '';
   const statements = [];

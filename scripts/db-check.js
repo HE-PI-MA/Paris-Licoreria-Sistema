@@ -1,3 +1,4 @@
+/** Comprueba fechas de caja, pagos, stock y claves de demostración mediante consultas de solo lectura. */
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env'), quiet: true });
 const database = require('../src/config/database');

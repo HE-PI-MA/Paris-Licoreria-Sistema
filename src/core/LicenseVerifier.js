@@ -1,3 +1,4 @@
+/** Verifica la firma Ed25519 con la clave pública local; reutiliza la clave, nunca una decisión de acceso. */
 const fs = require("fs/promises");
 const path = require("path");
 const crypto = require("crypto");

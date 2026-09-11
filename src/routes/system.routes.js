@@ -1,4 +1,5 @@
-﻿const express = require('express');
+/** Declara las rutas técnicas del sistema y sus restricciones de exposición. */
+const express = require('express');
 
 class SystemRoutes {
   constructor(systemController) {

@@ -1,17 +1,10 @@
 /** Pruebas HTTP con sesiones, licencia y datos simulados; no consultan la base del negocio. */
-const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
 const bcrypt = require('bcrypt');
 const App = require('../../src/app');
 const MySqlSessionStore = require('../../src/services/MySqlSessionStore');
 const LicensePayload = require('../../src/core/LicensePayload');
-const runtime = require('../../src/config/runtime');
-const { splitSql } = require('../../scripts/sql');
-const MachineFingerprint = require('../../src/utils/MachineFingerprint');
-const RoleMiddleware = require('../../src/middleware/RoleMiddleware');
 process.env.SESSION_SECRET = 'local-automated-tests-only-' + 'z'.repeat(40);
 const keys = crypto.generateKeyPairSync('ed25519');
 const password = 'PruebaLocal-U004';

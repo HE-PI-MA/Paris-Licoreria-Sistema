@@ -1,6 +1,7 @@
+/** Guarda las sesiones y su expiración en MySQL, compartidas entre instancias. */
 const { Store } = require('express-session');
 const safeLog = require('../utils/safeLog');
-/** Guarda las sesiones y su expiración en MySQL, compartidas entre instancias. */
+
 class MySqlSessionStore extends Store {
   constructor(pool) {
     super();

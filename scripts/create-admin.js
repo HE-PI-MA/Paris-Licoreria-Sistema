@@ -1,3 +1,4 @@
+/** Alta inicial de administrador desde consola; valida contraseña y rol sin imprimir el secreto introducido. */
 const path = require('path');
 const readline = require('readline');
 const { Writable } = require('stream');

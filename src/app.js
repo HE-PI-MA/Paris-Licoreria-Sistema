@@ -1,3 +1,4 @@
+/** Compone Express: seguridad, sesiones, dependencias, rutas y plantillas. App.close libera sus recursos. */
 const express = require('express');
 const session = require('express-session');
 const helmet = require('helmet');
@@ -9,6 +10,7 @@ const MySqlSessionStore = require('./services/MySqlSessionStore');
 const CsrfMiddleware = require('./middleware/CsrfMiddleware');
 const makeRateLimits = require('./middleware/rateLimits');
 const safeLog = require('./utils/safeLog');
+const TemplateCache = require('./core/TemplateCache');
 
 const SystemRepository = require('./repositories/SystemRepository');
 const SystemService = require('./services/SystemService');
@@ -48,7 +50,9 @@ class App {
 
   configureApplication() {
     this.app.set('view engine', 'ejs');
-    this.app.set('views', path.join(__dirname, '..', 'views'));
+    const views = path.join(__dirname, '..', 'views');
+    this.app.set('views', views);
+    this.templateCache = new TemplateCache(this.app, views, { development: !this.config.production, enabled: this.options.templateCache !== false });
     if (this.config.proxies.length) this.app.set('trust proxy', this.config.proxies);
     this.app.use(helmet({ contentSecurityPolicy: {
       directives: { 'upgrade-insecure-requests': this.config.production ? [] : null }
@@ -153,7 +157,7 @@ class App {
     });
   }
 
-  close() { this.sessionStore.close?.(); }
+  close() { this.templateCache.close(); this.sessionStore.close?.(); }
 
   getExpressApp() {
     return this.app;

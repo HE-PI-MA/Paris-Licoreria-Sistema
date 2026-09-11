@@ -2,7 +2,7 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U008
+## Estado del desarrollo — U011
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
@@ -10,7 +10,7 @@ Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servido
 
 La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; todavía no existen las API ni los formularios que los conecten a estos módulos.
 
-La lógica de la interfaz utiliza clases para formularios, sidebar y mensajes; login y activación comparten AuthForm. Los estilos conservan su organización por componentes.
+La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, modales, confirmaciones, tablas, filtros, selectores, fechas y menús de acciones. Login y activación comparten AuthForm. CSS conserva su organización por componentes; la auditoría U011 corrige interacciones y optimiza la compilación de EJS sin cambiar el diseño.
 
 ## Documentación
 
@@ -26,6 +26,8 @@ La lógica de la interfaz utiliza clases para formularios, sidebar y mensajes; l
 | [Finalidad de los módulos](docs/15_MODULOS_Y_ALCANCE.md) | Qué hará cada módulo y qué falta. |
 | [Mantenimiento del código](docs/16_GUIA_DE_MANTENIMIENTO.md) | Dónde cambiar cada parte y cómo documentarla. |
 | [Organización POO](docs/18_ORGANIZACION_POO_U008.md) | Clases JavaScript, componentes CSS y pruebas de U008. |
+| [Auditoría y correcciones U011](docs/22_AUDITORIA_CORRECCIONES_U011.md) | Hallazgos, cambios, pruebas y límites de la revisión del ZIP. |
+| [Mapa de archivos y comentarios](docs/23_MAPA_ARCHIVOS_Y_COMENTARIOS.md) | Propósito del código y reglas para desarrollar Productos. |
 | [Revisión U007](docs/17_REVISION_U007.md) | Limpieza, comprobaciones y publicación. |
 
 Los documentos U002–U006E registran entregas anteriores; los valores visuales vigentes se encuentran en la guía de mantenimiento.
@@ -35,14 +37,14 @@ Los documentos U002–U006E registran entregas anteriores; los valores visuales 
 Conservar `.env`, dependencias, licencia, activación y base de datos. Si U004 ya fue instalada correctamente, esta revisión no requiere volver a migrar MySQL.
 
 ```powershell
-node --test tests/application.test.js tests/frontend.test.js tests/migration-runner.test.js tests/mysql.test.js
+npm test
 node scripts/db-check.js
 node server.js
 ```
 
 El primer comando ejecuta pruebas simuladas; la integración con MySQL real se omite si no se configura expresamente. El segundo consulta la base configurada y muestra cuatro comprobaciones, sin corregir datos. El tercero inicia el servidor.
 
-Para una instalación nueva, seguir la configuración y la [migración U004](docs/09_PARCHE_U004.md). Se conserva `pnpm-lock.yaml`; no se actualizan dependencias en U007.
+Para una instalación nueva, seguir la configuración y la [migración U004](docs/09_PARCHE_U004.md). Se conserva `pnpm-lock.yaml`; no se actualizan dependencias en U011.
 
 ## Configuración privada
 
@@ -61,3 +63,9 @@ La demostración está en `/demostracion/componentes`, disponible con licencia y
 La demostración `/demostracion/componentes` incorpora filtros configurables, selectores con búsqueda, fechas, ordenamiento y menú de acciones. Sus datos son ficticios. Guía de integración: [Filtros, selectores y listados U010](docs/21_FILTROS_SELECTORES_Y_LISTADOS_U010.md).
 
 Para medir navegación local: detener el servidor y ejecutar `node scripts/diagnosticar-navegacion.js`. El arranque habitual `node server.js` mantiene las mediciones desactivadas.
+
+## Rendimiento y mantenimiento U011
+
+`TemplateCache` reutiliza las funciones compiladas de EJS. En desarrollo invalida la caché al editar vistas; si falla la vigilancia, la desactiva. En producción se reinicia el servidor después de desplegar plantillas. No almacena páginas HTML ni decisiones de acceso: sesión, usuario y licencia se revalidan.
+
+Las contraseñas admiten hasta 72 bytes UTF-8, el mismo límite utilizado al crear el administrador. Los formularios de acceso permanecen bloqueados tras el éxito hasta completar su redirección.

@@ -1,3 +1,4 @@
+/** Obtiene el estado del sistema mediante su repositorio y concentra esa consulta técnica. */
 class SystemService {
   constructor(systemRepository) {
     this.systemRepository = systemRepository;

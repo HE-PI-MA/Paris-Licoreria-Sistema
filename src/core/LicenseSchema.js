@@ -1,4 +1,5 @@
-﻿class LicenseSchema {
+/** Valida tipos, fechas y campos de la licencia antes de comprobar su firma y vigencia. */
+class LicenseSchema {
   static isValidDate(value) {
     if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
       return false;

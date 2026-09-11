@@ -1,3 +1,4 @@
+/** Mantiene un único pool MySQL configurado desde el entorno; los repositorios reutilizan sus conexiones. */
 const mysql = require('mysql2/promise');
 
 class Database {

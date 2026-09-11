@@ -1,7 +1,7 @@
+/** Renderiza las páginas; la licencia y la sesión se exigen en web.routes.js. */
 const navigation = require('../config/navigation');
 const moduleLayouts = require('../config/module-layouts');
 
-/** Renderiza las páginas; la licencia y la sesión se exigen en web.routes.js. */
 class WebController {
   constructor(activationService) {
     this.activationService = activationService;

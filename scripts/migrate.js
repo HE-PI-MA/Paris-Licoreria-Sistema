@@ -1,3 +1,4 @@
+/** Aplica o reanuda U004 con registro y verificación de su huella; requiere respaldo y servidor detenido. */
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');

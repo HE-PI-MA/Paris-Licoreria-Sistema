@@ -1,3 +1,4 @@
+/** Crea límites independientes por tipo de solicitud para reducir abuso antes de las verificaciones costosas. */
 const { rateLimit } = require('express-rate-limit');
 function limiter(limit, windowMs, skipSuccessfulRequests = false) {
   return rateLimit({ limit, windowMs, skipSuccessfulRequests,

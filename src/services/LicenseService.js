@@ -1,3 +1,4 @@
+/** Coordina esquema, firma, vigencia y equipo para decidir si la licencia instalada es válida. */
 const LicenseSchema = require("../core/LicenseSchema");
 
 class LicenseService {
