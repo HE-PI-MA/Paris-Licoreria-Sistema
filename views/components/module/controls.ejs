@@ -1,11 +1,19 @@
-<%# Buscador y filtros compartidos; se habilitan únicamente para páginas implementadas. %>
+<%# Controles compartidos sin tarjeta exterior. Productos usa una categoría directa; otros módulos pueden abrir filtros avanzados. %>
+<% const inlineCategory = moduleUi.filterMode === 'inline-category'; %>
 <section class="module-controls-panel" data-module-region="controls" aria-label="Buscador y filtros">
   <div class="module-controls-row">
     <div class="module-search-field">
-      <label class="app-label" for="module-search">Buscar</label>
-      <div class="module-search-input"><%- include('../icon', { name: 'search' }) %><input class="app-input" id="module-search" type="search" placeholder="<%= moduleUi.searchPlaceholder %>" <% if (!moduleUi.enabled) { %>disabled<% } %> aria-describedby="module-controls-help"></div>
+      <label class="app-sr-only" for="module-search">Buscar</label>
+      <div class="module-search-input"><%- include('../icon', { name: 'search' }) %><input class="app-input" id="module-search" type="search" placeholder="<%= moduleUi.searchPlaceholder %>" <% if (!moduleUi.enabled) { %>disabled<% } %><% if (!inlineCategory) { %> aria-describedby="module-controls-help"<% } %>></div>
     </div>
-    <button class="module-filter-button app-button app-button--secondary" type="button" <% if (!moduleUi.enabled) { %>disabled<% } %> aria-describedby="module-controls-help"><%- include('../icon', { name: 'filter' }) %><span>Filtros</span></button>
+    <% if (inlineCategory) { %>
+      <div class="module-category-field">
+        <label class="app-sr-only" for="module-category">Categoría</label>
+        <select class="app-input" id="module-category" name="categoryId"><option value="">Todas las categorías</option></select>
+      </div>
+    <% } else { %>
+      <button class="module-filter-button app-button app-button--secondary" type="button" <% if (!moduleUi.enabled) { %>disabled<% } %> aria-describedby="module-controls-help"><%- include('../icon', { name: 'filter' }) %><span>Filtros</span></button>
+    <% } %>
   </div>
-  <p class="module-controls-help" id="module-controls-help"><%= moduleUi.enabled ? moduleUi.controlsHelp : 'Disponible próximamente.' %></p>
+  <% if (!inlineCategory) { %><p class="module-controls-help" id="module-controls-help"><%= moduleUi.enabled ? moduleUi.controlsHelp : 'Disponible próximamente.' %></p><% } %>
 </section>

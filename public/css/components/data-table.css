@@ -2,7 +2,8 @@
 .app-data-table { display: flex; flex-direction: column; flex: 1; min-width: 0; max-width: 100%; }
 .app-table-scroll { flex: 1; min-width: 0; width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
 .app-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .9375rem; }
-.app-table th, .app-table td { padding: 10px; border-bottom: 1px solid var(--app-border); vertical-align: middle; overflow-wrap: anywhere; }
+.app-table th, .app-table td { padding: 10px; border-bottom: 1px solid var(--app-border); vertical-align: middle; }
+.app-table td { overflow-wrap: anywhere; }
 .app-table th { font-weight: 600; color: #51484c; background: #f8f6f7; }
 /* El encabezado comunica el orden con aria-sort y conserva foco visible. */
 .app-table-sort { display: inline-flex; align-items: center; gap: 6px; padding: 6px 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; text-align: inherit; }

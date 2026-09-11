@@ -138,6 +138,8 @@ test('U010: controles compartidos en Chromium', {
       await page.setViewportSize({ width: 390, height: 800 }); await demo();
       await page.locator('[data-demo-menu]').check();
       await page.getByRole('button', { name: 'Acciones del registro 1', exact: true }).click();
+      // Los eventos de desplazamiento pendientes no deben cerrar el menú recién abierto.
+      await page.evaluate(() => document.dispatchEvent(new Event('scroll')));
       const bounds = await page.getByRole('menu').evaluate(node => { const r = node.getBoundingClientRect(); return { left: r.left, right: r.right, bottom: r.bottom }; });
       assert.ok(bounds.left >= 0 && bounds.right <= 390 && bounds.bottom <= 800);
       await page.keyboard.press('Escape'); await page.getByRole('button', { name: 'Filtros', exact: true }).click();

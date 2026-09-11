@@ -288,7 +288,7 @@
             group.append(button);
           });
           if (this.actionDisplay === 'menu' && menuItems.length) {
-            const menu = new UI.ActionMenu({ container: group, label: 'Acciones del registro ' + this.getRowId(record), items: menuItems,
+            const menu = new UI.ActionMenu({ container: group, triggerLabel: 'Acciones', label: 'Acciones del registro ' + this.getRowId(record), items: menuItems,
               onSelect: (item, { button }) => this.runAction(item.actionIndex, index, button) });
             menu.trigger.dataset.tableMenuRow = String(index);
             menu.trigger.disabled = this.pendingRows.has(String(this.getRowId(record)));

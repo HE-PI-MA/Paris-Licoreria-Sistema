@@ -18,10 +18,9 @@
         onAction: item => this.handle(() => this.action(item))
       });
       this.filters = new UI.FilterBar({ container: document.querySelector('[data-module-region="controls"]'),
-        searchInput: document.getElementById('module-search'), filterButton: document.querySelector('.module-filter-button'),
-        fields: [{ name: 'categoryId', label: 'Categoría', type: 'search', load: params => this.api.options('categories', params) },
-          { name: 'state', label: 'Estado', type: 'select', options: [{ value: 'ACTIVO', label: 'Activo' }, { value: 'INACTIVO', label: 'Inactivo' }] },
-          { name: 'lowStock', label: 'Stock mínimo', type: 'select', options: [{ value: 'SI', label: 'En el mínimo o por debajo' }, { value: 'NO', label: 'Por encima del mínimo' }] }],
+        mode: 'inline', searchInput: document.getElementById('module-search'),
+        fields: [{ name: 'categoryId', label: 'Categoría', type: 'select', control: document.getElementById('module-category'),
+          emptyLabel: 'Todas las categorías', load: params => this.api.options('categories', params) }],
         onChange: query => this.table.setQuery(query)
       });
       document.querySelector('[data-module-primary]').addEventListener('click', event => this.openProduct(null, event.currentTarget), { signal: this.events.signal });

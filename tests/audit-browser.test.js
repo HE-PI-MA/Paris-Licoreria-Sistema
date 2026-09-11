@@ -68,7 +68,7 @@ test('U011: regresiones de interacción en Chromium', {
       await trigger.click();
       await page.getByRole('menuitem', { name: 'Eliminar Producto de ejemplo 01', exact: true }).click();
       await page.keyboard.press('Escape');
-      await page.waitForFunction(() => document.activeElement?.textContent === 'Acciones del registro 1');
+      await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Acciones del registro 1');
       assert.equal(await trigger.isDisabled(), false);
       await visible('Mostrando 1–10 de 37 registros');
     });

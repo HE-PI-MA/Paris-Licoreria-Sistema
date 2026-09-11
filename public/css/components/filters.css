@@ -1,5 +1,7 @@
 /* Filtros activos, selectores y fechas comparten la tipografía y los controles de forms.css. */
 .app-filter-summary { display: flex; flex-wrap: wrap; gap: var(--module-space); align-items: center; margin-top: var(--module-space); }
+.app-filter-feedback { display: flex; flex-wrap: wrap; align-items: center; gap: var(--module-space); margin-top: var(--module-space); }
+.app-filter-feedback .app-alert { flex: 1 1 16rem; }
 .app-filter-summary:empty { display: none; }
 .app-filter-summary .app-button { font-size: .875rem; min-height: 36px; }
 .app-date-range { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--module-space); border: 0; padding: 0; margin: 0; min-width: 0; }

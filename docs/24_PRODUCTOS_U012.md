@@ -8,7 +8,7 @@ Productos utiliza MySQL real y admite operaciones de administrador. No carga dat
 ## Pantalla y formularios
 
 - Cabecera: Productos y Nuevo producto.
-- Controles: nombre o código de barras; categoría, estado y stock mínimo. El servidor filtra y pagina, sin descargar el catálogo entero.
+- Controles actuales (U013): nombre o código de barras y selector directo de categoría. El servidor filtra y pagina, sin descargar todos los productos. La API conserva estado y stock mínimo por compatibilidad. Ver [interfaz U013](25_INTERFAZ_MODULOS_U013.md).
 - Tabla: producto, categoría, unidad base, cantidad de presentaciones, stock disponible, stock mínimo, estado y acciones. Orden por nombre, categoría, stock, mínimo o estado.
 - Pie: total, página anterior/siguiente y 5, 10, 25 o 50 registros por página.
 - Acciones: detalle, editar, presentaciones, activar/desactivar y eliminar con confirmación.

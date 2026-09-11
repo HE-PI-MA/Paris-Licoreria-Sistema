@@ -5,7 +5,7 @@ const definitions = {
   inicio: { actionLabel: 'Actualizar resumen', actionIcon: 'refresh', contentView: 'dashboard/content' },
   ventas: { actionLabel: 'Nueva venta', actionIcon: 'plus', contentView: 'ventas/content' },
   caja: { actionLabel: 'Abrir caja', actionIcon: 'plus', contentView: 'caja/content' },
-  productos: { actionLabel: 'Nuevo producto', actionIcon: 'plus', contentView: 'productos/content', enabled: true },
+  productos: { actionLabel: 'Nuevo producto', actionIcon: 'plus', contentView: 'productos/content', enabled: true, filterMode: 'inline-category' },
   inventario: { actionLabel: 'Ver movimientos', actionIcon: 'layers', contentView: 'inventario/content' },
   compras: { actionLabel: 'Nueva compra', actionIcon: 'plus', contentView: 'compras/content' },
   proveedores: { actionLabel: 'Nuevo proveedor', actionIcon: 'plus', contentView: 'proveedores/content' },

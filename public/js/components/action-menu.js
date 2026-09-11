@@ -8,14 +8,15 @@
   let sequence = 0;
   class ActionMenu {
     static active = null;
-    constructor({ container, label = 'Acciones', items, onSelect } = {}) {
+    constructor({ container, label = 'Acciones', triggerLabel = label, items, onSelect } = {}) {
       if (!(container instanceof HTMLElement) || !Array.isArray(items) || typeof onSelect !== 'function') {
         throw new TypeError('El menú necesita un contenedor, opciones y una función.');
       }
       this.events = new AbortController();
       this.onSelect = onSelect;
       this.root = UI.element('div', 'app-action-menu');
-      this.trigger = UI.Button.create({ label });
+      this.trigger = UI.Button.create({ label: triggerLabel });
+      this.trigger.setAttribute('aria-label', label);
       this.trigger.setAttribute('aria-haspopup', 'menu');
       this.trigger.setAttribute('aria-expanded', 'false');
       this.panel = UI.element('div', 'app-action-menu-panel');
@@ -82,7 +83,13 @@
         if (!this.panel.contains(event.target) && !this.trigger.contains(event.target)) this.close();
       }, options);
       window.addEventListener('resize', () => this.close(true), options);
-      document.addEventListener('scroll', event => { if (!this.panel.contains(event.target)) this.close(true); }, { ...options, capture: true });
+      // Un desplazamiento pendiente del botón puede llegar después del clic; reposicionar evita cerrar el menú recién abierto.
+      document.addEventListener('scroll', event => {
+        if (this.panel.contains(event.target)) return;
+        const bounds = this.trigger.getBoundingClientRect();
+        if (bounds.bottom <= 0 || bounds.top >= innerHeight || bounds.right <= 0 || bounds.left >= innerWidth) this.close();
+        else this.position();
+      }, { ...options, capture: true });
       this.enabled[last ? this.enabled.length - 1 : 0].focus({ preventScroll: true });
     }
     onKeyDown(event) {

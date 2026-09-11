@@ -3,12 +3,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-height: var(--app-control-height);
+  gap: 8px;
+  min-height: 42px;
   max-width: 100%;
-  padding: 10px 16px;
+  padding: 9px 14px;
   border: 1px solid transparent;
-  border-radius: var(--app-radius-sm);
+  border-radius: 6px;
   font: inherit;
   font-size: .9375rem;
   font-weight: 600;
@@ -17,19 +17,19 @@
   overflow-wrap: anywhere;
   transition: background-color 120ms ease, border-color 120ms ease;
 }
-.app-button--primary { color: #251b0b; background: var(--app-gold-500); border-color: var(--app-gold-600); }
-.app-button--primary:hover:not(:disabled) { background: var(--app-gold-300); }
+.app-button--primary { color: #efd18c; background: #201c15; border-color: #b38a43; }
+.app-button--primary:hover:not(:disabled) { background: #342a1b; border-color: #efd18c; }
 .app-button--secondary { color: var(--app-text); background: var(--app-surface); border-color: var(--app-border); }
 .app-button--secondary:hover:not(:disabled) { background: #f8f6f7; border-color: #aaa0a5; }
-.app-button--danger { color: #fff; background: var(--app-danger); border-color: var(--app-danger); }
-.app-button--danger:hover:not(:disabled) { background: #802330; }
+.app-button--danger { color: #9b283a; background: #fff5f5; border-color: #d58e99; }
+.app-button--danger:hover:not(:disabled) { background: #fbe6e9; border-color: #9b283a; }
 .app-button:focus-visible, .app-table-scroll:focus-visible {
   outline: 3px solid var(--app-gold-600);
   outline-offset: 3px;
 }
 .app-button:disabled { cursor: not-allowed; opacity: .65; }
 .app-button[aria-busy="true"] { cursor: wait; opacity: .85; }
-.app-button--icon { padding: 10px; min-width: var(--app-control-height); }
+.app-button--icon { padding: 9px; min-width: 42px; }
 .app-button .paris-icon { width: 1.25rem; height: 1.25rem; flex: 0 0 1.25rem; }
 .app-button--icon[aria-busy="true"] { width: auto; }
 .app-spinner {
