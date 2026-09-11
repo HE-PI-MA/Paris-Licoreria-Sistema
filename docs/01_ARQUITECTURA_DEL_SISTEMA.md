@@ -1,6 +1,6 @@
 # Arquitectura del sistema
 
-Estado: U007. La aplicación se organiza por responsabilidades. Express recibe peticiones, EJS genera HTML y MySQL mantiene datos y sesiones.
+Estado: U008. La aplicación se organiza por responsabilidades. Express recibe peticiones, EJS genera HTML y MySQL mantiene datos y sesiones.
 
 ## Recorrido de una petición
 
@@ -43,3 +43,7 @@ No se repite el sidebar ni la estructura de cuatro áreas en cada pantalla. Perf
 No hay controladores ni repositorios de productos, compras, ventas o caja conectados a estas pantallas. Al implementarlos se deben validar permisos de operación y propiedad de los registros, además del permiso general de página. Las rutas de vistas no sustituyen las futuras rutas de API.
 
 `RoleMiddleware` se conserva como utilidad probada para futuras API; no se instancia sin uso en `App`. La autorización actual de páginas procede de `navigation.allowed`.
+
+## Clases de la interfaz
+
+AuthForm concentra los comportamientos de formulario y LoginPage/ActivationPage especializan sus campos y respuestas. Sidebar coordina el menú y utiliza SidebarPreference. ModuleLayout mantiene la API de mensajes compartidos. Ver `18_ORGANIZACION_POO_U008.md` para responsabilidades y orden de carga.

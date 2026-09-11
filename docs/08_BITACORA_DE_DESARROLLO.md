@@ -102,3 +102,12 @@ El acceso al sistema funciona en el equipo de pruebas. El dashboard y los módul
 - Verificación U007: 18 pruebas automáticas aprobadas; integración con MySQL real omitida en el entorno de preparación.
 
 Estos avances no asignan horas nuevas ni cierran la jornada del 10/09/2026. La hora de finalización, las pausas y el tiempo efectivo siguen pendientes de confirmación. La subida a GitHub se verifica al ejecutar el publicador del paquete, no se da por realizada en esta entrada.
+
+### Organización de la interfaz — U008
+
+- Reorganización de JavaScript en clases: AuthForm, LoginPage, ActivationPage, SidebarPreference, Sidebar y ModuleLayout.
+- Reutilización del flujo común de login y activación y conservación del CSS por componentes.
+- 25 pruebas aprobadas en el entorno de preparación; la prueba opcional con MySQL real queda omitida.
+- Paquete acumulativo preparado para instalar y publicar desde el equipo del usuario. No se da por confirmada la subida sin su resultado.
+
+No se asignan horas nuevas ni se modifica el cierre o las pausas pendientes de confirmación.

@@ -72,6 +72,8 @@ async function server(options={}) {
 async function scenario(fn,options){const s=await server(options);try{await fn(s);}finally{await s.close();}}
 test('U006: shared module structure, authenticated navigation, profile and local assets',()=>scenario(async s=>{
   const form=await s.form();
+  assert.ok(form.response.text.indexOf('/js/components/auth-form.js') >= 0);
+  assert.ok(form.response.text.indexOf('/js/components/auth-form.js') < form.response.text.indexOf('/js/pages/login.js'));
   const login=await s.post('/api/auth/login',{nombre_usuario:'audit_user',contrasena:password},form);
   const headers={Cookie:login.cookie};
   for(const item of require('../src/config/navigation').modules){
@@ -99,7 +101,7 @@ test('U006: shared module structure, authenticated navigation, profile and local
   assert.ok(profile.text.includes('audit_user'));
   assert.ok(!profile.text.includes(user.contrasena));
   assert.ok(!profile.text.includes('data-module-layout='));
-  for(const asset of ['/css/components/sidebar.css','/js/components/sidebar.js','/js/components/sidebar-preference.js','/fonts/inter/InterVariable.woff2','/img/brand/paris-isologo.png','/css/components/module-layout.css','/js/components/module-layout.js']) {
+  for(const asset of ['/js/components/auth-form.js','/css/components/sidebar.css','/js/components/sidebar.js','/js/components/sidebar-preference.js','/fonts/inter/InterVariable.woff2','/img/brand/paris-isologo.png','/css/components/module-layout.css','/js/components/module-layout.js']) {
     assert.equal((await s.request(asset)).status,200,asset);
   }
 }));
@@ -132,6 +134,10 @@ test('U005: module pages and profile require an active session and license',()=>
   const noActivation=await s.request('/ventas');
   assert.equal(noActivation.status,302);
   assert.equal(noActivation.headers.get('location'),'/activar');
+  const activation=await s.request('/activar');
+  assert.equal(activation.status,200);
+  assert.ok(activation.text.indexOf('/js/components/auth-form.js') >= 0);
+  assert.ok(activation.text.indexOf('/js/components/auth-form.js') < activation.text.indexOf('/js/pages/activation.js'));
 }));
 test('valid login, session rotation, me, logout and inactive user',()=>scenario(async s=>{
   const f=await s.form();const login=await s.post('/api/auth/login',{nombre_usuario:'audit_user',contrasena:password},f);

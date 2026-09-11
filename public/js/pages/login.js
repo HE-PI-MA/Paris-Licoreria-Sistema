@@ -1,100 +1,57 @@
 (() => {
-  "use strict";
-  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+  'use strict';
 
-  const form = document.querySelector("[data-login-form]");
-  const submit = document.querySelector("[data-login-submit]");
-  const errorBox = document.querySelector("[data-login-error]");
-  const successBox = document.querySelector("[data-login-success]");
-  const password = document.querySelector("#contrasena");
-  const toggle = document.querySelector("[data-password-toggle]");
-  const submitDefaultHtml = submit?.innerHTML || "";
+  /** Define los campos y las acciones propias de la página de inicio de sesión. */
+  class LoginPage extends window.ParisUI.AuthForm {
+    constructor(form) {
+      super({
+        form,
+        submit: document.querySelector('[data-login-submit]'),
+        errorBox: document.querySelector('[data-login-error]'),
+        successBox: document.querySelector('[data-login-success]'),
+        endpoint: '/api/auth/login',
+        busyText: 'Verificando...',
+        successText: 'Inicio de sesion correcto. Redirigiendo...',
+        networkError: 'No fue posible comunicarse con el servidor. Intenta nuevamente.',
+        destination: '/inicio', delay: 450
+      });
+      this.password = document.querySelector('#contrasena');
+      this.toggle = document.querySelector('[data-password-toggle]');
+    }
 
-  if (!form) return;
+    init() {
+      super.init();
+      this.toggle?.addEventListener('click', () => this.togglePassword());
+    }
 
-  const show = (element, message) => {
-    element.textContent = message;
-    element.hidden = false;
-  };
+    togglePassword() {
+      if (!this.password) return;
+      const visible = this.password.type === 'text';
+      this.password.type = visible ? 'password' : 'text';
+      this.toggle.classList.toggle('is-visible', !visible);
+      this.toggle.setAttribute('aria-pressed', String(!visible));
+      this.toggle.setAttribute('aria-label', visible ? 'Mostrar contrasena' : 'Ocultar contrasena');
+      this.password.focus();
+    }
 
-  const hide = (element) => {
-    element.textContent = "";
-    element.hidden = true;
-  };
+    getPayload() {
+      const nombre_usuario = this.form.elements.namedItem('nombre_usuario').value.trim();
+      const contrasena = this.form.elements.namedItem('contrasena').value;
+      if (!nombre_usuario || !contrasena) {
+        this.show(this.errorBox, 'Completa el usuario y la contrasena.');
+        return null;
+      }
+      return { nombre_usuario, contrasena };
+    }
 
-  if (toggle && password) {
-    toggle.addEventListener("click", () => {
-      const visible = password.type === "text";
+    getErrorMessage(data) {
+      if (data?.error === 'SISTEMA_NO_ACTIVADO') return 'Este equipo no se encuentra activado.';
+      return typeof data?.error === 'string' ? data.error : 'No se pudo iniciar sesion.';
+    }
 
-      password.type = visible ? "password" : "text";
-      toggle.classList.toggle("is-visible", !visible);
-      toggle.setAttribute("aria-pressed", String(!visible));
-      toggle.setAttribute(
-        "aria-label",
-        visible ? "Mostrar contrasena" : "Ocultar contrasena"
-      );
-
-      password.focus();
-    });
+    clearSensitiveInput() { this.form.elements.namedItem('contrasena').value = ''; }
   }
 
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    hide(errorBox);
-    hide(successBox);
-
-    const nombreUsuario = form.nombre_usuario.value.trim();
-    const contrasena = form.contrasena.value;
-
-    if (!nombreUsuario || !contrasena) {
-      show(errorBox, "Completa el usuario y la contrasena.");
-      return;
-    }
-
-    submit.disabled = true;
-    submit.textContent = "Verificando...";
-
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken
-        },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          nombre_usuario: nombreUsuario,
-          contrasena
-        })
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        const message =
-          data.error === "SISTEMA_NO_ACTIVADO"
-            ? "Este equipo no se encuentra activado."
-            : data.error || "No se pudo iniciar sesion.";
-
-        show(errorBox, message);
-        return;
-      }
-
-      form.contrasena.value = "";
-      show(successBox, "Inicio de sesion correcto. Redirigiendo...");
-
-      window.setTimeout(() => {
-        window.location.assign("/inicio");
-      }, 450);
-    } catch (error) {
-      show(
-        errorBox,
-        "No fue posible comunicarse con el servidor. Intenta nuevamente."
-      );
-    } finally {
-      submit.disabled = false;
-      submit.innerHTML = submitDefaultHtml;
-    }
-  });
+  const form = document.querySelector('[data-login-form]');
+  if (form) new LoginPage(form).init();
 })();

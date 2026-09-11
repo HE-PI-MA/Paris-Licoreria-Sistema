@@ -1,54 +1,65 @@
 (() => {
   'use strict';
-  const layout = document.querySelector('[data-module-layout]');
-  if (!layout) return;
-  const content = layout.querySelector('[data-module-region="content"]');
-  const status = layout.querySelector('[data-module-status]');
-  const statusText = layout.querySelector('[data-module-status-text]');
-  const error = layout.querySelector('[data-module-error]');
-  const errorText = layout.querySelector('[data-module-error-text]');
-  const defaultMessage = statusText.textContent;
-  const defaults = {
-    info: defaultMessage,
-    loading: 'Cargando…',
-    success: 'Operación completada.',
-    warning: 'Revisa la información antes de continuar.',
-    error: 'No se pudo completar la acción. Inténtalo nuevamente.',
-    empty: 'No hay registros para mostrar.'
-  };
 
-  /** Oculta el mensaje y finaliza cualquier estado de carga del contenido. */
-  function clearMessage() {
-    status.hidden = true;
-    error.hidden = true;
-    statusText.textContent = '';
-    errorText.textContent = '';
-    content.setAttribute('aria-busy', 'false');
-  }
-
-  /** Cambia el aviso compartido; usa texto plano y anuncia errores por separado. */
-  function showMessage(kind = 'info', message) {
-    if (!Object.hasOwn(defaults, kind)) throw new TypeError('Tipo de mensaje no válido.');
-    const text = typeof message === 'string' && message.trim() ? message : defaults[kind];
-    clearMessage();
-    content.setAttribute('aria-busy', String(kind === 'loading'));
-    if (kind === 'error') {
-      error.hidden = false;
-      errorText.textContent = text;
-      return;
+  /** Controla los mensajes del módulo sin conocer sus futuras operaciones de negocio. */
+  class ModuleLayout {
+    constructor(element) {
+      this.element = element;
+      this.id = element.dataset.moduleLayout;
+      this.content = element.querySelector('[data-module-region="content"]');
+      this.status = element.querySelector('[data-module-status]');
+      this.statusText = element.querySelector('[data-module-status-text]');
+      this.error = element.querySelector('[data-module-error]');
+      this.errorText = element.querySelector('[data-module-error-text]');
+      this.defaultMessage = this.statusText.textContent;
+      this.defaults = {
+        info: this.defaultMessage,
+        loading: 'Cargando…',
+        success: 'Operación completada.',
+        warning: 'Revisa la información antes de continuar.',
+        error: 'No se pudo completar la acción. Inténtalo nuevamente.',
+        empty: 'No hay registros para mostrar.'
+      };
     }
-    status.dataset.kind = kind;
-    layout.querySelectorAll('[data-message-icon]').forEach(icon => { icon.hidden = icon.dataset.messageIcon !== kind; });
-    status.hidden = false;
-    statusText.textContent = text;
+
+    clearMessage() {
+      this.status.hidden = true;
+      this.error.hidden = true;
+      this.statusText.textContent = '';
+      this.errorText.textContent = '';
+      this.content.setAttribute('aria-busy', 'false');
+    }
+
+    /** Usa texto plano; los errores se anuncian en una región accesible separada. */
+    showMessage(kind = 'info', message) {
+      if (!Object.hasOwn(this.defaults, kind)) throw new TypeError('Tipo de mensaje no válido.');
+      const text = typeof message === 'string' && message.trim() ? message : this.defaults[kind];
+      this.clearMessage();
+      this.content.setAttribute('aria-busy', String(kind === 'loading'));
+      if (kind === 'error') {
+        this.error.hidden = false;
+        this.errorText.textContent = text;
+        return;
+      }
+      this.status.dataset.kind = kind;
+      this.element.querySelectorAll('[data-message-icon]').forEach(icon => { icon.hidden = icon.dataset.messageIcon !== kind; });
+      this.status.hidden = false;
+      this.statusText.textContent = text;
+    }
+
+    resetMessage() { this.showMessage('info', this.defaultMessage); }
+
+    /** Conserva la interfaz pública documentada y el contexto de cada método. */
+    getApi() {
+      return Object.freeze({
+        id: this.id,
+        showMessage: this.showMessage.bind(this),
+        clearMessage: this.clearMessage.bind(this),
+        resetMessage: this.resetMessage.bind(this)
+      });
+    }
   }
 
-  // Los futuros scripts de los módulos reutilizan estos mensajes.
-  // Esta base no hace consultas, no simula resultados ni activa botones de negocio.
-  window.ParisModule = Object.freeze({
-    id: layout.dataset.moduleLayout,
-    showMessage,
-    clearMessage,
-    resetMessage: () => showMessage('info', defaultMessage)
-  });
+  const element = document.querySelector('[data-module-layout]');
+  if (element) window.ParisModule = new ModuleLayout(element).getApi();
 })();

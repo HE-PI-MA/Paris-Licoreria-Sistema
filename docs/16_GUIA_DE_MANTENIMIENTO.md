@@ -59,3 +59,9 @@ Los include de EJS proceden de la configuración del servidor. Los datos de usua
 Usar las pruebas existentes para comprobar sesión, licencia, permisos y páginas compartidas. Añadir pruebas cuando aparezcan operaciones de negocio o se corrija un fallo concreto. La prueba MySQL requiere una base desechable independiente; no activar esa prueba contra datos reales.
 
 Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. U007 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
+
+## Organización JavaScript desde U008
+
+Modificar el flujo común de login/activación en AuthForm, y sus reglas específicas en LoginPage o ActivationPage. Sidebar y ModuleLayout agrupan estado y métodos de sus componentes. Mantener `auth-form.js` antes del script de página y `sidebar-preference.js` antes de `sidebar.js`.
+
+Las clases no reemplazan los componentes EJS ni las hojas CSS. La guía `18_ORGANIZACION_POO_U008.md` describe esa separación. Usar `node --test tests/frontend.test.js` para comprobar los eventos y el estado de las clases con dobles de elementos; las comprobaciones visuales se realizan en el navegador de la instalación.

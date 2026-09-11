@@ -1,77 +1,46 @@
 (() => {
-  "use strict";
-  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+  'use strict';
 
-  const form = document.querySelector("[data-activation-form]");
-  const submit = document.querySelector("[data-activation-submit]");
-  const errorBox = document.querySelector("[data-activation-error]");
-  const successBox = document.querySelector("[data-activation-success]");
-
-  if (!form || !submit) return;
-
-  const show = (element, message) => {
-    element.textContent = message;
-    element.hidden = false;
-  };
-
-  const hide = (element) => {
-    element.textContent = "";
-    element.hidden = true;
-  };
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    hide(errorBox);
-    hide(successBox);
-
-    const codigo = form.codigo.value.trim();
-
-    if (!codigo) {
-      show(errorBox, "Introduce el codigo de activacion.");
-      return;
-    }
-
-    submit.disabled = true;
-    submit.textContent = "Activando...";
-
-    try {
-      const response = await fetch("/api/licencia/activar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
-        credentials: "same-origin",
-        body: JSON.stringify({ codigo })
+  /** Especializa el formulario común con el código y los mensajes de licencia. */
+  class ActivationPage extends window.ParisUI.AuthForm {
+    constructor(form) {
+      super({
+        form,
+        submit: document.querySelector('[data-activation-submit]'),
+        errorBox: document.querySelector('[data-activation-error]'),
+        successBox: document.querySelector('[data-activation-success]'),
+        endpoint: '/api/licencia/activar',
+        busyText: 'Activando...',
+        successText: 'Equipo activado. Abriendo el Login...',
+        networkError: 'No fue posible comunicarse con el servidor.',
+        destination: '/login', delay: 650
       });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        const messages = {
-          ACTIVACION_CODIGO_INVALIDO: "El codigo de activacion no es valido.",
-          ACTIVACION_CODIGO_REQUERIDO: "Introduce el codigo de activacion.",
-          LICENCIA_NO_INSTALADA: "No existe una licencia instalada.",
-          LICENCIA_FIRMA_INVALIDA: "La licencia instalada no es autentica.",
-          LICENCIA_EQUIPO_NO_AUTORIZADO: "La licencia no corresponde a esta computadora.",
-          LICENCIA_EXPIRADA: "La licencia instalada ha expirado."
-        };
-
-        show(
-          errorBox,
-          messages[data.error] || "No se pudo completar la activacion."
-        );
-        return;
-      }
-
-      form.codigo.value = "";
-      show(successBox, "Equipo activado. Abriendo el Login...");
-
-      window.setTimeout(() => {
-        window.location.assign("/login");
-      }, 650);
-    } catch (error) {
-      show(errorBox, "No fue posible comunicarse con el servidor.");
-    } finally {
-      submit.disabled = false;
-      submit.textContent = "Activar esta computadora";
     }
-  });
+
+    getPayload() {
+      const codigo = this.form.elements.namedItem('codigo').value.trim();
+      if (!codigo) {
+        this.show(this.errorBox, 'Introduce el codigo de activacion.');
+        return null;
+      }
+      return { codigo };
+    }
+
+    getErrorMessage(data) {
+      const messages = {
+        ACTIVACION_CODIGO_INVALIDO: 'El codigo de activacion no es valido.',
+        ACTIVACION_CODIGO_REQUERIDO: 'Introduce el codigo de activacion.',
+        LICENCIA_NO_INSTALADA: 'No existe una licencia instalada.',
+        LICENCIA_FIRMA_INVALIDA: 'La licencia instalada no es autentica.',
+        LICENCIA_EQUIPO_NO_AUTORIZADO: 'La licencia no corresponde a esta computadora.',
+        LICENCIA_EXPIRADA: 'La licencia instalada ha expirado.'
+      };
+      return Object.hasOwn(messages, data?.error) ? messages[data.error] : 'No se pudo completar la activacion.';
+    }
+
+    clearSensitiveInput() { this.form.elements.namedItem('codigo').value = ''; }
+  }
+
+  const form = document.querySelector('[data-activation-form]');
+  if (form) new ActivationPage(form).init();
 })();
