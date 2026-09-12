@@ -51,8 +51,7 @@ Este mapa describe el código propio del proyecto. Las dependencias instaladas, 
 | `public/js/components/modal.js` | `Modal`, `Confirm` | Diálogo reutilizable con cabecera, cuerpo desplazable y pie. Controla teclado, foco y descarte de cambios; Confirm utiliza exactamente este mismo diálogo. |
 | `public/js/components/module-layout.js` | `ModuleLayout` | Coordina los avisos y el estado de carga del módulo mediante el presentador Message. |
 | `public/js/components/search-select.js` | `SearchSelect` | Selector con búsqueda local o por páginas del servidor. Conserva el select original para FormData. El cuadro visible controla teclado y foco; las respuestas antiguas se cancelan y nunca pisan la búsqueda actual. |
-| `public/js/components/sidebar-preference.js` | `SidebarPreference` | Solo guarda la preferencia visual, nunca información de la sesión. |
-| `public/js/components/sidebar.js` | `Sidebar` | Estado e interacción del menú lateral. Los permisos siguen en el servidor. |
+| `public/js/components/sidebar.js` | `Sidebar` | Adaptación al ancho, foco, ayudas y perfil del menú lateral. Los permisos siguen en el servidor. |
 | `public/js/components/ui-core.js` | `Icon`, `Button` | Utilidades visuales compartidas: elementos con texto seguro, iconos locales y botones. Los iconos se clonan de plantillas EJS controladas; los datos nunca se interpretan como HTML. |
 | `public/js/pages/activation.js` | `ActivationPage` | Especializa el formulario común con el código y los mensajes de licencia. |
 | `public/js/pages/components-demo.js` | `ComponentsDemo` | Demostración de componentes compartidos; todos los datos son ficticios y viven en memoria. Simula consultas por página y operaciones lentas sin acceder a APIs de negocio ni a MySQL. |
@@ -80,7 +79,7 @@ Este mapa describe el código propio del proyecto. Las dependencias instaladas, 
 | `public/css/components/messages.css` | Avisos de módulos, formularios y notificaciones: mismos colores y tipos de mensaje. |
 | `public/css/components/modal.css` | Modal general: cabecera y pie visibles; el cuerpo largo tiene desplazamiento propio. |
 | `public/css/components/module-layout.css` | Marco reutilizable: cabecera, controles, cuerpo flexible y mensajes del módulo. |
-| `public/css/components/sidebar.css` | París Licorería: sidebar, perfil y contenedor de módulos. Logotipo con letras: 135 px. Símbolo contraído: 100 px. Cambia las alturas únicamente en las variables de :root. |
+| `public/css/components/sidebar.css` | Sidebar, perfil y espacio de módulos. Cabecera de 84px, imagen completa de 112px y símbolo de 70px; anchos de 14rem y 5.5rem. Modos automáticos en 48rem y 75rem, coordinados con Sidebar. |
 | `public/css/pages/auth.css` | Estilos del login y de Activación; se cargan únicamente en esas dos páginas. |
 | `public/css/pages/components-demo.css` | Distribución exclusiva de la demostración; los controles utilizan los componentes globales. |
 

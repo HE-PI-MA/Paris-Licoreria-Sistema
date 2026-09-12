@@ -14,8 +14,7 @@
 | Iconos locales | `views/components/icon.ejs`; `sidebar-icon.ejs` adapta su uso en el menú |
 | Tamaños, colores, espaciado y adaptación del sidebar | `public/css/components/sidebar.css` |
 | Diseño de las cuatro áreas | `public/css/components/module-layout.css` |
-| Colapsar, menú móvil, perfil y logout | `public/js/components/sidebar.js` |
-| Restaurar preferencia antes del primer renderizado | `public/js/components/sidebar-preference.js` |
+| Adaptación automática, menú móvil, perfil y logout | `public/js/components/sidebar.js` |
 | Búsquedas, filtros, selectores y fechas | `public/js/components/filter-bar.js`, `search-select.js`, `date-range.js` |
 | Ordenamiento y menú de acciones | `public/js/components/data-table.js`, `action-menu.js` |
 | Medir navegación local | `scripts/diagnosticar-navegacion.js` |
@@ -26,7 +25,7 @@
 | Compilación y actualización de plantillas EJS | `src/core/TemplateCache.js` |
 | Configuración general de Express y orden del middleware | `src/app.js` |
 
-## Valores visuales vigentes — U015
+## Valores visuales vigentes — U016
 
 Modificar las variables de `:root` en `sidebar.css`; `--module-space` está centralizada en `base/tokens.css`. Evitar bloques repetidos al final del archivo:
 
@@ -41,6 +40,8 @@ Modificar las variables de `:root` en `sidebar.css`; `--module-space` está cent
 | `--sidebar-header-height` | `84px` | Cabecera del menú; altura mínima compartida con la cabecera del módulo. |
 
 Con raíz de 16px, el ancho expandido es 224px y el contraído 88px. Ambas cabeceras del sidebar conservan 84px. Las alturas de imagen incluyen márgenes transparentes internos. En móvil la hamburguesa se integra en la cabecera del módulo; no hay una segunda barra. Los controles pueden pasar a otra fila para evitar desbordamientos.
+
+Desde U016, CSS selecciona el modo antes de ejecutar JavaScript: más de `75rem` muestra el menú completo, entre `48rem` y `75rem` muestra iconos, y hasta `48rem` usa el panel móvil. `Sidebar` observa los mismos límites mediante `matchMedia`; si se cambian, actualizar ambos archivos. No hay un ajuste manual ni dependencia de localStorage. La marca no es un enlace; Inicio conserva su opción de navegación. El cierre táctil móvil queda junto al panel, fuera de la marca.
 
 Las imágenes originales están en `public/img/login/paris-login-logo.webp` y `public/img/brand/paris-isologo.png`. CSS conserva sus proporciones con `object-fit: contain`; no corta el logo para producir el símbolo.
 
@@ -66,11 +67,11 @@ Los include de EJS proceden de la configuración del servidor. Los datos de usua
 
 Usar las pruebas existentes para comprobar sesión, licencia, permisos y páginas compartidas. Añadir pruebas cuando aparezcan operaciones de negocio o se corrija un fallo concreto. La prueba MySQL requiere una base desechable independiente; no activar esa prueba contra datos reales.
 
-Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. El paquete U015 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
+Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. El paquete U016 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
 
 ## Organización JavaScript desde U008
 
-Modificar el flujo común de login/activación en AuthForm, y sus reglas específicas en LoginPage o ActivationPage. Sidebar y ModuleLayout agrupan estado y métodos de sus componentes. Mantener `auth-form.js` antes del script de página y `sidebar-preference.js` antes de `sidebar.js`.
+Modificar el flujo común de login/activación en AuthForm, y sus reglas específicas en LoginPage o ActivationPage. Sidebar y ModuleLayout agrupan estado y métodos de sus componentes. Mantener `auth-form.js` antes del script de página; `sidebar.js` se carga con `defer`, sin un script previo de preferencia.
 
 Las clases no reemplazan los componentes EJS ni las hojas CSS. La guía `18_ORGANIZACION_POO_U008.md` describe esa separación. Usar `node --test tests/frontend.test.js` para comprobar los eventos y el estado de las clases con dobles de elementos; las comprobaciones visuales se realizan en el navegador de la instalación.
 

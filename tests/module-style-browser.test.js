@@ -82,8 +82,8 @@ test('U013: cabecera compartida y filtro directo', { skip: process.env.PARIS_UI_
     });
     await t.test('cabeceras alineadas, colores compartidos y controles sin desbordamiento', async () => {
       await page.locator('#module-search').fill(''); await page.locator('#module-search').press('Enter');
-      for (const collapsed of [false, true]) {
-        await page.evaluate(value => { document.documentElement.dataset.sidebarCollapsed = String(value); }, collapsed);
+      for (const width of [1440, 1000]) {
+        await page.setViewportSize({ width, height: 960 });
         const sizes = await page.evaluate(() => {
           const header = document.querySelector('.module-header'), sidebar = document.querySelector('.sidebar-header');
           return { main: header.getBoundingClientRect().bottom, side: sidebar.getBoundingClientRect().bottom,
@@ -94,7 +94,7 @@ test('U013: cabecera compartida y filtro directo', { skip: process.env.PARIS_UI_
         assert.ok(sizes.main <= 85, 'Cabecera compacta en ambos estados');
         assert.equal(sizes.background, sizes.sideBackground); assert.equal(sizes.searchBackground, 'rgba(0, 0, 0, 0)');
       }
-      await page.evaluate(() => { document.documentElement.dataset.sidebarCollapsed = 'false'; });
+      await page.setViewportSize({ width: 1440, height: 960 });
       assert.equal(await page.locator('.module-panel-heading').count(), 0);
       assert.equal(await page.locator('#products-table .app-table-sort span').count(), 0);
       assert.equal(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1), true);

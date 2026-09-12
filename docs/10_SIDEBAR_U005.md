@@ -1,5 +1,7 @@
 # U005 — Sidebar de París Licorería
 
+> Documento histórico. U016 sustituye el control manual y SidebarPreference por adaptación automática. Consultar [Sidebar automático U016](28_SIDEBAR_AUTOMATICO_U016.md) para la implementación vigente.
+
 ## Alcance
 
 Se integra el menú lateral aprobado en negro y dorado. La cabecera contiene el logo original y el botón para contraer o ampliar. El cuerpo contiene los módulos. El pie permanece fijo y muestra el usuario autenticado, su rol y las opciones Mi perfil y Cerrar sesión.

@@ -23,6 +23,9 @@ test('U006: shared module structure, authenticated navigation, profile and local
     assert.equal(response.status,200,response.text);
     assert.ok(response.text.includes(`href="${item.href}" aria-label="${item.label}" aria-current="page"`));
     assert.ok(response.text.includes('id="profile-menu"'));
+    assert.ok(!response.text.includes('data-sidebar-toggle'));
+    assert.ok(!response.text.includes('sidebar-preference.js'));
+    assert.match(response.text, /<div class="sidebar-brand" role="img"/);
     assert.ok(response.text.includes('name="csrf-token"'));
     let previousRegion = -1;
     for (const region of ['header', 'controls', 'content', 'messages']) {
@@ -49,7 +52,7 @@ test('U006: shared module structure, authenticated navigation, profile and local
   assert.ok(profile.text.includes('audit_user'));
   assert.ok(!profile.text.includes(user.contrasena));
   assert.ok(!profile.text.includes('data-module-layout='));
-  for(const asset of ['/js/components/auth-form.js','/css/components/sidebar.css','/js/components/sidebar.js','/js/components/sidebar-preference.js','/fonts/inter/InterVariable.woff2','/img/brand/paris-isologo.png','/css/components/module-layout.css','/js/components/module-layout.js']) {
+  for(const asset of ['/js/components/auth-form.js','/css/components/sidebar.css','/js/components/sidebar.js','/fonts/inter/InterVariable.woff2','/img/brand/paris-isologo.png','/css/components/module-layout.css','/js/components/module-layout.js']) {
     assert.equal((await s.request(asset)).status,200,asset);
   }
 }));

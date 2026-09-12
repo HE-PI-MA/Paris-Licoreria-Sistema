@@ -46,6 +46,6 @@ No hay controladores ni repositorios de productos, compras, ventas o caja conect
 
 ## Clases de la interfaz
 
-AuthForm concentra el acceso y LoginPage/ActivationPage especializan sus campos. Sidebar coordina el menú y utiliza SidebarPreference. ModuleLayout mantiene la API de mensajes y reutiliza Message. Button, FormController, Modal, Confirm, NotificationCenter, DataTable, FilterBar, SearchSelect, DateRange y ActionMenu forman la base visual compartida. Las clases del módulo reciben acciones y consultan sus API; DataTable no guarda productos. Ver las guías U009 y U010 para contratos y orden de carga.
+AuthForm concentra el acceso y LoginPage/ActivationPage especializan sus campos. Sidebar coordina el menú automático, el perfil y el foco del panel móvil. Desde U016, CSS selecciona el ancho y la clase observa sus límites mediante matchMedia; ya no se carga ni se utiliza SidebarPreference. ModuleLayout mantiene la API de mensajes y reutiliza Message. Button, FormController, Modal, Confirm, NotificationCenter, DataTable, FilterBar, SearchSelect, DateRange y ActionMenu forman la base visual compartida. Las clases del módulo reciben acciones y consultan sus API; DataTable no guarda productos. Ver las guías U009 y U010 para contratos y orden de carga.
 
 TemplateCache pertenece al servidor: guarda funciones de EJS, no el resultado HTML. La caché del navegador para páginas privadas continúa desactivada. La revalidación de sesión y licencia se ejecuta antes de renderizar cada página.

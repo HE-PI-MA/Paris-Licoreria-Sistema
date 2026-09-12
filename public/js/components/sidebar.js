@@ -1,4 +1,4 @@
-/** Estado e interacción del menú lateral. Los permisos siguen en el servidor. */
+/** Menú automático: completo, iconos o diálogo móvil según el ancho. CSS aplica el tamaño antes de cargar JS; esta clase conserva foco, ayudas, perfil y logout. Los permisos siguen en el servidor. */
 (() => {
   'use strict';
 
@@ -6,7 +6,7 @@
     constructor(element) {
       this.element = element;
       this.root = document.documentElement;
-      this.toggle = element.querySelector('[data-sidebar-toggle]');
+      this.closeButton = element.querySelector('[data-sidebar-close]');
       this.opener = document.querySelector('[data-sidebar-open]');
       this.backdrop = document.querySelector('[data-sidebar-backdrop]');
       this.workspace = document.querySelector('#paris-workspace');
@@ -15,25 +15,32 @@
       this.menuItems = Array.from(this.menu.querySelectorAll('[role="menuitem"]'));
       this.tooltip = document.querySelector('#sidebar-tooltip');
       this.media = window.matchMedia('(max-width: 48rem)');
-      this.preference = new window.ParisUI.SidebarPreference(this.root);
+      // Mantener los mismos límites que sidebar.css: 768px y 1200px con raíz de 16px.
+      this.rail = window.matchMedia('(min-width: 48.001rem) and (max-width: 75rem)');
+      this.links = Array.from(element.querySelectorAll('[data-sidebar-label]'));
       this.tooltipTarget = null;
+      this.lastFocused = null;
       this.logoutButton = element.querySelector('[data-logout]');
       this.logoutLabel = this.logoutButton.querySelector('[data-logout-label]');
       this.errorBox = document.querySelector('[data-logout-error]');
     }
 
     init() {
-      this.toggle.addEventListener('click', () => this.onToggle());
+      this.closeButton.addEventListener('click', () => this.setMobileOpen(false, true));
       this.opener.addEventListener('click', () => this.setMobileOpen(true));
       this.backdrop.addEventListener('click', () => this.setMobileOpen(false, true));
       this.media.addEventListener('change', () => this.onBreakpointChange());
+      this.rail.addEventListener('change', () => this.onBreakpointChange());
       this.trigger.addEventListener('click', () => this.menu.hidden ? this.openProfile() : this.closeProfile(true));
       this.trigger.addEventListener('keydown', event => this.onProfileKey(event));
       this.menu.addEventListener('keydown', event => this.onMenuKey(event));
       document.addEventListener('click', event => this.dismissProfileOutside(event));
-      document.addEventListener('focusin', event => this.dismissProfileOutside(event));
+      document.addEventListener('focusin', event => {
+        this.lastFocused = event.target;
+        this.dismissProfileOutside(event);
+      });
       document.addEventListener('keydown', event => this.onDocumentKey(event));
-      this.element.querySelectorAll('[data-sidebar-label]').forEach(link => {
+      this.links.forEach(link => {
         link.addEventListener('mouseenter', () => this.showTooltip(link));
         link.addEventListener('focus', () => this.showTooltip(link));
         link.addEventListener('mouseleave', () => this.hideTooltip());
@@ -43,27 +50,16 @@
       window.addEventListener('resize', () => this.hideTooltip(), { passive: true });
       this.logoutButton.addEventListener('click', () => this.logout());
       this.setMobileOpen(false);
-      this.syncToggle();
     }
 
-    onToggle() {
-      if (this.media.matches) return this.setMobileOpen(false, true);
-      this.closeProfile();
-      this.hideTooltip();
-      const collapsed = this.root.dataset.sidebarCollapsed !== 'true';
-      this.root.dataset.sidebarCollapsed = String(collapsed);
-      this.preference.save(collapsed);
-      this.syncToggle();
-    }
-
-    syncToggle() {
-      const collapsed = this.root.dataset.sidebarCollapsed === 'true';
-      this.toggle.setAttribute('aria-label', this.media.matches ? 'Cerrar menú' : collapsed ? 'Ampliar menú' : 'Contraer menú');
-      this.toggle.setAttribute('aria-expanded', String(this.media.matches || !collapsed));
+    /** La navegación recibe foco cuando el botón móvil desaparece al ampliar la ventana. */
+    focusNavigation() {
+      (this.links.find(link => link.getAttribute('aria-current') === 'page') || this.links[0] || this.trigger).focus();
     }
 
     /** El menú móvil bloquea el fondo y devuelve el foco al cerrarse. */
     setMobileOpen(open, restoreFocus = false) {
+      if (open && !this.media.matches) return;
       this.closeProfile();
       this.hideTooltip();
       this.root.toggleAttribute('data-sidebar-open', open);
@@ -74,7 +70,7 @@
       if (open) {
         this.element.setAttribute('role', 'dialog');
         this.element.setAttribute('aria-modal', 'true');
-        this.toggle.focus();
+        this.focusNavigation();
       } else {
         this.element.removeAttribute('role');
         this.element.removeAttribute('aria-modal');
@@ -82,12 +78,16 @@
       }
     }
 
+    /** Cierra paneles al cambiar de modo y evita dejar foco en un control oculto o inerte. */
     onBreakpointChange() {
-      const active = document.activeElement;
+      // CSS puede ocultar un control antes del evento change y devolver el foco al body.
+      // El último destino permite trasladarlo al control equivalente del nuevo modo.
+      const active = document.activeElement === document.body ? this.lastFocused : document.activeElement;
+      const profileHadFocus = this.menu.contains(active);
       this.setMobileOpen(false);
-      this.syncToggle();
       if (this.media.matches && this.element.contains(active)) this.opener.focus();
-      else if (!this.media.matches && active === this.opener) this.toggle.focus();
+      else if (profileHadFocus) this.trigger.focus();
+      else if (!this.media.matches && (active === this.opener || active === this.closeButton)) this.focusNavigation();
     }
 
     closeProfile(restoreFocus = false) {
@@ -148,7 +148,7 @@
     }
 
     showTooltip(link) {
-      if (this.media.matches || this.root.dataset.sidebarCollapsed !== 'true') return;
+      if (!this.rail.matches) return;
       this.hideTooltip();
       const rect = link.getBoundingClientRect();
       this.tooltip.textContent = link.dataset.sidebarLabel;

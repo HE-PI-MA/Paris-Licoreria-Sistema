@@ -1,5 +1,7 @@
 # U008 — Organización con clases
 
+> Documento histórico. U016 sustituye el control manual y SidebarPreference por adaptación automática. Consultar [Sidebar automático U016](28_SIDEBAR_AUTOMATICO_U016.md) para la implementación vigente.
+
 ## Alcance
 
 La lógica JavaScript de la interfaz se organiza con clases. El servidor ya utiliza clases para aplicación, controladores, servicios, repositorios y controles de acceso. Las configuraciones siguen representándose mediante datos y funciones auxiliares: organizar el sistema con POO no exige convertir cada dato o función en una clase.

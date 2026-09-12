@@ -30,14 +30,14 @@ function environment(){
   const token=element();token.content='test-csrf';document.queries.set('meta[name="csrf-token"]',token);
   const requests=[],redirects=[],timers=[],stored=new Map();
   let responder=async()=>({ok:true,status:200,json:async()=>({})});
-  const media=element();media.matches=false;
+  const media=element(),rail=element();media.matches=false;rail.matches=false;
   const window=new Element(document);
-  Object.assign(window,{location:{assign:url=>redirects.push(url)},setTimeout:fn=>timers.push(fn),matchMedia:()=>media});
+  Object.assign(window,{location:{assign:url=>redirects.push(url)},setTimeout:fn=>timers.push(fn),matchMedia:query=>query.includes('75rem')?rail:media});
   const storage={getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)};
   const context=vm.createContext({document,window,localStorage:storage,innerHeight:768,
     fetch:async(url,options)=>{requests.push({url,options});return responder(url,options);}});
   const load=file=>vm.runInContext(fs.readFileSync(path.join(__dirname,'../public/js',file),'utf8'),context,{filename:file});
-  return {document,element,window,media,requests,redirects,timers,stored,storage,load,respond:fn=>{responder=fn;}};
+  return {document,element,window,media,rail,requests,redirects,timers,stored,storage,load,respond:fn=>{responder=fn;}};
 }
 function authPage(type){
   const e=environment(),form=e.element(),submit=e.element(),error=e.element(),success=e.element(),toggle=e.element();
@@ -93,24 +93,26 @@ test('U008: ModuleLayout conserva API, carga, tipos validos y texto sin HTML',()
   assert.throws(()=>api.showMessage('__proto__'),/Tipo de mensaje/);
 });
 function sidebarPage(){
-  const e=environment(),n={};for(const k of ['sidebar','toggle','opener','backdrop','workspace','trigger','menu','tooltip','logout','label','error','profile','navigation','link'])n[k]=e.element();
-  n.link.dataset.sidebarLabel='Inicio';n.sidebar.children=[n.link,n.toggle,n.trigger,n.menu];n.menu.children=[n.profile,n.logout];n.profile.parent=n.logout.parent=n.menu;
+  const e=environment(),n={};for(const k of ['sidebar','close','opener','backdrop','workspace','trigger','menu','tooltip','logout','label','error','profile','navigation','link'])n[k]=e.element();
+  n.link.dataset.sidebarLabel='Inicio';n.sidebar.children=[n.close,n.link,n.trigger,n.menu];n.menu.children=[n.profile,n.logout];n.profile.parent=n.logout.parent=n.menu;
   for(const [s,key]of [['#paris-sidebar','sidebar'],['[data-sidebar-open]','opener'],['[data-sidebar-backdrop]','backdrop'],['#paris-workspace','workspace'],['#profile-trigger','trigger'],['#profile-menu','menu'],['#sidebar-tooltip','tooltip'],['[data-logout-error]','error']])e.document.queries.set(s,n[key]);
-  for(const [s,v]of [['[data-sidebar-toggle]',n.toggle],['[data-sidebar-label]',[n.link]],['.sidebar-navigation',n.navigation],['[data-logout]',n.logout],['a[href], button:not(:disabled)',[n.link,n.toggle,n.trigger,n.profile,n.logout]]])n.sidebar.queries.set(s,v);
+  for(const [s,v]of [['[data-sidebar-close]',n.close],['[data-sidebar-label]',[n.link]],['.sidebar-navigation',n.navigation],['[data-logout]',n.logout],['a[href], button:not(:disabled)',[n.close,n.link,n.trigger,n.profile,n.logout]]])n.sidebar.queries.set(s,v);
   n.menu.queries.set('[role="menuitem"]',[n.profile,n.logout]);n.logout.queries.set('[data-logout-label]',n.label);
-  e.stored.set('paris.sidebar.collapsed','true');e.load('components/sidebar-preference.js');e.load('components/sidebar.js');return {...e,...n};
+  e.stored.set('paris.sidebar.collapsed','true');e.load('components/sidebar.js');return {...e,...n};
 }
-test('U008: sidebar conserva preferencia, ayudas y perfil por teclado',async()=>{
-  const e=sidebarPage();assert.equal(e.toggle.getAttribute('aria-label'),'Ampliar menú');await e.link.emit('focus');assert.equal(e.tooltip.textContent,'Inicio');
-  assert.equal(e.link.getAttribute('aria-describedby'),'sidebar-tooltip');await e.toggle.emit('click');assert.equal(e.stored.get('paris.sidebar.collapsed'),'false');assert.equal(e.tooltip.hidden,true);
+test('U016: ancho automático ignora preferencias antiguas y conserva ayudas y perfil',async()=>{
+  const e=sidebarPage();await e.link.emit('focus');assert.equal(e.tooltip.hidden,true);
+  e.rail.matches=true;await e.rail.emit('change');await e.link.emit('focus');assert.equal(e.tooltip.textContent,'Inicio');
+  assert.equal(e.link.getAttribute('aria-describedby'),'sidebar-tooltip');
   await e.trigger.emit('keydown',{key:'ArrowUp'});assert.equal(e.document.activeElement,e.logout);await e.menu.emit('keydown',{key:'Home'});assert.equal(e.document.activeElement,e.profile);
   await e.document.emit('keydown',{key:'Escape'});assert.equal(e.menu.hidden,true);assert.equal(e.document.activeElement,e.trigger);
-  e.storage.setItem=()=>{throw Error('unavailable');};await e.toggle.emit('click');assert.equal(e.document.documentElement.dataset.sidebarCollapsed,'true');
+  e.rail.matches=false;await e.rail.emit('change');assert.equal(e.tooltip.hidden,true);
+  assert.equal(e.stored.get('paris.sidebar.collapsed'),'true');assert.equal(e.document.documentElement.dataset.sidebarCollapsed,undefined);
 });
 test('U008: menu movil bloquea fondo, limita Tab y recupera foco',async()=>{
   const e=sidebarPage();e.media.matches=true;await e.media.emit('change');assert.equal(e.sidebar.inert,true);await e.opener.emit('click');
   assert.equal(e.workspace.inert,true);assert.equal(e.sidebar.inert,false);assert.equal(e.sidebar.getAttribute('aria-modal'),'true');
-  e.trigger.focus();await e.document.emit('keydown',{key:'Tab'});assert.equal(e.document.activeElement,e.link);
+  e.trigger.focus();await e.document.emit('keydown',{key:'Tab'});assert.equal(e.document.activeElement,e.close);
   await e.document.emit('keydown',{key:'Tab',shiftKey:true});assert.equal(e.document.activeElement,e.trigger);
   await e.document.emit('keydown',{key:'Escape'});assert.equal(e.workspace.inert,false);assert.equal(e.backdrop.hidden,true);assert.equal(e.document.activeElement,e.opener);
 });

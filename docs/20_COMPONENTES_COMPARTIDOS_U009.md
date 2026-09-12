@@ -21,7 +21,7 @@ Los comentarios se escriben en español, al inicio de cada archivo creado o modi
 
 ## Archivos y orden de carga
 
-Las clases se publican en window.ParisUI. workspace.ejs carga, con defer, ui-core.js, messages.js, modal.js, form-controller.js, data-table.js y module-layout.js, antes de la clase propia de la página. sidebar-preference.js conserva su carga temprana. Login y activación siguen utilizando AuthForm y sus scripts originales.
+Las clases se publican en window.ParisUI. workspace.ejs carga, con defer, ui-core.js, messages.js, modal.js, form-controller.js, data-table.js y module-layout.js, antes de la clase propia de la página. Desde U016, el ancho inicial del menú procede de CSS y se elimina sidebar-preference.js. Login y activación siguen utilizando AuthForm y sus scripts originales.
 
 | Archivo | Responsabilidad |
 | --- | --- |

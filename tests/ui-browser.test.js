@@ -200,7 +200,7 @@ test('U009: componentes en navegador real', {
       }
       await page.setViewportSize({ width: 1440, height: 1000 });
       await page.goto(app.base + '/productos');
-      await page.locator('[data-sidebar-toggle]').click();
+      await page.setViewportSize({ width: 1000, height: 1000 });
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
       assert.equal(overflow, false);
       if (process.env.PARIS_UI_SCREENSHOTS) {

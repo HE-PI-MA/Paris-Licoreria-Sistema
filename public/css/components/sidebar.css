@@ -2,7 +2,8 @@
  * París Licorería: sidebar, perfil y contenedor de módulos.
  * Cabeceras compactas de 84 px; imágenes proporcionadas, sin recortes.
  * La altura de cabecera se comparte con los módulos; el ancho compacto es 14rem.
- * Cambia las medidas únicamente en las variables de :root.
+ * CSS elige el ancho desde el primer renderizado: completo >75rem, iconos >48rem, móvil hasta 48rem.
+ * Los puntos de cambio se coordinan con matchMedia en Sidebar; no se guarda una preferencia manual.
  */
 
 @font-face {
@@ -26,10 +27,6 @@
   --sidebar-line: #343029;
   --sidebar-gold: #d9a441;
   --sidebar-muted: #bcb8af;
-}
-
-html[data-sidebar-collapsed="true"] {
-  --sidebar-current-width: var(--sidebar-rail);
 }
 
 .paris-app {
@@ -106,9 +103,7 @@ html[data-sidebar-collapsed="true"] {
   align-items: center;
   justify-content: center;
   height: var(--sidebar-brand-height);
-  padding-right: 34px;
-  text-decoration: none;
-  border-radius: .5rem;
+
 }
 
 /* Las dos imágenes comparten presentación y tienen alturas independientes. */
@@ -139,28 +134,13 @@ html[data-sidebar-collapsed="true"] {
   object-fit: contain;
 }
 
-.sidebar-toggle {
-  position: absolute;
-  top: .5rem;
-  right: 0;
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 1px solid #494137;
-  border-radius: .625rem;
-  background: #24211c;
-  color: #f5f3ee;
-  cursor: pointer;
+/* No hay botón de contracción. Este cierre solo acompaña al diálogo móvil. */
+.sidebar-mobile-close {
+  display: none; position: absolute; top: 10px; left: calc(100% + 10px);
+  place-items: center; width: 42px; height: 42px; padding: 8px;
+  color: #f5f3ee; background: #24211c; border: 1px solid #494137; border-radius: 10px;
 }
-
-.sidebar-toggle:hover {
-  background: #353026;
-}
-
-.sidebar-close-icon {
-  display: none;
-}
+.sidebar-mobile-close:hover { background: #353026; }
 
 /* Navegación de módulos. */
 .sidebar-navigation {
@@ -525,58 +505,16 @@ html[data-sidebar-collapsed="true"] {
   box-shadow: 0 6px 24px #30151a17;
 }
 
-/* Sidebar contraído en escritorio. */
-@media (min-width: 48.001rem) {
-  html[data-sidebar-collapsed="true"] .sidebar-brand {
-    height: var(--sidebar-brand-height);
-    padding-right: 20px;
-  }
-
-  html[data-sidebar-collapsed="true"] .sidebar-logo-full {
-    display: none;
-  }
-
-  html[data-sidebar-collapsed="true"] .sidebar-logo-symbol {
-    display: block;
-  }
-
-  html[data-sidebar-collapsed="true"] .sidebar-toggle {
-    top: 4px;
-    width: 24px;
-    height: 24px;
-    right: -8px;
-  }
-
-  html[data-sidebar-collapsed="true"] .sidebar-collapse-icon {
-    transform: rotate(180deg);
-  }
-
-  html[data-sidebar-collapsed="true"] .sidebar-group-title {
-    visibility: hidden;
-  }
-
-  html[data-sidebar-collapsed="true"] .sidebar-link {
-    justify-content: center;
-    gap: 0;
-    padding-inline: .5rem;
-  }
-
-  html[data-sidebar-collapsed="true"] .sidebar-text {
-    width: 0;
-    opacity: 0;
-    overflow: hidden;
-  }
-
-  html[data-sidebar-collapsed="true"] .sidebar-profile {
-    display: flex;
-    justify-content: center;
-  }
-
-  html[data-sidebar-collapsed="true"] .sidebar-profile-text,
-  html[data-sidebar-collapsed="true"] .sidebar-profile-chevron {
-    display: none;
-  }
-
+/* Tamaño intermedio: solo símbolos, con nombres accesibles y ayudas al enfocar. */
+@media (min-width: 48.001rem) and (max-width: 75rem) {
+  :root { --sidebar-current-width: var(--sidebar-rail); }
+  .sidebar-logo-full { display: none; }
+  .sidebar-logo-symbol { display: block; }
+  .sidebar-group-title { visibility: hidden; }
+  .sidebar-link { justify-content: center; gap: 0; padding-inline: .5rem; }
+  .sidebar-text { width: 0; opacity: 0; overflow: hidden; }
+  .sidebar-profile { display: flex; justify-content: center; }
+  .sidebar-profile-text, .sidebar-profile-chevron { display: none; }
 }
 
 /* Sidebar móvil. */
@@ -597,13 +535,7 @@ html[data-sidebar-collapsed="true"] {
     overflow: hidden;
   }
 
-  .sidebar-collapse-icon {
-    display: none;
-  }
-
-  .sidebar-close-icon {
-    display: block;
-  }
+  .sidebar-mobile-close { display: grid; }
 
   .sidebar-profile-menu {
     left: .75rem;
