@@ -20,12 +20,13 @@
 | Medir navegación local | `scripts/diagnosticar-navegacion.js` |
 | Texto del negocio en mayúsculas | `TextCase` en `public/js/components/ui-core.js`; marcar campos con `data-uppercase`. |
 | Hamburguesa integrada en la cabecera | `views/components/sidebar-opener.ejs` y `views/components/module/header.ejs` |
+| Datos de consulta en bloques | `public/js/components/record-details.js` y `public/css/components/record-details.css` |
 | Mensajes compartidos | `public/js/components/module-layout.js` |
 | Estilos y comportamiento de login/activación | `public/css/pages/auth.css` y `public/js/pages/` |
 | Compilación y actualización de plantillas EJS | `src/core/TemplateCache.js` |
 | Configuración general de Express y orden del middleware | `src/app.js` |
 
-## Valores visuales vigentes — U016
+## Valores visuales vigentes — U017
 
 Modificar las variables de `:root` en `sidebar.css`; `--module-space` está centralizada en `base/tokens.css`. Evitar bloques repetidos al final del archivo:
 
@@ -67,7 +68,7 @@ Los include de EJS proceden de la configuración del servidor. Los datos de usua
 
 Usar las pruebas existentes para comprobar sesión, licencia, permisos y páginas compartidas. Añadir pruebas cuando aparezcan operaciones de negocio o se corrija un fallo concreto. La prueba MySQL requiere una base desechable independiente; no activar esa prueba contra datos reales.
 
-Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. El paquete U016 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
+Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. El paquete U017 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
 
 ## Organización JavaScript desde U008
 
@@ -90,3 +91,7 @@ El mapa `23_MAPA_ARCHIVOS_Y_COMENTARIOS.md` identifica la responsabilidad de cad
 Las hojas de autenticación se enlazan únicamente en login y activación; no volver a importarlas desde `app.css`. Reutilizar `.app-sr-only` para texto accesible oculto.
 
 Después de editar una vista EJS en desarrollo, TemplateCache invalida las funciones compiladas. Si la carpeta está en un recurso de red que no comunica cambios, reiniciar el servidor o desactivar la caché al construir App con `{ templateCache: false }`. En producción, reiniciar el proceso al desplegar.
+
+## Productos y componentes U017
+
+Consultar [U017](29_PRODUCTOS_Y_MODALES_U017.md). Modal admite un icono local y cierra mediante su pie; conservar Cancelar/Cerrar y requestClose para comprobar cambios pendientes. RecordDetails reutiliza ValueFormat y muestra texto seguro. La alineación numérica es centrada con la misma Inter del listado. SearchSelect se limpia editando su texto. ModuleLayout oculta su región cuando no hay aviso, pero mantiene los errores accesibles.

@@ -297,11 +297,8 @@
         return date ? date[3] + '/' + date[2] + '/' + date[1] : '—';
       }
       if (['number', 'quantity', 'price'].includes(column.type)) {
-        const number = Number(value);
-        if (!Number.isFinite(number)) return '—';
-        const options = column.type === 'price' ? { style: 'currency', currency: column.currency || this.currency } :
-          { maximumFractionDigits: column.type === 'quantity' ? 3 : (column.decimals ?? 0) };
-        return new Intl.NumberFormat(this.locale, options).format(number);
+        return UI.ValueFormat.number(value, { type: column.type, locale: this.locale,
+          currency: column.currency || this.currency, decimals: column.decimals ?? 0 });
       }
       return String(value);
     }

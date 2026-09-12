@@ -12,7 +12,7 @@
 .app-table-sort:focus-visible { outline: 2px solid var(--app-gold-600); outline-offset: 3px; border-radius: 4px; }
 .app-table tbody tr { background: #fffcf6; }
 .app-table tbody tr:hover { background: #f5eddc; }
-.app-table .app-table-number { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.app-table .app-table-number { text-align: center; font-family: inherit; font-variant-numeric: normal; white-space: nowrap; }
 .app-table-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .app-table-actions .app-button { font-size: .875rem; }
 .app-table-actions .app-action-menu > .app-button { white-space: nowrap; overflow-wrap: normal; }
@@ -24,7 +24,7 @@
 .app-table-size, .app-table-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: var(--module-space); font-size: .875rem; }
 .app-table-size .app-input { width: auto; }
 /* Las prioridades se calculan con el ancho disponible de esta tabla, incluso al contraer el sidebar. */
-.app-table-sequence { width: 3rem; text-align: center; font-variant-numeric: tabular-nums; color: #70634e; white-space: nowrap; }
+.app-table-sequence { width: 3rem; text-align: center; font-family: inherit; font-variant-numeric: normal; color: #70634e; white-space: nowrap; }
 .app-table-primary { font-weight: 500; }
 .app-table-details-toggle { display: block; margin-top: 5px; padding: 3px 0; border: 0; background: transparent; color: #684b17; font: inherit; font-size: .8125rem; text-decoration: underline; text-underline-offset: 3px; }
 .app-table-details-toggle:focus-visible { outline: 2px solid #986c21; outline-offset: 2px; }

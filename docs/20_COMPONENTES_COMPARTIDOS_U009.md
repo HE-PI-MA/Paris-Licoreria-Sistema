@@ -1,5 +1,7 @@
 # U009 — Componentes compartidos de Licorería París
 
+> Actualización U017: Modal admite icono y usa el cierre del pie; consultar [la guía vigente](29_PRODUCTOS_Y_MODALES_U017.md) para RecordDetails, ValueFormat y notificaciones.
+
 ## Revisión de la base
 
 Se revisó la rama main de HE-PI-MA/Paris-Licoreria-Sistema, commit 59dd508af334f1383bbc45a8fad1083902075c11 (U008A). La copia de trabajo coincide con los archivos de ese commit, considerando los saltos de línea de Windows. No hay AGENTS.md en el árbol del repositorio. Se siguieron las guías de mantenimiento, organización con clases y espacio completo de U007–U008A, además de las instrucciones del usuario.

@@ -82,7 +82,12 @@
       this.moveToTop();
       const message = Message.create(this.region);
       message.element.classList.add('app-toast');
-      const close = UI.Button.create({ label: 'Cerrar notificación', icon: 'close', iconOnly: true });
+      const labels = { success: 'Completado', info: 'Información', warning: 'Atención', error: 'No se pudo completar', loading: 'En proceso', empty: 'Sin resultados' };
+      const copy = UI.element('div', 'app-toast-copy');
+      message.text.replaceWith(copy);
+      copy.append(UI.element('strong', 'app-toast-title', labels[kind]), message.text);
+      const close = UI.Button.create({ label: 'Cerrar' });
+      close.setAttribute('aria-label', 'Cerrar notificación');
       message.element.append(close);
       const events = new AbortController();
       let timer = null, started = 0, disposed = false;

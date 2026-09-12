@@ -43,6 +43,7 @@
 .paris-app--listing .paris-workspace { height: 100vh; height: 100dvh; min-height: 34rem; }
 .paris-app--listing .workspace-main { min-height: 0; }
 .module-layout--listing { min-height: 0; grid-template-rows: auto auto minmax(0, 1fr) auto; }
+.module-layout--listing:has(> .module-messages[hidden]) { grid-template-rows: auto auto minmax(0, 1fr); }
 .module-layout--listing .module-content-panel { min-height: 0; border: 0; border-radius: 0; background: transparent; }
 .module-layout--listing .module-content-area { min-height: 0; padding: 0; }
 .module-layout--listing .module-messages > h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }

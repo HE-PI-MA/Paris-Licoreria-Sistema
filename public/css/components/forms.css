@@ -1,6 +1,7 @@
 /* Campos comunes y validación. Los estilos propios del login permanecen en auth.css. */
 .app-field {
   display: grid;
+  align-content: start;
   gap: var(--app-s2);
 }
 

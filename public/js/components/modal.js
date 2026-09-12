@@ -11,7 +11,7 @@
     static opened = [];
     static get top() { return this.opened[this.opened.length - 1]; }
 
-    constructor({ title, size = 'medium', content, isDirty = () => false, onClose = () => {} } = {}) {
+    constructor({ title, icon = 'info', size = 'medium', content, isDirty = () => false, onClose = () => {} } = {}) {
       if (!title || !['small', 'medium', 'large'].includes(size)) throw new TypeError('Título o tamaño de modal no válido.');
       this.isDirty = isDirty;
       this.onClose = onClose;
@@ -26,14 +26,15 @@
       this.title = UI.element('h2', '', title);
       this.title.id = 'paris-modal-title-' + (++sequence);
       this.element.setAttribute('aria-labelledby', this.title.id);
-      this.closeButton = UI.Button.create({ label: 'Cerrar ' + title, icon: 'close', iconOnly: true });
-      header.append(this.title, this.closeButton);
+      const symbol = UI.element('span', 'app-modal-symbol');
+      symbol.setAttribute('aria-hidden', 'true');
+      symbol.append(UI.Icon.create(icon) || UI.Icon.create('info'));
+      header.append(symbol, this.title);
       this.body = UI.element('div', 'app-modal-body');
       this.body.id = 'paris-modal-body-' + sequence;
       this.footer = UI.element('footer', 'app-modal-footer');
       this.element.append(header, this.body, this.footer);
       if (content) this.setContent(content);
-      this.closeButton.addEventListener('click', () => this.requestClose(), { signal: this.events.signal });
       this.element.addEventListener('cancel', event => {
         event.preventDefault();
         this.requestClose();
@@ -41,6 +42,9 @@
       this.element.addEventListener('keydown', event => this.onKeyDown(event), { signal: this.events.signal });
       this.element.addEventListener('close', () => this.afterClose(), { signal: this.events.signal });
     }
+
+    /** Compatibilidad: el destino de cierre/foco está en el pie, sin duplicar un botón en la cabecera. */
+    get closeButton() { return this.footer.querySelector('button') || this.element; }
 
     /** Admite un nodo creado por el módulo o texto plano, nunca cadenas de HTML. */
     setContent(content) {
@@ -72,7 +76,7 @@
       if (this.busy === Boolean(busy)) return;
       this.busy = Boolean(busy);
       if (this.busy) {
-        this.blockedButtons = [this.closeButton, ...this.footer.querySelectorAll('button:not([type="submit"])')]
+        this.blockedButtons = [...this.footer.querySelectorAll('button:not([type="submit"])')]
           .map(button => ({ button, disabled: button.disabled }));
         this.blockedButtons.forEach(({ button }) => { button.disabled = true; });
       } else this.blockedButtons?.forEach(({ button, disabled }) => { button.disabled = disabled; });
@@ -153,7 +157,7 @@
     static ask({ title = 'Confirmar acción', message, confirmLabel = 'Continuar', danger = false } = {}) {
       return new Promise(resolve => {
         const modal = new Modal({
-          title, size: 'small', content: String(message || ''),
+          title, icon: danger ? 'warning' : 'info', size: 'small', content: String(message || ''),
           onClose: value => { modal.destroy(); resolve(value === 'confirmed'); }
         });
         const cancel = UI.Button.create({ label: 'Cancelar' });

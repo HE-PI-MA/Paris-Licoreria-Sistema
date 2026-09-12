@@ -35,9 +35,8 @@
       }
       this.input.setAttribute('aria-required', String(select.required));
       this.input.placeholder = 'Buscar y seleccionar…';
-      this.clear = UI.Button.create({ label: 'Limpiar selección', icon: 'close', iconOnly: true });
-      this.clear.hidden = !searchable;
-      const control = UI.element('div', 'app-search-select-control'); control.append(this.input, this.clear);
+      // El usuario edita o borra el texto para buscar; no hay botón X junto al campo.
+      const control = UI.element('div', 'app-search-select-control'); control.append(this.input);
       this.panel = UI.element('div', 'app-search-select-panel'); this.panel.hidden = true;
       this.list = UI.element('div', 'app-search-select-list'); this.list.id = id + '-list';
       this.list.setAttribute('role', 'listbox'); this.list.setAttribute('aria-label', 'Opciones disponibles');
@@ -70,7 +69,6 @@
       this.root.addEventListener('keydown', event => {
         if (event.key === 'Escape' && this.opened) { event.preventDefault(); event.stopPropagation(); this.close(); this.input.focus(); }
       }, settings);
-      this.clear.addEventListener('click', () => { this.setValue(null, true); this.close(); this.input.focus(); }, settings);
       this.more.addEventListener('click', () => this.fetchOptions(this.term, this.page + 1), settings);
       this.retry.addEventListener('click', () => this.fetchOptions(this.term, this.failedPage), settings);
       this.list.addEventListener('pointerdown', event => event.preventDefault(), settings);
@@ -91,7 +89,7 @@
       else this.syncLabel();
     }
     syncDisabled() {
-      this.input.disabled = this.clear.disabled = this.select.disabled;
+      this.input.disabled = this.select.disabled;
       this.input.setAttribute('aria-required', String(this.select.required));
       this.input.setAttribute('aria-busy', this.select.getAttribute('aria-busy') || 'false');
       if (this.select.disabled) this.close();

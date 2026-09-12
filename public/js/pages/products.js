@@ -9,9 +9,9 @@
       this.table = new UI.DataTable({ container: element, caption: 'Productos', mode: 'scroll', numbered: true, pageSize: 50, load: params => this.api.list(params), actionDisplay: 'menu',
         columns: [
           { key: 'name', label: 'Producto', sortable: true }, { key: 'category', label: 'Categoría', sortable: true, priority: 2 },
-          { key: 'unit', label: 'Unidad base', priority: 3 }, { key: 'presentations', label: 'Presentaciones', type: 'number', priority: 3 },
-          { key: 'stock', label: 'Stock disponible', type: 'quantity', sortable: true, priority: 1 },
-          { key: 'minimum', label: 'Stock mínimo', type: 'quantity', sortable: true, priority: 2 }, { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'neutral' } } }
+          { key: 'unit', label: 'Unidad base', priority: 2 },
+          { key: 'stock', label: 'Disponible', type: 'quantity', sortable: true, priority: 1 },
+          { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'neutral' } } }
         ], sort: { key: 'name', direction: 'asc' },
         actions: [{ id: 'detail', label: 'Ver detalle', icon: 'info' }, { id: 'edit', label: 'Editar', icon: 'edit' },
           { id: 'presentations', label: 'Presentaciones', icon: 'box' }, ...this.stateActions()],
@@ -73,11 +73,17 @@
       } finally { parent?.setBusy(false); }
     }
     detail(row, opener) {
-      const content = UI.element('dl', 'product-details');
-      const values = [['Producto', row.name], ['Categoría', row.category], ['Unidad base', row.unit], ['Stock disponible', row.stock],
-        ['Stock físico', row.physicalStock], ['Stock mínimo', row.minimum], ['Presentaciones', row.presentations], ['Estado', row.state === 'ACTIVO' ? 'Activo' : 'Inactivo'], ['Descripción', row.description || 'Sin descripción']];
-      for (const [label, value] of values) { const group = UI.element('div'); group.append(UI.element('dt', '', label), UI.element('dd', '', value)); content.append(group); }
-      const modal = new UI.Modal({ title: 'Detalle del producto', content, onClose: () => { modal.destroy(); this.dialogs.delete(modal); } });
+      const details = new UI.RecordDetails({ record: row, fields: [
+        { key: 'name', label: 'Producto', wide: true }, { key: 'category', label: 'Categoría' },
+        { key: 'unit', label: 'Unidad base' }, { key: 'stock', label: 'Disponible', type: 'quantity' },
+        { key: 'physicalStock', label: 'Stock físico', type: 'quantity' },
+        { key: 'minimum', label: 'Stock mínimo', type: 'quantity' },
+        { key: 'presentations', label: 'Formas de venta', type: 'number' },
+        { key: 'state', label: 'Estado', type: 'state', wide: true },
+        { key: 'description', label: 'Descripción', wide: true, empty: 'Sin descripción' }
+      ] });
+      const modal = new UI.Modal({ title: 'Detalle del producto', icon: 'box', content: details.element,
+        onClose: () => { modal.destroy(); this.dialogs.delete(modal); } });
       const close = UI.Button.create({ label: 'Cerrar' }); close.addEventListener('click', () => modal.requestClose(), { signal: modal.events.signal });
       modal.footer.append(close); this.dialogs.add(modal); modal.open(opener);
     }
@@ -88,7 +94,7 @@
       toolbar.append(help, add); const host = UI.element('div'); content.append(toolbar, host);
       const alert = UI.Message.create(content);
       let table;
-      const modal = new UI.Modal({ title: 'Presentaciones: ' + product.name, size: 'large', content,
+      const modal = new UI.Modal({ title: 'Presentaciones: ' + product.name, icon: 'box', size: 'large', content,
         onClose: () => { table?.destroy(); modal.destroy(); this.dialogs.delete(modal); }
       });
       const saved = async () => { alert.show('success', 'Presentación guardada correctamente.'); await table.refresh(); await this.table.refresh(); };

@@ -7,6 +7,7 @@
     constructor(element) {
       this.element = element;
       this.id = element.dataset.moduleLayout;
+      this.region = element.querySelector('[data-module-region="messages"]');
       this.content = element.querySelector('[data-module-region="content"]');
       this.status = element.querySelector('[data-module-status]');
       this.statusText = element.querySelector('[data-module-status-text]');
@@ -21,6 +22,7 @@
     clearMessage() {
       this.statusMessage.clear();
       this.errorMessage.clear();
+      if (this.region) this.region.hidden = true;
       this.content.setAttribute('aria-busy', 'false');
     }
 
@@ -29,6 +31,7 @@
       if (!Object.hasOwn(this.defaults, kind)) throw new TypeError('Tipo de mensaje no válido.');
       const text = typeof message === 'string' && message.trim() ? message : this.defaults[kind];
       this.clearMessage();
+      if (this.region) this.region.hidden = false;
       this.content.setAttribute('aria-busy', String(kind === 'loading'));
       if (kind === 'error') {
         this.errorMessage.show('error', text);
@@ -37,7 +40,10 @@
       this.statusMessage.show(kind, text);
     }
 
-    resetMessage() { this.showMessage('info', this.defaultMessage); }
+    resetMessage() {
+      if (this.defaultMessage.trim()) this.showMessage('info', this.defaultMessage);
+      else this.clearMessage();
+    }
 
     /** Conserva la interfaz pública documentada y el contexto de cada método. */
     getApi() {

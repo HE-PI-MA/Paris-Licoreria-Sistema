@@ -10,14 +10,16 @@
 .app-search-select { min-width: 0; position: relative; }
 .app-search-select-control { display: flex; gap: 6px; align-items: center; }
 .app-search-select-control .app-input { flex: 1; }
-.app-search-select-panel { border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); padding: 6px; background: var(--app-surface); margin-top: 6px; }
+.app-search-select-panel { border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); padding: 6px; background: #faf6ee; border-color: #c8b589; margin-top: 6px; }
 /* Variante de elección simple para filtros: mismo teclado y selección, sin búsqueda adicional. */
 .app-search-select--choice .app-input { padding-right: 38px; cursor: pointer; font-weight: 600; color: #4d3d20; text-overflow: ellipsis; }
 .app-search-select--choice .app-search-select-control::after { content: ''; position: absolute; right: 16px; top: 18px; width: 8px; height: 8px; border-right: 2px solid #8a661f; border-bottom: 2px solid #8a661f; transform: rotate(45deg); pointer-events: none; }
 .app-search-select--popup .app-search-select-panel { position: absolute; z-index: 15; top: 100%; inset-inline: 0; background: #faf6ee; border-color: #bca77d; box-shadow: 0 8px 24px #32271126; }
 .app-search-select--choice .app-search-select-option { font-size: .875rem; }
 .app-search-select--choice .app-search-select-option:hover { background: #f0e3c6; }
-.app-search-select-list { max-height: 12rem; overflow-y: auto; overscroll-behavior: contain; }
+/* Oculta la barra, conservando rueda, gestos y desplazamiento del foco por teclado. */
+.app-search-select-list { max-height: 12rem; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.app-search-select-list::-webkit-scrollbar { display: none; width: 0; }
 .app-search-select-option { padding: 10px; border-radius: 6px; cursor: pointer; overflow-wrap: anywhere; }
 .app-search-select-option[aria-selected="true"] { background: var(--app-gold-100, #fff1ce); }
 .app-search-select-option[data-active="true"] { outline: 2px solid var(--app-gold-600); outline-offset: -2px; }

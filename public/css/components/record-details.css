@@ -1,0 +1,8 @@
+/* Información de consulta: etiquetas discretas, valores destacados y ancho adaptable. */
+.app-record-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.app-record-detail { min-width: 0; padding: 12px; background: #fffcf6; border: 1px solid #ddcfb7; border-radius: 10px; }
+.app-record-detail--wide { grid-column: 1 / -1; }
+.app-record-detail dt { margin: 0 0 6px; color: #76603e; font-size: .75rem; font-weight: 650; letter-spacing: .04em; }
+.app-record-detail dd { margin: 0; color: #262219; font-size: .9375rem; font-weight: 500; overflow-wrap: anywhere; white-space: pre-wrap; }
+.app-record-detail .app-record-detail-number { text-align: center; font-size: 1.125rem; font-family: inherit; font-variant-numeric: normal; }
+@media (max-width: 25rem) { .app-record-details { grid-template-columns: minmax(0, 1fr); } }

@@ -63,11 +63,11 @@ test('U009: componentes en navegador real', {
       await demo();
       await page.locator('[data-module-primary]').click();
       assert.equal(await page.locator('#demo-name').evaluate(node => node === document.activeElement), true);
-      await page.locator('dialog[open] .app-modal-header button').focus();
+      await page.locator('#demo-name').focus();
       await page.keyboard.press('Shift+Tab');
       assert.equal(await page.getByRole('button', { name: 'Guardar', exact: true }).evaluate(node => node === document.activeElement), true);
       await page.keyboard.press('Tab');
-      assert.equal(await page.locator('dialog[open] .app-modal-header button').evaluate(node => node === document.activeElement), true);
+      assert.equal(await page.locator('#demo-name').evaluate(node => node === document.activeElement), true);
       await page.locator('#demo-name').fill('Cambio sin guardar');
       await page.keyboard.press('Escape');
       await page.getByRole('dialog', { name: 'Descartar cambios', exact: true }).waitFor();

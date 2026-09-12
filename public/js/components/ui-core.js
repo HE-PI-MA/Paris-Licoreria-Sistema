@@ -23,6 +23,16 @@
     }
   }
 
+  /** Presentación numérica común; no modifica el dato que se enviará al servidor. */
+  class ValueFormat {
+    static number(value, { type = 'quantity', locale = 'es-BO', currency = 'BOB', decimals = 0 } = {}) {
+      if (value === null || value === undefined || value === '' || !Number.isFinite(Number(value))) return '—';
+      const options = type === 'price' ? { style: 'currency', currency } :
+        { maximumFractionDigits: type === 'quantity' ? 3 : decimals };
+      return new Intl.NumberFormat(locale, options).format(Number(value));
+    }
+  }
+
   class Button {
     static states = new WeakMap();
 
@@ -91,6 +101,6 @@
     }
     destroy() { this.events.abort(); }
   }
-  Object.assign(UI, { Icon, Button, TextCase });
+  Object.assign(UI, { Icon, Button, TextCase, ValueFormat });
   UI.textCase = UI.textCase || new TextCase();
 })();

@@ -4,11 +4,11 @@
   const UI = window.ParisUI, Catalog = window.ParisProducts;
   let sequence = 0;
   class CatalogForm {
-    constructor({ title, api, record, onSaved, opener }) {
+    constructor({ title, icon, api, record, onSaved, opener }) {
       Object.assign(this, { api, record, onSaved, opener }); this.selectors = [];
       this.form = UI.element('form', 'app-form'); this.form.id = 'catalog-form-' + (++sequence);
       this.grid = UI.element('div', 'app-form-grid'); this.form.append(this.grid);
-      this.modal = new UI.Modal({ title, content: this.form, isDirty: () => this.controller?.isDirty(),
+      this.modal = new UI.Modal({ title, icon, content: this.form, isDirty: () => this.controller?.isDirty(),
         onClose: () => { this.controller?.destroy(); this.selectors.forEach(item => item.destroy()); this.modal.destroy(); }
       });
     }
@@ -52,7 +52,7 @@
   }
   class ProductForm extends CatalogForm {
     constructor(options) {
-      super({ ...options, title: options.record ? 'Editar producto' : 'Nuevo producto' });
+      super({ ...options, icon: options.record ? 'edit' : 'plus', title: options.record ? 'Editar producto' : 'Nuevo producto' });
       const row = this.record;
       this.field('name', 'Nombre del producto', { value: row?.name, required: true, maxLength: 120, wide: true });
       this.selector('categoryId', 'Categoría', 'categories', row && { value: row.categoryId, label: row.category });
@@ -72,7 +72,7 @@
   }
   class PresentationForm extends CatalogForm {
     constructor(options) {
-      super({ ...options, title: options.record ? 'Editar presentación' : 'Nueva presentación' });
+      super({ ...options, icon: options.record ? 'edit' : 'plus', title: options.record ? 'Editar presentación' : 'Nueva presentación' });
       const row = this.record, parent = options.product;
       this.form.prepend(UI.element('p', 'app-field-help', 'Producto: ' + parent.name + '. Unidad base: ' + parent.unit + '.'));
       this.field('name', 'Nombre de la presentación', { value: row?.name, required: true, maxLength: 80, help: 'Por ejemplo: botella, paquete de 6 o caja de 12.', wide: true });

@@ -1,35 +1,42 @@
-/* Modal general: cabecera y pie visibles; el cuerpo largo tiene desplazamiento propio. */
+/* Modal compartido: marca oscura, icono local y cierre en el pie. Solo el cuerpo largo se desplaza. */
 body.app-modal-open { overflow: hidden; }
 .app-modal {
-  width: min(38rem, calc(100vw - 20px));
+  width: min(40rem, calc(100vw - 20px));
   max-width: calc(100vw - 20px);
   max-height: calc(100vh - 20px);
   max-height: calc(100dvh - 20px);
   margin: auto;
   padding: 0;
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-md);
-  background: var(--app-surface);
+  border: 1px solid #b7a37b;
+  border-radius: 14px;
+  background: #f4efe5;
   color: var(--app-text);
-  box-shadow: var(--app-shadow-card);
+  font-family: var(--app-font);
+  box-shadow: 0 24px 70px #11100e59;
   overflow: hidden;
 }
 .app-modal[open] { display: flex; flex-direction: column; }
-.app-modal--small { width: min(28rem, calc(100vw - 20px)); }
-.app-modal--large { width: min(58rem, calc(100vw - 20px)); }
-.app-modal::backdrop { background: rgba(17, 16, 14, .6); }
+.app-modal--small { width: min(29rem, calc(100vw - 20px)); }
+.app-modal--large { width: min(60rem, calc(100vw - 20px)); }
+.app-modal::backdrop { background: #11100ea3; }
 .app-modal-header, .app-modal-footer {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: var(--module-space);
-  padding: var(--module-space);
+  gap: 12px;
+  padding: 14px;
 }
-.app-modal-header { justify-content: space-between; border-bottom: 1px solid var(--app-border); }
-.app-modal-header h2 { margin: 0; font-size: 1.25rem; line-height: 1.4; overflow-wrap: anywhere; }
-.app-modal-header .app-button { flex-shrink: 0; }
-.app-modal-body { min-height: 0; min-width: 0; padding: var(--module-space); overflow-y: auto; overscroll-behavior: contain; overflow-wrap: anywhere; }
-.app-modal-footer { justify-content: flex-end; flex-wrap: wrap; border-top: 1px solid var(--app-border); }
+.app-modal-header { min-height: 70px; color: #fff6e5; background: var(--app-black-soft); border-bottom: 2px solid #b88a34; }
+.app-modal-header h2 { min-width: 0; margin: 0; font-size: 1.125rem; font-weight: 650; line-height: 1.35; overflow-wrap: anywhere; }
+.app-modal-symbol { display: grid; place-items: center; flex: 0 0 38px; height: 38px; color: #e6b954; background: #29241a; border: 1px solid #65512c; border-radius: 10px; }
+.app-modal-symbol .paris-icon { width: 22px; height: 22px; }
+.app-modal-body { min-height: 0; min-width: 0; padding: 14px; overflow-y: auto; overscroll-behavior: contain; overflow-wrap: anywhere; line-height: 1.55; }
+.app-modal-body > .app-form { padding: 12px; background: #fffcf6; border: 1px solid #dfd3bf; border-radius: 10px; }
+.app-modal-body :where(.app-input:not(:disabled):not([aria-invalid="true"]):not(:focus)) { background: #fffcf6; border-color: #cdbfa5; }
+.app-modal-body .app-label { color: #5b4b31; font-size: .8125rem; letter-spacing: .025em; }
+.app-modal-footer { justify-content: flex-end; flex-wrap: wrap; border-top: 1px solid #d7c8ad; background: #e9e0d0; }
 @media (max-width: 30rem) {
+  .app-modal-header, .app-modal-body, .app-modal-footer { padding: 10px; }
+  .app-modal-header h2 { font-size: 1rem; }
   .app-modal-footer .app-button { flex: 1 1 auto; }
 }

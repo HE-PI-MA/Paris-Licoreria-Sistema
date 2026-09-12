@@ -25,7 +25,7 @@ function forPage(page) {
     controlsHelp: page.id === 'productos' ? 'El stock se consulta aquí; los movimientos se registran en Compras e Inventario.' : 'Filtra los registros ficticios de esta demostración.',
     message: page.id === 'demo-componentes'
       ? 'Demostración: los cambios usan datos ficticios y se pierden al recargar.'
-      : page.id === 'productos' ? 'Los precios se definen en las presentaciones de cada producto.' : 'Los controles se habilitarán cuando este módulo esté disponible.'
+      : page.id === 'productos' ? '' : 'Los controles se habilitarán cuando este módulo esté disponible.'
   };
 }
 

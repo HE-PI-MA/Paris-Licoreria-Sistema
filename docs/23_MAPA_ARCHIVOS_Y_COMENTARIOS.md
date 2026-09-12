@@ -146,3 +146,7 @@ Este fragmento es un ejemplo de documentación, no un CRUD funcional. Evitar com
 7. Añadir pruebas de contratos y reglas de Productos con datos ficticios. Mantener la demostración separada en `/demostracion/componentes`.
 
 Referencias: [Componentes U009](20_COMPONENTES_COMPARTIDOS_U009.md), [Filtros y listados U010](21_FILTROS_SELECTORES_Y_LISTADOS_U010.md), [Auditoría U011](22_AUDITORIA_CORRECCIONES_U011.md).
+
+## Componentes de consulta U017
+
+`public/js/components/record-details.js` incorpora RecordDetails para información semántica y segura; su estilo está en `public/css/components/record-details.css`. ValueFormat, en ui-core.js, sirve a DataTable y RecordDetails. Modal, SearchSelect y NotificationCenter conservan sus responsabilidades y utilizan la presentación de U017.
