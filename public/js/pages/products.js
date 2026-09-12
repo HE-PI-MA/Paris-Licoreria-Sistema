@@ -38,8 +38,11 @@
         if (alert) alert.show('error', text); else window.ParisModule.showMessage('error', text);
       }
     }
-    async saved(message) {
-      window.ParisModule.resetMessage(); this.notifications.show('success', message); await this.table.refresh();
+    /** Confirma el resultado con la notificación compartida y actualiza los listados afectados. */
+    async saved(message, table = this.table) {
+      window.ParisModule.resetMessage(); this.notifications.show('success', message);
+      await table.refresh();
+      if (table !== this.table) await this.table.refresh();
     }
     openProduct(record, opener) {
       const form = new Catalog.ProductForm({ api: this.api, record, opener, onSaved: () => this.saved(record ? 'Producto actualizado correctamente.' : 'Producto guardado. Ya puedes agregar sus presentaciones.') });
@@ -97,9 +100,12 @@
       const modal = new UI.Modal({ title: 'Presentaciones: ' + product.name, icon: 'box', size: 'large', content,
         onClose: () => { table?.destroy(); modal.destroy(); this.dialogs.delete(modal); }
       });
-      const saved = async () => { alert.show('success', 'Presentación guardada correctamente.'); await table.refresh(); await this.table.refresh(); };
+      // El éxito es temporal y flotante; la alerta del modal queda para errores que requieren atención.
+      const saved = async (message = 'Presentación guardada correctamente.') => {
+        alert.clear(); await this.saved(message, table);
+      };
       const edit = (row, button) => {
-        const form = new Catalog.PresentationForm({ api: this.api, product, record: row, opener: button, onSaved: saved });
+        const form = new Catalog.PresentationForm({ api: this.api, product, record: row, opener: button, onSaved: () => saved() });
         const onClose = form.modal.onClose;
         form.modal.onClose = value => { onClose(value); this.dialogs.delete(form.modal); };
         this.dialogs.add(form.modal);
@@ -112,9 +118,8 @@
         onAction: ({ action, record, button }) => this.handle(async () => {
           alert.clear();
           if (action === 'edit') return edit(await this.api.presentation(product.id, record.id), button);
-          return this.change(action, record, '/' + product.id + '/presentaciones/' + record.id, async () => {
-            alert.show('success', action === 'delete' ? 'Presentación eliminada.' : 'Estado de la presentación actualizado.'); await table.refresh(); await this.table.refresh();
-          });
+          return this.change(action, record, '/' + product.id + '/presentaciones/' + record.id,
+            () => saved(action === 'delete' ? 'Presentación eliminada.' : 'Estado de la presentación actualizado.'));
         }, alert)
       });
       const close = UI.Button.create({ label: 'Cerrar' }); close.addEventListener('click', () => modal.requestClose(), { signal: modal.events.signal });

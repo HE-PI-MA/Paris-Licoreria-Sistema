@@ -1,4 +1,4 @@
-/** Productos en Chromium con API ficticia interceptada: verifica interfaz y reintentos sin usar la base del negocio. */
+/** Productos U012/U021 en Chromium: interfaz, reintentos y notificaciones de presentaciones con API ficticia. */
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {server,password}=require('./support/application-fixture');
@@ -10,7 +10,7 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  const rows=Array.from({length:12},(_,i)=>({id:i+1,name:'Producto '+String(i+1).padStart(2,'0'),categoryId:1,category:'Bebidas alcohólicas',unitId:1,unit:'Unidad',minimum:'3.000',stock:'0.000',physicalStock:'0.000',presentations:i===0?1:0,state:'ACTIVO',description:'',version:'a'.repeat(64)}));
  let children=[{id:1,productId:1,name:'Botella',factor:'1.000',barcode:'123',price:'10.00',state:'ACTIVO',version:'b'.repeat(64),used:true}];
- let calls=[],failSave=true,failList=false,saveGate,releaseSave;
+ let calls=[],failSave=true,failList=false,saveGate,releaseSave,failPresentation=false;
  const seen=new Map();
  await page.route('**/api/productos**',async route=>{
   const req=route.request(),url=new URL(req.url()),path=url.pathname.replace('/api/productos','');
@@ -22,12 +22,19 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
     if(!seen.has(key)){rows.push({...rows[0],...body,id:rows.length+1,presentations:0});seen.set(key,{id:rows.length});}
     if(failSave){failSave=false;return route.abort('failed');}return send(seen.get(key),201);
    }
+   if(/^\/\d+\/presentaciones\/\d+\/(estado|eliminar|editar)$/.test(path)){
+    if(failPresentation){failPresentation=false;return send({error:'No se pudo actualizar la presentación de prueba.'},409);}
+    const id=Number(path.split('/')[3]),row=children.find(r=>r.id===id);
+    if(path.endsWith('/eliminar'))children=children.filter(r=>r.id!==id);
+    else Object.assign(row,body);
+    return send({id});
+   }
    if(path.endsWith('/eliminar'))return send({error:'El producto tiene historial de compras o ventas. Puedes desactivarlo.'},409);
    if(path.endsWith('/presentaciones')){children.push({...body,id:2,productId:1,version:'c'.repeat(64)});return send({id:2},201);}
    return send({id:1});
   }
   if(path.startsWith('/opciones/'))return send({options:[{value:'1',label:path.endsWith('categories')?'Bebidas alcohólicas':'Unidad'}],total:1});
-  if(/^\/\d+\/presentaciones\/\d+$/.test(path))return send(children[0]);
+  if(/^\/\d+\/presentaciones\/\d+$/.test(path))return send(children.find(r=>r.id===Number(path.split('/')[3])));
   if(path.endsWith('/presentaciones'))return send({records:children,total:children.length});
   if(/^\/\d+$/.test(path))return send(rows.find(r=>r.id===Number(path.slice(1))));
   if(failList)return send({error:'Fallo de prueba'},500);
@@ -76,8 +83,58 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
    await page.getByRole('dialog',{name:'Editar presentación',exact:true}).waitFor();assert.equal(await page.locator('[name=factor]').evaluate(n=>n.readOnly),true);
    await page.getByRole('button',{name:'Cancelar',exact:true}).click();
    await manager.getByRole('button',{name:'Nueva presentación',exact:true}).click();await page.locator('[name=name]').fill('Caja de 12');await page.locator('[name=factor]').fill('12');await page.locator('[name=price]').fill('95.50');await page.locator('[name=barcode]').fill('aBc-123');
-   await page.getByRole('button',{name:'Guardar',exact:true}).click();await visible('Mostrando 1–2 de 2 registros');assert.equal(calls.at(-1).body.price,'95.50');assert.equal(calls.at(-1).body.barcode,'aBc-123');assert.equal(calls.at(-1).body.name,'CAJA DE 12');
+   await page.getByRole('button',{name:'Guardar',exact:true}).click();await visible('Mostrando 1–2 de 2 registros');
+   await manager.locator('.app-toast[data-kind=success]').getByText('Presentación guardada correctamente.',{exact:true}).waitFor();
+   assert.equal(await manager.locator('.app-modal-body .app-alert[data-kind=success]:visible').count(),0);
+   assert.equal(calls.at(-1).body.price,'95.50');assert.equal(calls.at(-1).body.barcode,'aBc-123');assert.equal(calls.at(-1).body.name,'CAJA DE 12');
    await manager.getByRole('button',{name:'Cerrar',exact:true}).click();
+  });
+  await t.test('U021: edición, estados y eliminación notifican sin franja fija; errores permanecen',async()=>{
+   await menu('Presentaciones');
+   const manager=page.getByRole('dialog',{name:'Presentaciones: Producto 01',exact:true});
+   await manager.locator('tr[data-row-index="1"]').waitFor();
+   // Los avisos previos no deben confundirse con el resultado de esta operación.
+   await page.mouse.move(0,0);
+   await page.waitForFunction(()=>!document.querySelector('.app-toast[data-kind=success]'));
+   await page.clock.install();await page.clock.pauseAt(new Date(Date.now()+1000));
+   const toast=manager.locator('.app-toast[data-kind=success]');
+   const invoke=async(id,label)=>{
+    await manager.getByRole('button',{name:'Acciones del registro '+id,exact:true}).click();
+    await page.getByRole('menuitem',{name:label,exact:true}).click();
+   };
+   const confirm=async label=>{await page.locator('dialog[open]').last().getByRole('button',{name:label,exact:true}).click();};
+   const assertNotice=async text=>{
+    await toast.getByText(text,{exact:true}).waitFor();await page.mouse.move(0,0);
+    assert.equal(await page.locator('.app-notifications').count(),1);
+    assert.equal(await toast.locator('button').count(),0);
+    assert.equal(await toast.evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(34, 115, 77)');
+    assert.equal(await manager.locator('.app-modal-body .app-alert[data-kind=success]:visible').count(),0);
+    assert.ok(await toast.locator('[data-message-icon=success] svg').isVisible());
+    await page.clock.runFor(1900);assert.equal(await toast.count(),1);
+    await page.clock.runFor(201);assert.equal(await toast.count(),0);
+   };
+   try{
+    await invoke(2,'Editar');const editor=page.getByRole('dialog',{name:'Editar presentación',exact:true});
+    await editor.locator('[name=price]').fill('99.50');await editor.getByRole('button',{name:'Guardar',exact:true}).click();
+    await assertNotice('Presentación guardada correctamente.');assert.equal(children[1].price,'99.50');
+    const height=(await manager.locator('.app-modal-body').boundingBox()).height;
+    await invoke(2,'Desactivar');await confirm('Desactivar');
+    await toast.waitFor();await manager.locator('tr[data-row-index="1"]').getByText('Inactivo',{exact:true}).waitFor();
+    assert.equal((await manager.locator('.app-modal-body').boundingBox()).height,height);
+    if(process.env.PARIS_UI_SCREENSHOTS){require('node:fs').mkdirSync(process.env.PARIS_UI_SCREENSHOTS,{recursive:true});await page.screenshot({path:require('node:path').join(process.env.PARIS_UI_SCREENSHOTS,'u021-notificacion-presentaciones.png'),animations:'disabled'});}
+    await assertNotice('Estado de la presentación actualizado.');
+    failPresentation=true;await invoke(2,'Activar');await confirm('Activar');
+    const error=manager.locator('.app-modal-body .app-alert[data-kind=error]');
+    await error.getByText('No se pudo actualizar la presentación de prueba.',{exact:true}).waitFor();
+    await page.clock.runFor(5000);assert.equal(await error.isVisible(),true);assert.equal(await toast.count(),0);
+    await invoke(2,'Activar');await confirm('Activar');await assertNotice('Estado de la presentación actualizado.');
+    assert.equal(await error.isVisible(),false);assert.equal(children[1].state,'ACTIVO');
+    await invoke(2,'Eliminar');await confirm('Eliminar');await assertNotice('Presentación eliminada.');
+    assert.equal(await manager.locator('tr[data-row-index]').count(),1);
+    assert.equal(await page.locator('dialog[open]').count(),1);
+    await manager.getByRole('button',{name:'Cerrar',exact:true}).click();
+    assert.equal(await page.locator('dialog[open]').count(),0);
+   }finally{await page.clock.resume();}
   });
   await t.test('error de eliminación permanece visible y pantalla adaptable sin desbordar',async()=>{
    await menu('Eliminar');await page.getByRole('button',{name:'Eliminar',exact:true}).click();await visible('El producto tiene historial de compras o ventas. Puedes desactivarlo.');

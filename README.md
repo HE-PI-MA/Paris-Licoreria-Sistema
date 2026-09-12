@@ -2,7 +2,7 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U020
+## Estado del desarrollo — U021
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
@@ -14,6 +14,8 @@ Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servido
 
 **Interfaz U020:** hover compartido con Eliminar, botones dorados de marca, menú con rellenos sólidos, campos centralizados y limpieza de código sin referencias. Se conserva el detalle alineado y los ejemplos de campos que se ocultan al enfocar. Presentaciones usa una lista continua de alto adaptable. Se conservan los encabezados informativos, sugerencias flotantes y avisos de U018, junto con el sidebar automático U016.
 
+**Notificaciones U021:** guardar, editar, activar, desactivar y eliminar presentaciones reutiliza la notificación flotante verde del catálogo, con icono y cierre automático a los dos segundos. Los errores siguen visibles para permitir corregirlos o reintentar.
+
 **Pendiente:** las operaciones de los otros módulos. Inicio conserva el saludo y las pantallas restantes conservan sus espacios de preparación.
 
 La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; Productos incorpora su API y formularios; los demás módulos todavía no están conectados.
@@ -24,6 +26,7 @@ La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, moda
 
 | Documento | Qué explica |
 | --- | --- |
+| [Notificaciones de presentaciones U021](docs/33_NOTIFICACIONES_PRESENTACIONES_U021.md) | Avisos compartidos, duración, errores, comprobaciones e instalación. |
 | [Limpieza y botones U020](docs/32_LIMPIEZA_Y_BOTONES_U020.md) | Hover único, auditoría de referencias, clases compartidas, pruebas e instalación. |
 | [Botones, detalle y campos U019](docs/31_BOTONES_DETALLES_Y_CAMPOS_U019.md) | Marca, campos, listados dentro de modales e instalación. |
 | [Interacciones visuales U018](docs/30_INTERACCIONES_VISUALES_U018.md) | Sugerencias, tablas, acciones, avisos, formularios e instalación. |
