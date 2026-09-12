@@ -62,7 +62,7 @@
         if (this.mode === 'scroll' && this.scroll.scrollTop > 0 && this.scroll.scrollHeight - this.scroll.scrollTop - this.scroll.clientHeight < 120) this.loadMore();
       }, { signal: this.events.signal });
       container.addEventListener('click', event => this.onClick(event), { signal: this.events.signal });
-      this.sizeSelect.addEventListener('change', () => {
+      this.sizeSelect?.addEventListener('change', () => {
         this.pageSize = Number(this.sizeSelect.value);
         this.page = 1;
         this.refresh();
@@ -99,31 +99,34 @@
       this.summary.setAttribute('role', 'status');
       this.summary.setAttribute('aria-live', 'polite');
       this.summary.setAttribute('aria-atomic', 'true');
-      const sizeGroup = UI.element('div', 'app-table-size');
-      const sizeLabel = UI.element('label', '', 'Por página');
-      sizeLabel.htmlFor = id + '-size';
-      this.sizeSelect = UI.element('select', 'app-input');
-      this.sizeSelect.id = sizeLabel.htmlFor;
-      for (const size of this.pageSizes) {
-        const option = UI.element('option', '', size); option.value = String(size); this.sizeSelect.append(option);
-      }
-      this.sizeSelect.value = String(this.pageSize);
-      sizeGroup.append(sizeLabel, this.sizeSelect);
-      const nav = UI.element('nav', 'app-table-pagination');
-      nav.setAttribute('aria-label', 'Paginación de ' + caption);
-      this.previous = UI.Button.create({ label: 'Anterior' });
-      this.previous.dataset.tablePage = 'previous';
-      this.next = UI.Button.create({ label: 'Siguiente' });
-      this.next.dataset.tablePage = 'next';
-      this.pageLabel = UI.element('span');
-      nav.append(this.previous, this.pageLabel, this.next);
       if (this.mode === 'scroll') {
         this.more = UI.Button.create({ label: 'Cargar más', icon: 'plus' }); this.more.classList.add('app-table-more'); this.more.dataset.tableMore = '';
         this.continuation = UI.element('div', 'app-table-continuation');
         this.continuationMessage = UI.Message.create(this.continuation); this.continuation.hidden = true;
         const refresh = UI.Button.create({ label: 'Actualizar lista', icon: 'refresh' }); refresh.dataset.tableRetry = ''; this.continuation.append(refresh);
         this.footer.append(this.more, this.continuation);
-      } else this.footer.append(sizeGroup, nav);
+      } else {
+        // El modo continuo no crea controles ni eventos de paginación que nunca se mostrarán.
+        const sizeGroup = UI.element('div', 'app-table-size');
+        const sizeLabel = UI.element('label', '', 'Por página');
+        sizeLabel.htmlFor = id + '-size';
+        this.sizeSelect = UI.element('select', 'app-input');
+        this.sizeSelect.id = sizeLabel.htmlFor;
+        for (const size of this.pageSizes) {
+          const option = UI.element('option', '', size); option.value = String(size); this.sizeSelect.append(option);
+        }
+        this.sizeSelect.value = String(this.pageSize);
+        sizeGroup.append(sizeLabel, this.sizeSelect);
+        const nav = UI.element('nav', 'app-table-pagination');
+        nav.setAttribute('aria-label', 'Paginación de ' + caption);
+        this.previous = UI.Button.create({ label: 'Anterior' });
+        this.previous.dataset.tablePage = 'previous';
+        this.next = UI.Button.create({ label: 'Siguiente' });
+        this.next.dataset.tablePage = 'next';
+        this.pageLabel = UI.element('span');
+        nav.append(this.previous, this.pageLabel, this.next);
+        this.footer.append(sizeGroup, nav);
+      }
       // El estado accesible permanece fuera del pie para anunciar resultados sin mostrar el contador.
       this.container.replaceChildren(this.scroll, this.summary, this.footer);
       this.updateSortHeaders();
@@ -174,11 +177,6 @@
       this.summary.textContent = this.state === 'loading' ? 'Cargando registros…' :
         this.state === 'error' ? 'La carga no se completó.' :
         'Mostrando ' + first + '–' + last + ' de ' + this.total + ' registros';
-      this.pageLabel.textContent = 'Página ' + this.page + ' de ' + this.totalPages;
-      const blocked = this.state === 'loading' || this.state === 'error';
-      this.previous.disabled = blocked || this.page <= 1;
-      this.next.disabled = blocked || this.page >= this.totalPages;
-      this.sizeSelect.disabled = blocked;
       if (this.more) {
         const hadFocus = document.activeElement === this.more;
         this.more.hidden = this.state !== 'ready' || this.rows.length >= this.total;
@@ -187,6 +185,12 @@
         this.more.textContent = this.loadingMore ? 'Cargando…' : this.appendError ? 'Reintentar' : 'Cargar más';
         this.more.setAttribute('aria-busy', String(Boolean(this.loadingMore)));
         this.footer.hidden = this.more.hidden && this.continuation.hidden;
+      } else {
+        this.pageLabel.textContent = 'Página ' + this.page + ' de ' + this.totalPages;
+        const blocked = this.state === 'loading' || this.state === 'error';
+        this.previous.disabled = blocked || this.page <= 1;
+        this.next.disabled = blocked || this.page >= this.totalPages;
+        this.sizeSelect.disabled = blocked;
       }
     }
 
@@ -337,8 +341,9 @@
             if (action.visible && !action.visible(record)) return;
             const label = typeof action.label === 'function' ? action.label(record) : action.label;
             const disabled = this.pendingRows.has(String(this.getRowId(record))) || Boolean(typeof action.disabled === 'function' ? action.disabled(record) : action.disabled);
-            if (this.actionDisplay === 'menu') { menuItems.push({ ...action, label, disabled, tone: typeof action.tone === 'function' ? action.tone(record) : action.tone, iconOnly: false, actionIndex }); return; }
-            const button = UI.Button.create({ ...action, label, disabled });
+            const definition = { ...action, label, disabled, tone: typeof action.tone === 'function' ? action.tone(record) : action.tone };
+            if (this.actionDisplay === 'menu') { menuItems.push({ ...definition, iconOnly: false, actionIndex }); return; }
+            const button = UI.Button.create(definition);
             button.dataset.tableAction = String(actionIndex);
             button.dataset.rowIndex = String(index);
             group.append(button);

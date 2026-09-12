@@ -1,6 +1,7 @@
 /* Tabla semántica con desplazamiento contenido, estados y pie de paginación compartidos. */
 .app-data-table { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; max-width: 100%; }
 .app-table-scroll { flex: 1; min-width: 0; width: 100%; overflow: auto; overscroll-behavior: contain; min-height: 0; scrollbar-width: none; background: #e7e0d4; border: 1px solid #d4c7b2; border-radius: 10px; }
+.app-table-scroll:focus-visible { outline: 3px solid var(--app-gold-600); outline-offset: 3px; }
 /* Oculta solo la barra visual: rueda, tacto, teclado y carga progresiva siguen funcionando. */
 .app-table-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .app-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; font-size: .9375rem; }
@@ -11,8 +12,6 @@
 .app-table tbody tr:hover { background: #f5eddc; }
 .app-table .app-table-number { text-align: center; font-family: inherit; font-variant-numeric: normal; white-space: nowrap; }
 .app-table-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-.app-table-actions .app-button { font-size: .875rem; }
-.app-table-actions .app-action-menu > .app-button { white-space: nowrap; overflow-wrap: normal; }
 /* Estado integrado en la tabla; reutiliza Message y sus anuncios accesibles. */
 .app-table-state { height: 15rem; text-align: center; }
 .app-table-state-content { display: grid; justify-items: center; gap: 14px; padding: 24px 10px; }
@@ -46,7 +45,6 @@
 @media (max-width: 30rem) {
   .app-table th, .app-table td { padding: 8px 6px; }
   .app-table-sequence { width: 2rem; }
-  .app-table-actions .app-button { padding: 8px; min-height: 38px; }
 }
 .app-badge { display: inline-block; white-space: nowrap; padding: 3px 10px; border: 1px solid var(--app-border); border-radius: 20px; font-size: .8125rem; font-weight: 600; line-height: 1.5; }
 .app-badge--neutral { color: #655a60; background: #f8f6f7; }

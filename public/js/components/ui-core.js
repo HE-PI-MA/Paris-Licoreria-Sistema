@@ -37,9 +37,11 @@
     static states = new WeakMap();
 
     /** Un botón solo con icono también necesita un nombre legible por lectores de pantalla. */
-    static create({ label, icon, variant = 'secondary', iconOnly = false, type = 'button', disabled = false } = {}) {
+    static create({ label, icon, variant = 'secondary', tone, iconOnly = false, type = 'button', disabled = false } = {}) {
       if (typeof label !== 'string' || !label.trim()) throw new TypeError('El botón necesita un nombre.');
-      if (!['primary', 'secondary', 'danger'].includes(variant)) throw new TypeError('Estilo de botón no válido.');
+      // tone comparte la misma paleta para acciones de tabla, menú y botones independientes.
+      variant = tone || variant;
+      if (!['primary', 'secondary', 'danger', 'info', 'edit', 'catalog', 'success', 'warning', 'notice'].includes(variant)) throw new TypeError('Estilo de botón no válido.');
       const button = UI.element('button', 'app-button app-button--' + variant);
       button.type = type;
       button.disabled = disabled;

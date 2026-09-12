@@ -20,9 +20,5 @@ class MachineFingerprint {
     }
     return this.pending;
   }
-  async getDisplayId() {
-    const fingerprint = (await this.generate()).toUpperCase();
-    return [fingerprint.slice(0,8), fingerprint.slice(8,16), fingerprint.slice(16,24)].join('-');
-  }
 }
 module.exports = MachineFingerprint;

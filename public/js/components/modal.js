@@ -30,7 +30,7 @@
       symbol.setAttribute('aria-hidden', 'true');
       symbol.append(UI.Icon.create(icon) || UI.Icon.create('info'));
       header.append(symbol, this.title);
-      this.body = UI.element('div', 'app-modal-body');
+      this.body = UI.element('div', 'app-modal-body app-fields--modal');
       this.body.id = 'paris-modal-body-' + sequence;
       this.footer = UI.element('footer', 'app-modal-footer');
       this.element.append(header, this.body, this.footer);

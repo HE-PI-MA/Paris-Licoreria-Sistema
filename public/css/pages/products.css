@@ -1,4 +1,3 @@
 /* Distribución específica de Productos. Botones, campos, tabla y modales usan los componentes globales. */
-.product-form-wide { grid-column: 1 / -1; }
 .product-presentations-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
 .product-presentations-toolbar p { margin: 0; flex: 1 1 16rem; }

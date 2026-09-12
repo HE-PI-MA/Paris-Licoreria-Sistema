@@ -4,7 +4,7 @@
   const UI = window.ParisUI, Catalog = window.ParisProducts;
   class ProductsPage {
     constructor(element) {
-      this.element = element; this.api = new Catalog.ProductsApi(); this.notifications = new UI.NotificationCenter();
+      this.api = new Catalog.ProductsApi(); this.notifications = new UI.NotificationCenter();
       this.events = new AbortController(); this.operations = new Map(); this.dialogs = new Set();
       this.table = new UI.DataTable({ container: element, caption: 'Productos', mode: 'scroll', numbered: true, pageSize: 50, load: params => this.api.list(params), actionDisplay: 'menu',
         columns: [
@@ -101,8 +101,8 @@
       const edit = (row, button) => {
         const form = new Catalog.PresentationForm({ api: this.api, product, record: row, opener: button, onSaved: saved });
         const onClose = form.modal.onClose;
-      form.modal.onClose = value => { onClose(value); this.dialogs.delete(form.modal); };
-      this.dialogs.add(form.modal);
+        form.modal.onClose = value => { onClose(value); this.dialogs.delete(form.modal); };
+        this.dialogs.add(form.modal);
       };
       add.addEventListener('click', () => edit(null, add), { signal: modal.events.signal });
       table = new UI.DataTable({ container: host, caption: 'Presentaciones de ' + product.name, numbered: true, mode: 'scroll', fillHeight: false, pageSize: 50, load: params => this.api.presentations(product.id, params),

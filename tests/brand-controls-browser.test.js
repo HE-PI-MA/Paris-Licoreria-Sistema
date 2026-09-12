@@ -1,10 +1,10 @@
-/** U019: marca, texto de ejemplo y listado de presentaciones sobre datos ficticios. */
+/** U019/U020: marca, hover uniforme, campos y presentaciones sobre datos ficticios. */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path');
 const { server, password } = require('./support/application-fixture');
 
-test('U019: botones de marca, detalle alineado y presentaciones continuas', {
+test('U019/U020: botones de marca, hover compartido, detalle y presentaciones continuas', {
   skip: process.env.PARIS_UI_BROWSER_TESTS !== '1', timeout: 90000
 }, async t => {
   const { chromium } = require(process.env.PARIS_PLAYWRIGHT_PATH || 'playwright');
@@ -30,6 +30,22 @@ test('U019: botones de marca, detalle alineado y presentaciones continuas', {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify(result) });
   });
   const shot = async name => { if (process.env.PARIS_UI_SCREENSHOTS) { fs.mkdirSync(process.env.PARIS_UI_SCREENSHOTS, { recursive: true }); await page.screenshot({ path: path.join(process.env.PARIS_UI_SCREENSHOTS, 'u019-' + name + '.png') }); } };
+  // Comprueba el efecto visual resultante: oscurece, conserva texto/borde y no cambia de tamaño.
+  const buttonStyle = locator => locator.evaluate(n => {
+    const style = getComputedStyle(n), rect = n.getBoundingClientRect();
+    const context = document.createElement('canvas').getContext('2d');
+    context.fillStyle = style.backgroundColor; context.fillRect(0, 0, 1, 1);
+    return { rgb: Array.from(context.getImageData(0, 0, 1, 1).data), background: style.backgroundColor,
+      color: style.color, border: style.borderTopColor, filter: style.filter, width: rect.width, height: rect.height };
+  });
+  const checkHover = async button => {
+    await page.mouse.move(0, 0); const normal = await buttonStyle(button);
+    await button.hover(); const hover = await buttonStyle(button);
+    assert.equal(hover.color, normal.color); assert.equal(hover.border, hover.color); assert.equal(hover.filter, 'brightness(0.96)');
+    assert.ok(hover.rgb.slice(0, 3).reduce((a, b) => a + b, 0) < normal.rgb.slice(0, 3).reduce((a, b) => a + b, 0));
+    assert.equal(hover.width, normal.width); assert.equal(hover.height, normal.height);
+    await page.mouse.move(0, 0); assert.equal((await buttonStyle(button)).background, normal.background);
+  };
   const action = async label => { await page.getByRole('button', { name: 'Acciones del registro 101', exact: true }).click(); await page.getByRole('menuitem', { name: label, exact: true }).click(); };
   try {
     await page.goto(app.base + '/login'); await page.locator('[name=nombre_usuario]').fill('audit_user'); await page.locator('[name=contrasena]').fill(password);
@@ -39,11 +55,39 @@ test('U019: botones de marca, detalle alineado y presentaciones continuas', {
       const primary = page.locator('[data-module-primary]'), trigger = page.getByRole('button', { name: 'Acciones del registro 101', exact: true });
       const styles = await primary.evaluate(n => ({ color: getComputedStyle(n).color, background: getComputedStyle(n).backgroundColor, image: getComputedStyle(n).backgroundImage }));
       assert.equal(styles.background, await trigger.evaluate(n => getComputedStyle(n).backgroundColor)); assert.equal(styles.image, 'none');
-      await shot('productos'); await trigger.click();
+      await shot('productos'); await checkHover(primary); await checkHover(trigger); await trigger.click();
       const colors = await page.getByRole('menu').getByRole('menuitem').evaluateAll(nodes => nodes.map(n => ({ color: getComputedStyle(n).color, background: getComputedStyle(n).backgroundColor, image: getComputedStyle(n).backgroundImage })));
       assert.ok(colors.every(c => c.color === 'rgb(255, 255, 255)' && c.image === 'none')); assert.equal(new Set(colors.map(c => c.background)).size, 5);
-      await shot('acciones'); await page.keyboard.press('End'); assert.equal(await page.getByRole('menuitem', { name: 'Eliminar', exact: true }).evaluate(n => n === document.activeElement), true);
+      await shot('acciones');
+      for (const item of await page.getByRole('menuitem').all()) await checkHover(item);
+      await page.getByRole('menuitem', { name: 'Editar', exact: true }).hover();
+      if (process.env.PARIS_UI_SCREENSHOTS) await page.screenshot({ path: path.join(process.env.PARIS_UI_SCREENSHOTS, 'u020-hover-acciones.png') });
+      await page.keyboard.press('End'); assert.equal(await page.getByRole('menuitem', { name: 'Eliminar', exact: true }).evaluate(n => n === document.activeElement), true);
       await page.keyboard.press('Escape'); assert.equal(await trigger.evaluate(n => n === document.activeElement), true);
+    });
+    await t.test('U020: variantes independientes, iconos y bloqueo no dependen de la tabla o del menú', async () => {
+      await page.evaluate(() => {
+        const UI = window.ParisUI, content = UI.element('div', 'app-form-grid');
+        for (const tone of ['primary', 'secondary', 'info', 'edit', 'catalog', 'success', 'warning', 'danger']) {
+          const button = UI.Button.create({ label: 'Ejemplo ' + tone, tone, icon: 'info' }); content.append(button);
+        }
+        const icon = UI.Button.create({ label: 'Solo icono', tone: 'primary', icon: 'plus', iconOnly: true }); content.append(icon);
+        window.hoverExample = new UI.Modal({ title: 'Demostración de botones', content }); hoverExample.open();
+      });
+      const modal = page.getByRole('dialog', { name: 'Demostración de botones', exact: true });
+      try {
+        for (const button of await modal.getByRole('button').all()) await checkHover(button);
+        const button = modal.getByRole('button', { name: 'Ejemplo primary', exact: true });
+        await page.evaluate(() => ParisUI.Button.setBusy(hoverExample.body.querySelector('button'), true, 'Guardando…'));
+        const before = await buttonStyle(modal.getByRole('button', { name: 'Guardando…', exact: true }));
+        const busy = modal.getByRole('button', { name: 'Guardando…', exact: true }); await busy.hover({ force: true });
+        assert.equal(await busy.isDisabled(), true); assert.equal((await buttonStyle(busy)).background, before.background); assert.equal((await buttonStyle(busy)).filter, 'none');
+        await page.evaluate(() => ParisUI.Button.setBusy(hoverExample.body.querySelector('button'), false));
+        assert.equal(await button.isEnabled(), true); await checkHover(button);
+        await button.evaluate(n => { n.disabled = true; }); await page.mouse.move(0, 0);
+        const disabled = await buttonStyle(button); await button.hover({ force: true }); assert.equal((await buttonStyle(button)).background, disabled.background);
+        await page.keyboard.press('Tab'); assert.ok(await modal.evaluate(n => n.contains(document.activeElement)));
+      } finally { await page.evaluate(() => { hoverExample.destroy(); delete window.hoverExample; }); }
     });
     await t.test('el ejemplo se oculta al enfocar; etiquetas, selección y texto escrito se conservan', async () => {
       const search = page.locator('#module-search'); const original = await search.getAttribute('placeholder');

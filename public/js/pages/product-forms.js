@@ -13,7 +13,7 @@
       });
     }
     field(name, labelText, { type = 'text', value = '', required = false, maxLength, min, max, step, help, wide = false, options } = {}) {
-      const host = UI.element('div', 'app-field' + (wide ? ' product-form-wide' : ''));
+      const host = UI.element('div', 'app-field' + (wide ? ' app-field--wide' : ''));
       const label = UI.element('label', 'app-label', labelText + (required ? ' *' : ''));
       const input = UI.element(type === 'textarea' ? 'textarea' : type === 'select' ? 'select' : 'input', 'app-input');
       if (input instanceof HTMLInputElement) input.type = type;
@@ -61,7 +61,7 @@
       const unit = this.selector('unitId', 'Unidad base', 'units', row && { value: row.unitId, label: row.unit });
       if (row?.presentations > 0) {
         unit.disabled = true;
-        this.grid.append(UI.element('p', 'app-field-help product-form-wide', 'La unidad base se conserva porque el producto ya tiene presentaciones.'));
+        this.grid.append(UI.element('p', 'app-field-help app-field--wide', 'La unidad base se conserva porque el producto ya tiene presentaciones.'));
       }
       this.field('minimum', 'Stock mínimo', { type: 'number', value: row?.minimum ?? '0', min: '0', max: '999999999999.999', step: '0.001', required: true });
       this.state(row?.state);

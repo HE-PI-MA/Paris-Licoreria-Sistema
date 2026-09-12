@@ -5,7 +5,6 @@ class LicenseRepository {
   constructor() {
     this.licensePath = process.env.PARIS_LICENSE_PATH || path.join(process.env.ProgramData || 'C:\\ProgramData', 'ParisLicoreria', 'license', 'license.json');
   }
-  getLicensePath() { return this.licensePath; }
   async read() {
     try {
       const stat = await fs.stat(this.licensePath);

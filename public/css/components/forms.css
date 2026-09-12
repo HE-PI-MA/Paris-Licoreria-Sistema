@@ -6,16 +6,19 @@
 }
 
 .app-label {
-  font-size: 0.9rem;
+  font-size: var(--field-label-size, .9rem);
+  color: var(--field-label-ink, inherit);
+  letter-spacing: var(--field-label-spacing, normal);
   font-weight: 700;
 }
 
 .app-input {
   width: 100%;
-  min-height: var(--app-control-height);
-  border: 1px solid var(--app-border);
+  min-height: var(--field-height, var(--app-control-height));
+  border: 1px solid var(--field-border, var(--app-border));
   border-radius: var(--app-radius-sm);
-  background: var(--app-surface);
+  background: var(--field-bg, var(--app-surface));
+  box-shadow: var(--field-shadow, none);
   color: var(--app-text);
   padding: 10px;
   font: inherit;
@@ -24,10 +27,16 @@
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
+.app-input:hover:not(:disabled):not([aria-invalid="true"]):not(:focus) { border-color: var(--field-hover-border, var(--field-border, var(--app-border))); }
+
 .app-input:focus {
-  border-color: var(--app-gold-600);
+  border-color: var(--field-focus-border, var(--app-gold-600));
   box-shadow: 0 0 0 3px rgba(217, 164, 65, .22);
 }
+
+/* Contextos de los campos: solo variables; el componente conserva foco, validación y bloqueo. */
+.app-fields--toolbar { --field-bg: #faf6ee; --field-border: #c5b698; --field-hover-border: #a38b5d; --field-focus-border: #b38225; --field-height: 46px; --field-shadow: 0 2px 4px #3b2d1310; }
+.app-fields--modal { --field-bg: #fffcf6; --field-border: #cdbfa5; --field-label-ink: #5b4b31; --field-label-size: .8125rem; --field-label-spacing: .025em; }
 
 /* Oculta únicamente el texto de ejemplo al enfocar; conserva etiquetas y valores escritos. */
 .app-input:focus::placeholder { opacity: 0; }

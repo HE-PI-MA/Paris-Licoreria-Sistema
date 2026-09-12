@@ -6,7 +6,6 @@ class ActivationRepository {
   constructor() {
     this.activationPath = process.env.PARIS_ACTIVATION_PATH || path.join(process.env.ProgramData || 'C:\\ProgramData', 'ParisLicoreria', 'activation', 'activation.dat');
   }
-  getActivationPath() { return this.activationPath; }
   async read() {
     try {
       const stat = await fs.stat(this.activationPath);

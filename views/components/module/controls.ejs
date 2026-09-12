@@ -1,7 +1,7 @@
 <%# Controles compartidos sin tarjeta exterior. Productos usa una categoría directa; otros módulos pueden abrir filtros avanzados. %>
 <% const inlineCategory = moduleUi.filterMode === 'inline-category'; %>
 <section class="module-controls-panel" data-module-region="controls" aria-label="Buscador y filtros">
-  <div class="module-controls-row">
+  <div class="module-controls-row app-fields--toolbar">
     <div class="module-search-field">
       <label class="app-sr-only" for="module-search">Buscar</label>
       <div class="module-search-input"><%- include('../icon', { name: 'search' }) %><input class="app-input" id="module-search" type="search" autocomplete="off" spellcheck="false" placeholder="<%= moduleUi.searchPlaceholder %>" <% if (!moduleUi.enabled) { %>disabled<% } %><% if (!inlineCategory) { %> aria-describedby="module-controls-help"<% } %>></div>

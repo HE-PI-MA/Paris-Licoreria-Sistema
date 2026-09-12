@@ -20,8 +20,7 @@
       Object.assign(this, { select, load, pageSize, debounce, searchable });
       this.events = new AbortController(); this.requestId = 0; this.options = []; this.active = -1;
       this.original = { id: select.id, hidden: select.hidden, tabindex: select.getAttribute('tabindex') };
-      this.localOptions = Array.from(select.options).filter(option => (option.value || !this.searchable) && !option.disabled)
-        .map(option => ({ value: option.value, label: option.textContent }));
+      this.localOptions = this.readOptions();
       const id = 'paris-select-' + (++sequence);
       this.root = UI.element('div', 'app-search-select' + (!searchable ? ' app-search-select--choice' : ''));
       this.input = UI.element('input', 'app-input');
@@ -49,7 +48,7 @@
       this.panel.append(this.list, this.more, this.retry); this.root.append(control, this.panel);
       select.insertAdjacentElement('afterend', this.root); select.hidden = true; select.tabIndex = -1;
       if (!Array.from(select.options).some(option => option.value === '')) {
-        const empty = UI.element('option', '', 'Sin selección'); empty.value = ''; select.prepend(empty); this.emptyOption = empty;
+        const empty = UI.element('option', '', 'Sin selección'); empty.value = ''; select.prepend(empty);
       }
       SearchSelect.controls.set(select, this);
       this.syncLabel(); this.syncDisabled();
@@ -86,10 +85,14 @@
       select.addEventListener('change', () => { if (!this.opened) this.syncLabel(); }, settings);
       select.form?.addEventListener('reset', () => queueMicrotask(() => { if (!this.destroyed) { this.close(); this.syncLabel(); } }), settings);
     }
+    /** Lee opciones válidas tanto al montar como cuando cambia el select original. */
+    readOptions() {
+      return Array.from(this.select.options).filter(option => (option.value || !this.searchable) && !option.disabled)
+        .map(option => ({ value: option.value, label: option.textContent }));
+    }
     /** Actualiza el catálogo del select original sin instalar nuevas escuchas ni perder su valor. */
     syncOptions() {
-      this.localOptions = Array.from(this.select.options).filter(option => (option.value || !this.searchable) && !option.disabled)
-        .map(option => ({ value: option.value, label: option.textContent }));
+      this.localOptions = this.readOptions();
       if (this.opened) this.ready = this.fetchOptions(this.searchable ? this.input.value : '');
       else this.syncLabel();
     }
@@ -161,7 +164,7 @@
       if (this.destroyed || !this.opened) return;
       this.cancel(); const id = this.requestId;
       this.request = new AbortController(); this.term = term; this.failedPage = page;
-      this.more.hidden = this.retry.hidden = true; this.busy = true;
+      this.more.hidden = this.retry.hidden = true;
       if (page === 1) { this.options = []; this.renderOptions(); }
       this.list.setAttribute('aria-busy', 'true'); this.message.show('loading', 'Buscando opciones…'); this.position();
       try {
@@ -188,7 +191,7 @@
         if (id !== this.requestId || this.destroyed || !this.opened) return;
         this.message.show('error', 'No se pudieron cargar las opciones.'); this.retry.hidden = false;
       } finally {
-        if (id === this.requestId) { this.busy = false; this.list.setAttribute('aria-busy', 'false'); this.position(); }
+        if (id === this.requestId) { this.list.setAttribute('aria-busy', 'false'); this.position(); }
       }
     }
     renderOptions() {

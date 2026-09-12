@@ -47,10 +47,6 @@
 .module-layout--listing .module-content-panel { min-height: 0; border: 0; border-radius: 0; background: transparent; }
 .module-layout--listing .module-content-area { min-height: 0; padding: 0; }
 .module-layout--listing .module-messages > h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-/* Misma piel para búsqueda y categoría; foco dorado y desplegable del componente compartido. */
-.module-controls-row .app-input { border-color: #c5b698; background: #faf6ee; box-shadow: 0 2px 4px #3b2d1310; min-height: 46px; }
-.module-controls-row .app-input:hover:not(:disabled) { border-color: #a38b5d; }
-.module-controls-row .app-input:focus { border-color: #b38225; box-shadow: 0 0 0 3px #d9a44133; }
 @media (max-width: 48rem) {
   .module-header { flex-wrap: wrap; padding: 10px; }
   .module-heading h1 { font-size: 1.4rem; }

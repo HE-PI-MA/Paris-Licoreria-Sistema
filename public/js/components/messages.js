@@ -88,7 +88,7 @@
       copy.append(UI.element('strong', 'app-toast-title', labels[kind]), message.text);
       const persistent = ['error', 'warning', 'loading'].includes(kind);
       // Los avisos breves se retiran solos; los problemas pendientes siguen siendo descartables.
-      const close = persistent ? UI.Button.create({ label: 'Cerrar' }) : null;
+      const close = persistent ? UI.Button.create({ label: 'Cerrar', variant: 'notice' }) : null;
       if (close) { close.setAttribute('aria-label', 'Cerrar notificación'); message.element.append(close); }
       else message.element.tabIndex = 0; // Pausa también al leer el aviso con teclado.
       const events = new AbortController();

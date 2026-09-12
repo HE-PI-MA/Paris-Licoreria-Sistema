@@ -21,6 +21,8 @@
 | Texto del negocio en mayúsculas | `TextCase` en `public/js/components/ui-core.js`; marcar campos con `data-uppercase`. |
 | Hamburguesa integrada en la cabecera | `views/components/sidebar-opener.ejs` y `views/components/module/header.ejs` |
 | Datos de consulta en bloques | `public/js/components/record-details.js` y `public/css/components/record-details.css` |
+| Botones, tonos, hover, foco y bloqueo | `public/css/components/buttons.css` y `Button` en `public/js/components/ui-core.js` |
+| Apariencia de campos, búsqueda y modales | `public/css/components/forms.css`; pieles `app-fields--toolbar` y `app-fields--modal` |
 | Mensajes compartidos | `public/js/components/module-layout.js` |
 | Estilos y comportamiento de login/activación | `public/css/pages/auth.css` y `public/js/pages/` |
 | Compilación y actualización de plantillas EJS | `src/core/TemplateCache.js` |
@@ -68,7 +70,7 @@ Los include de EJS proceden de la configuración del servidor. Los datos de usua
 
 Usar las pruebas existentes para comprobar sesión, licencia, permisos y páginas compartidas. Añadir pruebas cuando aparezcan operaciones de negocio o se corrija un fallo concreto. La prueba MySQL requiere una base desechable independiente; no activar esa prueba contra datos reales.
 
-Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. El paquete U017 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
+Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. El paquete U020 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
 
 ## Organización JavaScript desde U008
 
@@ -95,3 +97,7 @@ Después de editar una vista EJS en desarrollo, TemplateCache invalida las funci
 ## Productos y componentes U017
 
 Consultar [U017](29_PRODUCTOS_Y_MODALES_U017.md). Modal admite un icono local y cierra mediante su pie; conservar Cancelar/Cerrar y requestClose para comprobar cambios pendientes. RecordDetails reutiliza ValueFormat y muestra texto seguro. La alineación numérica es centrada con la misma Inter del listado. SearchSelect se limpia editando su texto. ModuleLayout oculta su región cuando no hay aviso, pero mantiene los errores accesibles.
+
+## Limpieza U020
+
+Consultar [Limpieza y botones U020](32_LIMPIEZA_Y_BOTONES_U020.md). La apariencia y el hover de los botones se definen únicamente en buttons.css; ActionMenu selecciona un tono de Button. Reutilizar app-field--wide en los formularios. DataTable solo construye paginación en modo pages. Los cálculos de posición en los componentes flotantes se conservan para evitar recortes. Antes de retirar un método, buscar llamadas, callbacks, documentación y pruebas: una API pública puede no utilizarse todavía desde una página.

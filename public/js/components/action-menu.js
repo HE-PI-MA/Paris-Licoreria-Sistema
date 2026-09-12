@@ -28,10 +28,11 @@
       this.trigger.setAttribute('aria-controls', this.panel.id);
       this.items = items;
       this.buttons = items.map((item, index) => {
-        const button = UI.Button.create(item);
         // Paleta semántica compartida, independiente de las operaciones de cada módulo.
         const tone = item.tone || (item.variant === 'danger' ? 'danger' : 'info');
-        button.dataset.actionTone = ['info', 'edit', 'catalog', 'success', 'warning', 'danger'].includes(tone) ? tone : 'info';
+        const button = UI.Button.create({ ...item, tone });
+        button.classList.add('app-button--menu');
+        button.dataset.actionTone = tone;
         button.setAttribute('role', 'menuitem');
         button.tabIndex = -1;
         button.addEventListener('click', () => {
@@ -59,7 +60,6 @@
     get enabled() { return this.buttons.filter(button => !button.disabled); }
     position() {
       const bounds = this.trigger.getBoundingClientRect();
-      this.panel.style.maxHeight = Math.max(80, window.innerHeight - 20) + 'px';
       const rect = this.panel.getBoundingClientRect();
       const below = bounds.bottom + 4;
       this.panel.style.left = Math.max(10, Math.min(bounds.left, window.innerWidth - rect.width - 10)) + 'px';

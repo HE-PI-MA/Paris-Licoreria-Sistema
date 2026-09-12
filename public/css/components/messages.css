@@ -47,8 +47,7 @@
 .app-toast-copy { flex: 1; min-width: 0; }
 .app-toast-title { display: block; margin-bottom: 4px; font-size: .8125rem; }
 .app-toast-copy p { font-size: .8125rem; }
-.app-toast .app-button { flex-shrink: 0; min-height: 2rem; padding: 6px 8px; font-size: .6875rem; color: #fff; border-color: #ffffff80; background: #ffffff18; }
-.app-toast .app-button:hover:not(:disabled) { background: #ffffff30; }
+.app-toast .app-button { flex-shrink: 0; }
 @media (prefers-reduced-motion: reduce) {
   .app-alert[data-kind="loading"] .app-alert-icon .paris-icon { animation: none; }
 }

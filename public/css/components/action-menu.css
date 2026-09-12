@@ -2,17 +2,8 @@
 .app-action-menu { display: inline-flex; }
 .app-action-menu-panel {
   position: fixed; inset: auto; margin: 0; padding: 6px;
-  width: max-content; max-width: calc(100vw - 20px); overflow: auto;
+  width: max-content; max-height: max(80px, calc(100vh - 20px)); max-width: calc(100vw - 20px); overflow: auto;
   border: 1px solid var(--app-border); border-radius: var(--app-radius-sm);
   color: var(--app-text); background: var(--app-surface); box-shadow: 0 8px 25px #0002; z-index: 50;
 }
 .app-action-menu-panel:not([hidden]) { display: grid; gap: 4px; }
-/* Todos los tonos usan relleno sólido e icono/texto blancos, igual que Eliminar. */
-.app-action-menu-panel .app-button { --action-bg: #285d96; --action-ink: #fff; justify-content: flex-start; text-align: left; background: var(--action-bg); color: var(--action-ink); border-color: transparent; box-shadow: none; }
-.app-action-menu-panel [data-action-tone="edit"] { --action-bg: #806019; --action-ink: #fff; }
-.app-action-menu-panel [data-action-tone="catalog"] { --action-bg: #694095; --action-ink: #fff; }
-.app-action-menu-panel [data-action-tone="success"] { --action-bg: #22734d; --action-ink: #fff; }
-.app-action-menu-panel [data-action-tone="warning"] { --action-bg: #9b4c20; --action-ink: #fff; }
-.app-action-menu-panel [data-action-tone="danger"] { --action-bg: #a93246; --action-ink: #fff; }
-.app-action-menu-panel .app-button:hover:not(:disabled) { border-color: currentColor; filter: brightness(.96); }
-.app-action-menu-panel .app-button:focus-visible { outline: 2px solid var(--action-ink); outline-offset: -3px; }

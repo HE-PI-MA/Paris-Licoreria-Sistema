@@ -470,52 +470,14 @@
   display: block;
 }
 
+/* El envío hereda apariencia, hover, foco y bloqueo de Button; aquí solo cambia la escala del acceso. */
 .app-login-submit {
   min-height: clamp(56px, 7vh, 64px);
   margin-top: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   gap: 18px;
-  border: 1px solid #f8d779;
-  border-radius: 10px;
-  background:
-    linear-gradient(
-      180deg,
-      #ffe59a 0%,
-      #e9bb58 54%,
-      #c98b2f 100%
-    );
-  color: #171109;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.12rem;
   font-weight: 700;
-  box-shadow:
-    0 12px 30px rgba(0, 0, 0, 0.26),
-    inset 0 1px 0 rgba(255, 255, 255, 0.42);
-  transition:
-    transform 140ms ease,
-    filter 140ms ease,
-    box-shadow 140ms ease;
-}
-
-.app-login-submit:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.04);
-  box-shadow:
-    0 16px 34px rgba(0, 0, 0, 0.32),
-    0 0 0 3px rgba(217, 164, 65, 0.1);
-}
-
-.app-login-submit:focus-visible {
-  outline: 3px solid rgba(245, 205, 114, 0.3);
-  outline-offset: 3px;
-}
-
-.app-login-submit:disabled {
-  cursor: wait;
-  opacity: 0.72;
-  transform: none;
 }
 
 .app-login-submit-icon {
