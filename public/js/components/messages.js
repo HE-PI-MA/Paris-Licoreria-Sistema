@@ -77,7 +77,7 @@
     }
 
     /** Error, advertencia y carga no desaparecen automáticamente, aunque se envíe duration. */
-    show(kind, text, { duration = 6000 } = {}) {
+    show(kind, text, { duration = 2000 } = {}) {
       if (!Object.hasOwn(Message.defaults, kind)) throw new TypeError('Tipo de mensaje no válido.');
       this.moveToTop();
       const message = Message.create(this.region);
@@ -86,12 +86,14 @@
       const copy = UI.element('div', 'app-toast-copy');
       message.text.replaceWith(copy);
       copy.append(UI.element('strong', 'app-toast-title', labels[kind]), message.text);
-      const close = UI.Button.create({ label: 'Cerrar' });
-      close.setAttribute('aria-label', 'Cerrar notificación');
-      message.element.append(close);
+      const persistent = ['error', 'warning', 'loading'].includes(kind);
+      // Los avisos breves se retiran solos; los problemas pendientes siguen siendo descartables.
+      const close = persistent ? UI.Button.create({ label: 'Cerrar' }) : null;
+      if (close) { close.setAttribute('aria-label', 'Cerrar notificación'); message.element.append(close); }
+      else message.element.tabIndex = 0; // Pausa también al leer el aviso con teclado.
       const events = new AbortController();
       let timer = null, started = 0, disposed = false;
-      let remaining = ['error', 'warning', 'loading'].includes(kind) ? 0 : Math.max(0, Number(duration) || 0);
+      let remaining = persistent ? 0 : Math.max(0, Number(duration) || 0);
       const entry = {
         pause: () => {
           if (timer !== null) {
@@ -117,7 +119,7 @@
           if (hadFocus) (UI.Modal?.top?.closeButton || document.getElementById('module-content'))?.focus();
         }
       };
-      close.addEventListener('click', entry.close, { signal: events.signal });
+      close?.addEventListener('click', entry.close, { signal: events.signal });
       message.element.addEventListener('pointerenter', entry.pause, { signal: events.signal });
       message.element.addEventListener('pointerleave', entry.resume, { signal: events.signal });
       message.element.addEventListener('focusin', entry.pause, { signal: events.signal });

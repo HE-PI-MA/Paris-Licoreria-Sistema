@@ -13,8 +13,8 @@
           { key: 'stock', label: 'Disponible', type: 'quantity', sortable: true, priority: 1 },
           { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'neutral' } } }
         ], sort: { key: 'name', direction: 'asc' },
-        actions: [{ id: 'detail', label: 'Ver detalle', icon: 'info' }, { id: 'edit', label: 'Editar', icon: 'edit' },
-          { id: 'presentations', label: 'Presentaciones', icon: 'box' }, ...this.stateActions()],
+        actions: [{ id: 'detail', label: 'Ver detalle', icon: 'info' }, { id: 'edit', label: 'Editar', icon: 'edit', tone: 'edit' },
+          { id: 'presentations', label: 'Presentaciones', icon: 'box', tone: 'catalog' }, ...this.stateActions()],
         onAction: item => this.handle(() => this.action(item))
       });
       this.filters = new UI.FilterBar({ container: document.querySelector('[data-module-region="controls"]'),
@@ -27,7 +27,7 @@
       window.addEventListener('pagehide', () => this.destroy(), { once: true, signal: this.events.signal });
     }
     stateActions() { return [
-      { id: 'state', label: row => row.state === 'ACTIVO' ? 'Desactivar' : 'Activar', icon: 'refresh' },
+      { id: 'state', label: row => row.state === 'ACTIVO' ? 'Desactivar' : 'Activar', icon: 'refresh', tone: row => row.state === 'ACTIVO' ? 'warning' : 'success' },
       { id: 'delete', label: 'Eliminar', icon: 'trash', variant: 'danger' }
     ]; }
     async handle(task, alert) {
@@ -108,7 +108,7 @@
       table = new UI.DataTable({ container: host, caption: 'Presentaciones de ' + product.name, numbered: true, load: params => this.api.presentations(product.id, params),
         columns: [{ key: 'name', label: 'Presentación', sortable: true }, { key: 'factor', label: 'Equivalencia', type: 'quantity', sortable: true },
           { key: 'barcode', label: 'Código de barras' }, { key: 'price', label: 'Precio (Bs)', type: 'price', sortable: true }, { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'neutral' } } }],
-        sort: { key: 'name', direction: 'asc' }, actionDisplay: 'menu', actions: [{ id: 'edit', label: 'Editar', icon: 'edit' }, ...this.stateActions()],
+        sort: { key: 'name', direction: 'asc' }, actionDisplay: 'menu', actions: [{ id: 'edit', label: 'Editar', icon: 'edit', tone: 'edit' }, ...this.stateActions()],
         onAction: ({ action, record, button }) => this.handle(async () => {
           alert.clear();
           if (action === 'edit') return edit(await this.api.presentation(product.id, record.id), button);

@@ -36,16 +36,19 @@
   pointer-events: none;
 }
 /* Notificación con icono y título; el color indica el resultado sin depender solo del color. */
-.app-toast[data-kind] { --toast-tone: #356c9e; pointer-events: auto; align-items: center; padding: 14px; border: 1px solid #d4c4a6; border-left: 4px solid var(--toast-tone); border-radius: 12px; background: #fffcf6; color: #332b20; box-shadow: 0 10px 30px #11100e33; }
+/* El color ocupa todo el aviso; la duración y pausa pertenecen a NotificationCenter. */
+.app-toast[data-kind] { --toast-tone: #285d96; pointer-events: auto; align-items: center; padding: 14px; border: 1px solid var(--toast-tone); border-radius: 12px; background: var(--toast-tone); color: #fff; box-shadow: 0 10px 30px #11100e33; }
 .app-toast[data-kind="success"] { --toast-tone: #22734d; }
 .app-toast[data-kind="error"] { --toast-tone: #aa3343; }
-.app-toast[data-kind="warning"], .app-toast[data-kind="loading"] { --toast-tone: #95671e; }
-.app-toast .app-alert-icon { display: grid; place-items: center; flex-basis: 38px; height: 38px; padding: 0; color: var(--toast-tone); background: #f1e9d9; border-radius: 10px; }
+.app-toast[data-kind="warning"], .app-toast[data-kind="loading"] { --toast-tone: #805817; }
+.app-toast:focus-visible { outline: 3px solid #cba357; outline-offset: 2px; }
+.app-toast .app-alert-icon { display: grid; place-items: center; flex-basis: 38px; height: 38px; padding: 0; color: #fff; background: #ffffff24; border-radius: 10px; }
 .app-toast .app-alert-icon .paris-icon { width: 22px; height: 22px; }
 .app-toast-copy { flex: 1; min-width: 0; }
-.app-toast-title { display: block; margin-bottom: 4px; font-size: .8125rem; color: var(--toast-tone); }
-.app-toast-copy p { font-size: .8125rem; color: #514636; }
-.app-toast .app-button { flex-shrink: 0; min-height: 2rem; padding: 6px 8px; font-size: .6875rem; }
+.app-toast-title { display: block; margin-bottom: 4px; font-size: .8125rem; }
+.app-toast-copy p { font-size: .8125rem; }
+.app-toast .app-button { flex-shrink: 0; min-height: 2rem; padding: 6px 8px; font-size: .6875rem; color: #fff; border-color: #ffffff80; background: #ffffff18; }
+.app-toast .app-button:hover:not(:disabled) { background: #ffffff30; }
 @media (prefers-reduced-motion: reduce) {
   .app-alert[data-kind="loading"] .app-alert-icon .paris-icon { animation: none; }
 }

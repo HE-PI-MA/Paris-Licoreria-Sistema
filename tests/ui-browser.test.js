@@ -164,7 +164,7 @@ test('U009: componentes en navegador real', {
         window.testNotices = new window.ParisUI.NotificationCenter();
         testNotices.show('error', 'Error persistente de prueba', { duration: 1 });
         testNotices.show('success', 'Éxito con pausa', { duration: 150 });
-        testNotices.region.lastElementChild.querySelector('button').focus();
+        testNotices.region.lastElementChild.focus();
       });
       await page.waitForTimeout(250);
       await visible('Error persistente de prueba');

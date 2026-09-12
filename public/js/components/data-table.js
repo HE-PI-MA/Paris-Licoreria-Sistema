@@ -81,11 +81,8 @@
       for (const column of this.columns) {
         const cell = UI.element('th', ['number', 'quantity', 'price'].includes(column.type) ? 'app-table-number' : '', column.label);
         cell.scope = 'col'; cell.dataset.columnKey = column.key;
-        if (column.sortable) {
-          const button = UI.element('button', 'app-table-sort', column.label); button.type = 'button';
-          button.dataset.tableSort = column.key; button.setAttribute('aria-label', 'Ordenar por ' + column.label);
-          cell.dataset.sortColumn = column.key; cell.replaceChildren(button);
-        }
+        // El encabezado solo identifica la columna. El módulo decide el orden de consulta.
+        if (column.sortable) cell.dataset.sortColumn = column.key;
         row.append(cell);
       }
       if (this.actions.length) {
@@ -143,7 +140,6 @@
       for (const cell of this.table.querySelectorAll('[data-sort-column]')) {
         const direction = this.sort?.key === cell.dataset.sortColumn ? this.sort.direction : null;
         cell.setAttribute('aria-sort', direction === 'asc' ? 'ascending' : direction === 'desc' ? 'descending' : 'none');
-        cell.querySelector('button').title = direction ? 'Orden ' + (direction === 'asc' ? 'ascendente' : 'descendente') + '. Pulsa para cambiarlo.' : 'Pulsa para ordenar.';
       }
     }
     sortRecords(records) {
@@ -198,12 +194,17 @@
       this.container.setAttribute('aria-busy', String(kind === 'loading'));
       const row = UI.element('tr'), cell = UI.element('td', 'app-table-state');
       cell.colSpan = this.columnCount;
-      const status = UI.Message.create(cell);
+      const content = UI.element('div', 'app-table-state-content'); cell.append(content);
+      const status = UI.Message.create(content);
+      status.element.classList.add('app-table-state-message');
+      const copy = UI.element('div', 'app-table-state-copy'); status.text.replaceWith(copy);
+      const titles = { empty: 'Sin resultados', loading: 'Cargando listado', error: 'No se pudo cargar' };
+      copy.append(UI.element('strong', 'app-table-state-title', titles[kind] || 'Listado'), status.text);
       status.show(kind, message);
       if (kind === 'error') {
         const retry = UI.Button.create({ label: 'Reintentar', icon: 'refresh' });
         retry.dataset.tableRetry = '';
-        cell.append(retry);
+        content.append(retry);
       }
       row.append(cell);
       this.body.replaceChildren(row);
@@ -334,7 +335,7 @@
             if (action.visible && !action.visible(record)) return;
             const label = typeof action.label === 'function' ? action.label(record) : action.label;
             const disabled = this.pendingRows.has(String(this.getRowId(record))) || Boolean(typeof action.disabled === 'function' ? action.disabled(record) : action.disabled);
-            if (this.actionDisplay === 'menu') { menuItems.push({ ...action, label, disabled, iconOnly: false, actionIndex }); return; }
+            if (this.actionDisplay === 'menu') { menuItems.push({ ...action, label, disabled, tone: typeof action.tone === 'function' ? action.tone(record) : action.tone, iconOnly: false, actionIndex }); return; }
             const button = UI.Button.create({ ...action, label, disabled });
             button.dataset.tableAction = String(actionIndex);
             button.dataset.rowIndex = String(index);
@@ -412,10 +413,6 @@
     async onClick(event) {
       const button = event.target.closest('button');
       if (!button || !this.container.contains(button) || button.disabled) return;
-      if (button.hasAttribute('data-table-sort')) {
-        const key = button.dataset.tableSort;
-        return this.setSort({ key, direction: this.sort?.key === key && this.sort.direction === 'asc' ? 'desc' : 'asc' });
-      }
       if (button.hasAttribute('data-table-details')) return this.toggleDetails(button);
       if (button.hasAttribute('data-table-more')) return this.loadMore({ retry: true });
       if (button.hasAttribute('data-table-retry')) return this.refresh();

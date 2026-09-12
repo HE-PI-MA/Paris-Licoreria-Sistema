@@ -2,7 +2,7 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U017
+## Estado del desarrollo — U018
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
@@ -12,7 +12,7 @@ Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servido
 
 **Sidebar U016:** ancho automático según pantalla: completo por encima de 1200px, solo iconos entre 769 y 1200px y menú móvil hasta 768px. Marca centrada sin enlace a Inicio; se elimina el control manual de ancho y su preferencia almacenada.
 
-**Interfaz U017:** listado de Productos simplificado, números centrados, filtros sin barra visible, detalle en bloques, modales oscuros con icono y notificaciones identificadas. Se conserva el sidebar automático U016.
+**Interfaz U018:** encabezados de tabla informativos, acciones con colores, detalle en un solo contenedor y formularios sin tarjeta interior. Sugerencias flotantes al escribir y avisos de éxito verdes de dos segundos. Se conservan el listado simplificado U017 y el sidebar automático U016.
 
 **Pendiente:** las operaciones de los otros módulos. Inicio conserva el saludo y las pantallas restantes conservan sus espacios de preparación.
 
@@ -24,6 +24,7 @@ La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, moda
 
 | Documento | Qué explica |
 | --- | --- |
+| [Interacciones visuales U018](docs/30_INTERACCIONES_VISUALES_U018.md) | Sugerencias, tablas, acciones, avisos, formularios e instalación. |
 | [Productos y modales U017](docs/29_PRODUCTOS_Y_MODALES_U017.md) | Tabla, detalles, selectores, modales, notificaciones e integración. |
 | [Sidebar automático U016](docs/28_SIDEBAR_AUTOMATICO_U016.md) | Tamaños, marca, teclado, instalación y comprobaciones. |
 | [Ajustes visuales U015](docs/27_AJUSTES_VISUALES_U015.md) | Componentes, mayúsculas, selector, móvil, instalación y comprobaciones. |
@@ -75,7 +76,7 @@ La demostración está en `/demostracion/componentes`, disponible con licencia y
 
 ## Controles compartidos U010
 
-La demostración `/demostracion/componentes` incorpora filtros configurables, selectores con búsqueda, fechas, ordenamiento y menú de acciones. Sus datos son ficticios. Guía de integración: [Filtros, selectores y listados U010](docs/21_FILTROS_SELECTORES_Y_LISTADOS_U010.md).
+La demostración `/demostracion/componentes` incorpora filtros configurables, selectores con búsqueda, fechas, ordenamiento programático y menú de acciones. Sus datos son ficticios. Guía de integración: [Filtros, selectores y listados U010](docs/21_FILTROS_SELECTORES_Y_LISTADOS_U010.md).
 
 Para medir navegación local: detener el servidor y ejecutar `node scripts/diagnosticar-navegacion.js`. El arranque habitual `node server.js` mantiene las mediciones desactivadas.
 

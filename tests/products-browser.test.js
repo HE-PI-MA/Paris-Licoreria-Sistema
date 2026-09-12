@@ -58,7 +58,7 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
    await page.locator('[data-module-primary]').click();await page.getByRole('button',{name:'Guardar',exact:true}).click();
    assert.equal(await page.locator('[name=name]').getAttribute('aria-invalid'),'true');
    await page.locator('[name=name]').fill('Producto nuevo');
-   for(const name of ['Categoría *','Unidad base *']){await page.getByRole('combobox',{name,exact:true}).click();await page.locator('dialog[open] [role=option]:visible').first().click();}
+   for(const name of ['Categoría *','Unidad base *']){await page.getByRole('combobox',{name,exact:true}).fill(name.startsWith('Categoría')?'Beb':'Uni');await page.locator('dialog[open] [role=option]:visible').first().click();}
    saveGate=new Promise(resolve=>{releaseSave=resolve;});
    await page.getByRole('button',{name:'Guardar',exact:true}).click();await visible('Guardando…');
    await page.locator('dialog[open] form').evaluate(form=>form.dispatchEvent(new Event('submit',{cancelable:true})));

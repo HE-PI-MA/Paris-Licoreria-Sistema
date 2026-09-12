@@ -1,6 +1,7 @@
 /**
  * Selector con búsqueda local o por páginas del servidor. Conserva el select original para FormData.
- * searchable=false reutiliza la selección y teclado sin buscador; popup=true superpone las opciones.
+ * Los controles con búsqueda sugieren al escribir. Todos los paneles flotan sin desplazar el formulario.
+ * searchable=false permite elegir por clic; todos los selectores usan el mismo panel flotante.
  * El cuadro visible controla teclado y foco; las respuestas antiguas se cancelan y nunca pisan la búsqueda actual.
  */
 (() => {
@@ -9,20 +10,20 @@
   let sequence = 0;
   class SearchSelect {
     static controls = new WeakMap();
-    constructor({ select, load, pageSize = 20, debounce = 250, searchable = true, popup = false } = {}) {
+    constructor({ select, load, pageSize = 20, debounce = 250, searchable = true } = {}) {
       if (!(select instanceof HTMLSelectElement) || select.multiple || SearchSelect.controls.has(select)) {
         throw new TypeError('Se necesita un select simple sin inicializar.');
       }
       if ((load !== undefined && typeof load !== 'function') || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
         throw new TypeError('Consulta o tamaño de página no válido.');
       }
-      Object.assign(this, { select, load, pageSize, debounce, searchable, popup });
+      Object.assign(this, { select, load, pageSize, debounce, searchable });
       this.events = new AbortController(); this.requestId = 0; this.options = []; this.active = -1;
       this.original = { id: select.id, hidden: select.hidden, tabindex: select.getAttribute('tabindex') };
       this.localOptions = Array.from(select.options).filter(option => (option.value || !this.searchable) && !option.disabled)
         .map(option => ({ value: option.value, label: option.textContent }));
       const id = 'paris-select-' + (++sequence);
-      this.root = UI.element('div', 'app-search-select' + (!searchable ? ' app-search-select--choice' : '') + (popup ? ' app-search-select--popup' : ''));
+      this.root = UI.element('div', 'app-search-select' + (!searchable ? ' app-search-select--choice' : ''));
       this.input = UI.element('input', 'app-input');
       this.input.id = select.id || id; select.id = id + '-source';
       this.input.readOnly = !searchable;
@@ -38,6 +39,7 @@
       // El usuario edita o borra el texto para buscar; no hay botón X junto al campo.
       const control = UI.element('div', 'app-search-select-control'); control.append(this.input);
       this.panel = UI.element('div', 'app-search-select-panel'); this.panel.hidden = true;
+      this.panel.setAttribute('popover', 'manual');
       this.list = UI.element('div', 'app-search-select-list'); this.list.id = id + '-list';
       this.list.setAttribute('role', 'listbox'); this.list.setAttribute('aria-label', 'Opciones disponibles');
       this.input.setAttribute('aria-controls', this.list.id);
@@ -54,19 +56,22 @@
       this.observer = new MutationObserver(() => { this.syncDisabled(); if (!this.load) this.syncOptions(); });
       this.observer.observe(select, { attributes: true, childList: true, subtree: true, characterData: true, attributeFilter: ['disabled', 'required', 'aria-busy', 'label', 'value'] });
       const settings = { signal: this.events.signal };
-      this.input.addEventListener('click', () => { if (!this.searchable && this.opened) this.close(); else if (!this.opened) this.open(); }, settings);
+      this.input.addEventListener('click', () => {
+        if (!this.searchable) this.opened ? this.close() : this.open();
+      }, settings);
       this.input.addEventListener('input', () => {
         if (!this.searchable) return;
-        const term = this.input.value;
-        this.opened = true;
-        if (select.value) { select.value = ''; select.dispatchEvent(new Event('change', { bubbles: true })); }
-        this.opened = true; this.panel.hidden = false; this.input.setAttribute('aria-expanded', 'true');
-        this.cancel(); this.options = []; this.renderOptions();
-        this.message.show('loading', 'Buscando opciones…');
+        const term = this.input.value.trim();
+        if (select.value) { select.value = ''; select.dispatchEvent(new Event('change', { bubbles: true })); this.input.value = term; }
+        this.cancel();
+        if (!term) { this.close(); return; }
+        this.showPanel(); this.options = []; this.renderOptions();
+        this.more.hidden = this.retry.hidden = true;
+        this.message.show('loading', 'Buscando opciones…'); this.position();
         this.timer = window.setTimeout(() => this.fetchOptions(term), this.debounce);
       }, settings);
       this.input.addEventListener('keydown', event => this.onKeyDown(event), settings);
-      this.root.addEventListener('keydown', event => {
+      this.panel.addEventListener('keydown', event => {
         if (event.key === 'Escape' && this.opened) { event.preventDefault(); event.stopPropagation(); this.close(); this.input.focus(); }
       }, settings);
       this.more.addEventListener('click', () => this.fetchOptions(this.term, this.page + 1), settings);
@@ -76,8 +81,8 @@
         const item = event.target.closest('[data-option-index]');
         if (item) this.choose(Number(item.dataset.optionIndex));
       }, settings);
-      document.addEventListener('pointerdown', event => { if (!this.root.contains(event.target)) this.close(); }, settings);
-      document.addEventListener('focusin', event => { if (!this.root.contains(event.target)) this.close(); }, settings);
+      document.addEventListener('pointerdown', event => { if (!this.contains(event.target)) this.close(); }, settings);
+      document.addEventListener('focusin', event => { if (!this.contains(event.target)) this.close(); }, settings);
       select.addEventListener('change', () => { if (!this.opened) this.syncLabel(); }, settings);
       select.form?.addEventListener('reset', () => queueMicrotask(() => { if (!this.destroyed) { this.close(); this.syncLabel(); } }), settings);
     }
@@ -105,15 +110,51 @@
       this.syncLabel();
       if (notify) this.select.dispatchEvent(new Event('change', { bubbles: true }));
     }
+    contains(target) { return this.root.contains(target) || this.panel.contains(target); }
+    /** Popover evita recortes por el scroll del modal; el fallback mantiene el panel dentro del diálogo. */
+    showPanel() {
+      if (this.opened) return;
+      this.opened = true; this.panel.hidden = false;
+      if (this.panel.showPopover) this.panel.showPopover();
+      else (this.input.closest('dialog') || document.body).append(this.panel);
+      this.input.setAttribute('aria-expanded', 'true');
+      this.openEvents = new AbortController();
+      const settings = { signal: this.openEvents.signal };
+      window.addEventListener('resize', () => this.position(), settings);
+      document.addEventListener('scroll', event => {
+        if (!this.panel.contains(event.target)) this.position();
+      }, { ...settings, capture: true });
+      this.position();
+    }
+    /** Posición respecto al campo, con apertura hacia arriba cuando el espacio inferior no alcanza. */
+    position() {
+      if (!this.opened) return;
+      const rect = this.input.getBoundingClientRect();
+      const viewport = { width: window.innerWidth, height: window.innerHeight };
+      const body = this.input.closest('.app-modal-body')?.getBoundingClientRect();
+      if (rect.bottom <= (body?.top ?? 0) || rect.top >= (body?.bottom ?? viewport.height) ||
+          rect.right <= 0 || rect.left >= viewport.width) { this.close(); return; }
+      const below = Math.max(0, viewport.height - rect.bottom - 12), above = Math.max(0, rect.top - 12);
+      const upwards = below < 240 && above > below;
+      this.panel.style.width = Math.min(rect.width, viewport.width - 20) + 'px';
+      this.panel.style.maxHeight = Math.min(300, upwards ? above : below) + 'px';
+      const height = this.panel.getBoundingClientRect().height;
+      this.panel.style.left = Math.max(10, Math.min(rect.left, viewport.width - this.panel.offsetWidth - 10)) + 'px';
+      this.panel.style.top = Math.max(10, upwards ? rect.top - height - 6 : rect.bottom + 6) + 'px';
+    }
     open() {
-      if (this.destroyed || this.select.disabled) return;
-      this.opened = true; this.panel.hidden = false; this.input.setAttribute('aria-expanded', 'true');
-      this.ready = this.fetchOptions(''); return this.ready;
+      if (this.destroyed || this.select.disabled) return Promise.resolve();
+      const term = this.searchable ? this.input.value.trim() : '';
+      if (this.searchable && !term) return Promise.resolve();
+      this.showPanel();
+      this.ready = this.fetchOptions(term); return this.ready;
     }
     cancel() { window.clearTimeout(this.timer); this.request?.abort(); ++this.requestId; }
     close() {
       if (!this.opened) return;
-      this.opened = false; this.cancel(); this.panel.hidden = true;
+      this.opened = false; this.cancel(); this.openEvents?.abort();
+      if (this.panel.hidePopover && this.panel.matches(':popover-open')) this.panel.hidePopover();
+      this.panel.hidden = true;
       this.input.setAttribute('aria-expanded', 'false'); this.input.removeAttribute('aria-activedescendant'); this.syncLabel();
     }
     async fetchOptions(term, page = 1) {
@@ -122,7 +163,7 @@
       this.request = new AbortController(); this.term = term; this.failedPage = page;
       this.more.hidden = this.retry.hidden = true; this.busy = true;
       if (page === 1) { this.options = []; this.renderOptions(); }
-      this.list.setAttribute('aria-busy', 'true'); this.message.show('loading', 'Buscando opciones…');
+      this.list.setAttribute('aria-busy', 'true'); this.message.show('loading', 'Buscando opciones…'); this.position();
       try {
         let result;
         if (this.load) result = await this.load({ term, page, pageSize: this.pageSize, signal: this.request.signal });
@@ -139,14 +180,15 @@
         if (new Set(options.map(item => item.value)).size !== options.length || options.length > result.total ||
             (!result.options.length && result.total > options.length)) throw new TypeError('Página de opciones no válida.');
         this.options = options; this.page = page; this.renderOptions();
-        this.message.show(options.length ? 'info' : 'empty', options.length ? options.length + ' de ' + result.total + ' opciones.' : 'No se encontraron opciones.');
-        if (!this.searchable && options.length) this.message.clear();
+        // Las opciones se anuncian mediante listbox; no se agrega un contador visual.
+        if (options.length) this.message.clear();
+        else this.message.show('empty', 'No se encontraron opciones.');
         this.more.hidden = options.length >= result.total;
       } catch (_) {
         if (id !== this.requestId || this.destroyed || !this.opened) return;
         this.message.show('error', 'No se pudieron cargar las opciones.'); this.retry.hidden = false;
       } finally {
-        if (id === this.requestId) { this.busy = false; this.list.setAttribute('aria-busy', 'false'); }
+        if (id === this.requestId) { this.busy = false; this.list.setAttribute('aria-busy', 'false'); this.position(); }
       }
     }
     renderOptions() {
@@ -182,8 +224,7 @@
         event.preventDefault(); if (this.active >= 0) this.choose(this.active);
       } else if (this.opened && event.key === 'Escape') {
         event.preventDefault(); event.stopPropagation(); this.close();
-      } else if (event.key === 'Tab') this.close();
-      else if (!this.searchable && event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      } else if (!this.searchable && event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
         event.preventDefault();
         const time = Date.now(); this.prefix = time - (this.typedAt || 0) < 700 ? (this.prefix || '') + event.key : event.key; this.typedAt = time;
         const find = () => { const index = this.options.findIndex(option => option.label.toLocaleLowerCase('es').startsWith(this.prefix.toLocaleLowerCase('es'))); if (index >= 0) this.move(index); };
@@ -193,7 +234,7 @@
     destroy() {
       if (this.destroyed) return;
       this.close(); this.destroyed = true; this.cancel(); this.events.abort(); this.observer.disconnect();
-      this.root.remove(); this.select.id = this.original.id; this.select.hidden = this.original.hidden;
+      this.panel.remove(); this.root.remove(); this.select.id = this.original.id; this.select.hidden = this.original.hidden;
       if (this.original.tabindex === null) this.select.removeAttribute('tabindex'); else this.select.setAttribute('tabindex', this.original.tabindex);
       SearchSelect.controls.delete(this.select);
     }

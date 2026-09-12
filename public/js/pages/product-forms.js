@@ -17,6 +17,8 @@
       const label = UI.element('label', 'app-label', labelText + (required ? ' *' : ''));
       const input = UI.element(type === 'textarea' ? 'textarea' : type === 'select' ? 'select' : 'input', 'app-input');
       if (input instanceof HTMLInputElement) input.type = type;
+      // El catálogo usa las sugerencias de SearchSelect, no el historial del navegador.
+      input.autocomplete = 'off'; input.spellcheck = false;
       input.id = label.htmlFor = this.form.id + '-' + name; input.name = name; input.required = required;
       for (const [key, item] of Object.entries({ maxLength, min, max, step })) if (item !== undefined) input[key] = item;
       if (type === 'textarea') input.rows = 3;
@@ -56,8 +58,7 @@
       const row = this.record;
       this.field('name', 'Nombre del producto', { value: row?.name, required: true, maxLength: 120, wide: true });
       this.selector('categoryId', 'Categoría', 'categories', row && { value: row.categoryId, label: row.category });
-      const unit = this.selector('unitId', 'Unidad base', 'units', row && { value: row.unitId, label: row.unit },
-        'Unidad usada para medir stock y la equivalencia de las presentaciones.');
+      const unit = this.selector('unitId', 'Unidad base', 'units', row && { value: row.unitId, label: row.unit });
       if (row?.presentations > 0) {
         unit.disabled = true;
         this.grid.append(UI.element('p', 'app-field-help product-form-wide', 'La unidad base se conserva porque el producto ya tiene presentaciones.'));

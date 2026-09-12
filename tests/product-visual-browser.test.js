@@ -65,7 +65,8 @@ test('U017: diseño compartido y catálogo en navegador', { skip: process.env.PA
       const category = modal.getByRole('combobox', { name: 'Categoría *', exact: true }); await category.fill('gal');
       await modal.getByRole('option', { name: 'Galletas', exact: true }).waitFor(); await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
       assert.equal(await modal.locator('select[name=categoryId]').inputValue(), '3');
-      await category.fill(''); await modal.getByRole('option', { name: 'Bebidas', exact: true }).waitFor(); assert.equal(await modal.locator('select[name=categoryId]').inputValue(), '');
+      await category.fill(''); assert.equal(await category.getAttribute('aria-expanded'), 'false'); assert.equal(await modal.locator('select[name=categoryId]').inputValue(), '');
+      await category.fill('beb'); await modal.getByRole('option', { name: 'Bebidas', exact: true }).waitFor();
       await page.keyboard.press('Escape'); assert.equal(await modal.isVisible(), true); // Primero cierra las sugerencias.
       await shot('u017-formulario.png'); await page.keyboard.press('Escape');
       const confirm = page.getByRole('dialog', { name: 'Descartar cambios', exact: true }); await confirm.waitFor();

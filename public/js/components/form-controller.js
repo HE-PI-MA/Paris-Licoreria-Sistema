@@ -18,6 +18,9 @@
       this.busy = false;
       this.destroyed = false;
       this.originalNoValidate = form.noValidate;
+      this.originalAutocomplete = form.getAttribute('autocomplete');
+      // Formularios del negocio: las recomendaciones pertenecen a los controles de la aplicación.
+      form.autocomplete = 'off';
       form.noValidate = true;
       this.alert = alert || UI.Message.create(form);
       this.ownsAlert = !alert;
@@ -160,6 +163,8 @@
       this.clearErrors();
       if (this.ownsAlert) this.alert.element.remove();
       this.form.noValidate = this.originalNoValidate;
+      if (this.originalAutocomplete === null) this.form.removeAttribute('autocomplete');
+      else this.form.setAttribute('autocomplete', this.originalAutocomplete);
     }
   }
   UI.FormController = FormController;

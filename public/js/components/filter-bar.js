@@ -98,7 +98,7 @@
       const message = UI.Message.create(feedback);
       const retry = UI.Button.create({ label: 'Reintentar ' + field.label.toLocaleLowerCase('es') });
       feedback.append(retry); this.container.append(feedback);
-      this.inline.set(field.name, { feedback, message, retry, enhanced: new UI.SearchSelect({ select, searchable: false, popup: true, pageSize: 100 }), disabled: select.disabled, busy: select.getAttribute('aria-busy'),
+      this.inline.set(field.name, { feedback, message, retry, enhanced: new UI.SearchSelect({ select, searchable: false, pageSize: 100 }), disabled: select.disabled, busy: select.getAttribute('aria-busy'),
         options: Array.from(select.options, option => option.cloneNode(true)) });
       select.addEventListener('change', () => {
         this.flushSearch(); this.value[field.name] = select.value;

@@ -45,34 +45,38 @@ test('U010: controles compartidos en Chromium', {
     await t.test('selector por páginas, teclado, valor de formulario y bloqueo durante envío', async () => {
       await demo(); await page.locator('[data-module-primary]').click();
       const combo = page.getByRole('combobox', { name: 'Proveedor de ejemplo', exact: true });
-      await combo.click(); await visible('20 de 63 opciones.');
-      await page.getByRole('button', { name: 'Cargar más opciones', exact: true }).click(); await visible('40 de 63 opciones.');
-      await combo.fill('63'); await visible('1 de 1 opciones.');
+      await combo.fill('Proveedor'); await page.waitForFunction(() => document.querySelectorAll('.app-search-select-list [role=option]').length === 20);
+      await page.getByRole('button', { name: 'Cargar más opciones', exact: true }).click(); await page.waitForFunction(() => document.querySelectorAll('.app-search-select-list [role=option]').length === 40);
+      await combo.fill('63'); await page.waitForFunction(() => document.querySelector('.app-search-select-panel:not([hidden]) .app-search-select-list')?.children.length === 1 && document.querySelector('.app-search-select-panel:not([hidden]) .app-search-select-list')?.getAttribute('aria-busy') === 'false');
       await combo.press('ArrowDown'); await combo.press('Enter');
       assert.equal(await combo.inputValue(), 'Proveedor ficticio 63');
       assert.equal(await page.locator('select[name=provider]').inputValue(), 'p63');
-      await combo.click(); await visible('20 de 63 opciones.'); await combo.press('Escape');
+      await combo.press('ArrowDown'); await page.getByRole('option', { name: 'Proveedor ficticio 63', exact: true }).waitFor(); await combo.press('Escape');
       assert.equal(await page.locator('dialog[open]').count(), 1);
       await page.locator('#demo-name').fill('Proveedor elegido'); await page.locator('#demo-price').fill('12.50');
       await page.getByRole('button', { name: 'Guardar', exact: true }).click(); await visible('Guardando…');
       assert.equal(await combo.isDisabled(), true);
       await visible('Registro ficticio guardado correctamente.'); await visible('Mostrando 1–10 de 38 registros');
       await page.getByRole('button', { name: 'Filtros', exact: true }).click();
-      await page.getByRole('combobox', { name: 'Proveedor de ejemplo', exact: true }).fill('63'); await visible('1 de 1 opciones.');
+      await page.getByRole('combobox', { name: 'Proveedor de ejemplo', exact: true }).fill('63'); await page.waitForFunction(() => document.querySelector('.app-search-select-panel:not([hidden]) .app-search-select-list')?.children.length === 1 && document.querySelector('.app-search-select-panel:not([hidden]) .app-search-select-list')?.getAttribute('aria-busy') === 'false');
       await page.getByRole('option', { name: 'Proveedor ficticio 63', exact: true }).click();
       await page.getByRole('button', { name: 'Aplicar filtros', exact: true }).click(); await visible('Mostrando 1–1 de 1 registros');
       await visible('Proveedor elegido');
     });
-    await t.test('orden del servidor conserva filtros y reinicia la página', async () => {
-      await demo(); await page.getByRole('button', { name: 'Siguiente', exact: true }).click(); await visible('Mostrando 11–20 de 37 registros');
-      const sort = page.getByRole('button', { name: 'Ordenar por Precio', exact: true });
-      await sort.click(); await visible('Mostrando 1–10 de 37 registros'); assert.equal(await firstId(), '1');
-      await sort.click(); await page.waitForFunction(() => document.querySelector('.app-table tbody tr td')?.textContent === '37');
-      assert.equal(await page.locator('[data-sort-column=price]').getAttribute('aria-sort'), 'descending');
-      await page.getByRole('button', { name: 'Filtros', exact: true }).click(); await page.getByLabel('Estado', { exact: true }).selectOption('INACTIVO');
-      await page.getByRole('button', { name: 'Aplicar filtros', exact: true }).click(); await visible('Mostrando 1–8 de 8 registros'); assert.equal(await firstId(), '36');
-      await page.getByRole('button', { name: 'Ordenar por Fecha', exact: true }).click();
-      await page.waitForFunction(() => document.querySelector('.app-table tbody tr td')?.textContent === '1');
+    await t.test('orden programático remoto conserva filtros; los encabezados son informativos', async () => {
+      await demo();
+      const result = await page.evaluate(async () => {
+        const host = document.createElement('div'); document.body.append(host); const requests = [];
+        const table = new ParisUI.DataTable({ container: host,
+          columns: [{ key: 'price', label: 'Precio', type: 'price', sortable: true }],
+          load: async params => { requests.push({ page: params.page, query: params.query, sort: params.sort }); return { records: [{ id: 1, price: 9 }], total: 25 }; } });
+        await table.ready; await table.setQuery({ state: 'ACTIVO' }); table.page = 2; await table.refresh();
+        await table.setSort({ key: 'price', direction: 'desc' });
+        const before = requests.length; host.querySelector('th').click();
+        const result = { last: requests.at(-1), clicks: requests.length - before, buttons: host.querySelectorAll('th button').length, order: host.querySelector('th').getAttribute('aria-sort') };
+        table.destroy(); host.remove(); return result;
+      });
+      assert.deepEqual(result, { last: { page: 1, query: { state: 'ACTIVO' }, sort: { key: 'price', direction: 'desc' } }, clicks: 0, buttons: 0, order: 'descending' });
     });
     await t.test('orden local numérico, modo remoto y menús sin duplicar eventos', async () => {
       await demo();
@@ -110,7 +114,7 @@ test('U010: controles compartidos en Chromium', {
           if (term === 'error' && failed) return Promise.reject(new Error('simulado'));
           return new Promise(resolve => { pending[term] = resolve; });
         } });
-        control.opened = true; control.panel.hidden = false;
+        host.style.cssText = 'position:fixed;top:100px;left:100px;width:300px'; control.showPanel();
         const old = control.fetchOptions('old'), latest = control.fetchOptions('new');
         const attack = '<img src=x onerror=alert(1)>';
         pending.new({ options: [{ value: 1, label: attack }], total: 1 }); await latest;
@@ -130,7 +134,7 @@ test('U010: controles compartidos en Chromium', {
       await page.getByRole('button', { name: 'Guardar', exact: true }).click();
       const combo = page.getByRole('combobox', { name: 'Proveedor de ejemplo', exact: true });
       assert.equal(await combo.getAttribute('aria-invalid'), 'true'); assert.equal(await combo.evaluate(node => node === document.activeElement), true);
-      await combo.fill('01'); await visible('1 de 1 opciones.'); await combo.press('ArrowDown'); await combo.press('Enter');
+      await combo.fill('01'); await page.waitForFunction(() => document.querySelector('.app-search-select-panel:not([hidden]) .app-search-select-list')?.children.length === 1 && document.querySelector('.app-search-select-panel:not([hidden]) .app-search-select-list')?.getAttribute('aria-busy') === 'false'); await combo.press('ArrowDown'); await combo.press('Enter');
       assert.notEqual(await combo.getAttribute('aria-invalid'), 'true');
       await page.getByRole('button', { name: 'Guardar', exact: true }).click(); await visible('Registro ficticio guardado correctamente.');
     });
@@ -143,7 +147,7 @@ test('U010: controles compartidos en Chromium', {
       const bounds = await page.getByRole('menu').evaluate(node => { const r = node.getBoundingClientRect(); return { left: r.left, right: r.right, bottom: r.bottom }; });
       assert.ok(bounds.left >= 0 && bounds.right <= 390 && bounds.bottom <= 800);
       await page.keyboard.press('Escape'); await page.getByRole('button', { name: 'Filtros', exact: true }).click();
-      await page.getByRole('combobox', { name: 'Proveedor de ejemplo', exact: true }).click(); await visible('20 de 63 opciones.');
+      await page.getByRole('combobox', { name: 'Proveedor de ejemplo', exact: true }).fill('Proveedor'); await page.waitForFunction(() => document.querySelectorAll('.app-search-select-list [role=option]').length === 20);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
       const footer = await page.locator('dialog[open] .app-modal-footer').boundingBox(); assert.ok(footer.y + footer.height <= 800);
       if (process.env.PARIS_UI_SCREENSHOTS) {

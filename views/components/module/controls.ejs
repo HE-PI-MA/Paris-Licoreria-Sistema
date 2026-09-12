@@ -4,7 +4,7 @@
   <div class="module-controls-row">
     <div class="module-search-field">
       <label class="app-sr-only" for="module-search">Buscar</label>
-      <div class="module-search-input"><%- include('../icon', { name: 'search' }) %><input class="app-input" id="module-search" type="search" placeholder="<%= moduleUi.searchPlaceholder %>" <% if (!moduleUi.enabled) { %>disabled<% } %><% if (!inlineCategory) { %> aria-describedby="module-controls-help"<% } %>></div>
+      <div class="module-search-input"><%- include('../icon', { name: 'search' }) %><input class="app-input" id="module-search" type="search" autocomplete="off" spellcheck="false" placeholder="<%= moduleUi.searchPlaceholder %>" <% if (!moduleUi.enabled) { %>disabled<% } %><% if (!inlineCategory) { %> aria-describedby="module-controls-help"<% } %>></div>
     </div>
     <% if (inlineCategory) { %>
       <div class="module-category-field">

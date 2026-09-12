@@ -29,6 +29,9 @@
       this.items = items;
       this.buttons = items.map((item, index) => {
         const button = UI.Button.create(item);
+        // Paleta semántica compartida, independiente de las operaciones de cada módulo.
+        const tone = item.tone || (item.variant === 'danger' ? 'danger' : 'info');
+        button.dataset.actionTone = ['info', 'edit', 'catalog', 'success', 'warning', 'danger'].includes(tone) ? tone : 'info';
         button.setAttribute('role', 'menuitem');
         button.tabIndex = -1;
         button.addEventListener('click', () => {

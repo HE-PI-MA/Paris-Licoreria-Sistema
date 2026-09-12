@@ -7,18 +7,22 @@
 .app-table th, .app-table td { padding: 10px; border-bottom: 1px solid #ded4c4; vertical-align: middle; }
 .app-table td { overflow-wrap: anywhere; }
 .app-table th { position: sticky; top: 0; z-index: 1; font-weight: 600; color: #f4ead6; background: #302b23; border-bottom-color: #9e7d41; }
-/* El encabezado comunica el orden con aria-sort y conserva foco visible. */
-.app-table-sort { display: inline-flex; align-items: center; gap: 6px; padding: 6px 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; text-align: inherit; }
-.app-table-sort:focus-visible { outline: 2px solid var(--app-gold-600); outline-offset: 3px; border-radius: 4px; }
 .app-table tbody tr { background: #fffcf6; }
 .app-table tbody tr:hover { background: #f5eddc; }
 .app-table .app-table-number { text-align: center; font-family: inherit; font-variant-numeric: normal; white-space: nowrap; }
 .app-table-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .app-table-actions .app-button { font-size: .875rem; }
 .app-table-actions .app-action-menu > .app-button { white-space: nowrap; overflow-wrap: normal; }
-.app-table-state { height: 13rem; }
-.app-table-state .app-alert { justify-content: center; }
-.app-table-state .app-button { margin-top: 10px; }
+/* Estado integrado en la tabla; reutiliza Message y sus anuncios accesibles. */
+.app-table-state { height: 15rem; text-align: center; }
+.app-table-state-content { display: grid; justify-items: center; gap: 14px; padding: 24px 10px; }
+.app-table-state-message[data-kind] { flex-direction: column; align-items: center; gap: 12px; padding: 0; border: 0; background: transparent; color: #6e5d41; }
+.app-table-state-message .app-alert-icon { display: grid; place-items: center; flex: none; width: 52px; height: 52px; padding: 0; border: 1px solid #d5c3a1; border-radius: 50%; background: #f0e6d2; }
+.app-table-state-message .app-alert-icon .paris-icon { width: 26px; height: 26px; }
+.app-table-state-title { display: block; margin-bottom: 5px; color: #443725; font-size: 1rem; }
+.app-table-state-copy p { font-size: .875rem; max-width: 32rem; }
+.app-table-state-message[data-kind="error"] { color: var(--app-danger); }
+.app-table-state-message[data-kind="error"] .app-alert-icon { color: var(--app-danger); background: var(--app-danger-soft); border-color: #ebbec4; }
 .app-table-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--module-space); padding: 10px; background: #e5dccd; border: 1px solid #d4c7b2; border-top: 0; border-radius: 0 0 10px 10px; flex: 0 0 auto; }
 .app-table-footer p { margin: 0; color: var(--app-muted); font-size: .875rem; }
 .app-table-size, .app-table-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: var(--module-space); font-size: .875rem; }
@@ -28,8 +32,8 @@
 .app-table-primary { font-weight: 500; }
 .app-table-details-toggle { display: block; margin-top: 5px; padding: 3px 0; border: 0; background: transparent; color: #684b17; font: inherit; font-size: .8125rem; text-decoration: underline; text-underline-offset: 3px; }
 .app-table-details-toggle:focus-visible { outline: 2px solid #986c21; outline-offset: 2px; }
-.app-table-details dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 12px; margin: 0; padding: 4px; }
-.app-table-details dt { color: #76684f; font-size: .8125rem; }
+.app-table-details dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 16px 24px; margin: 4px 0; padding: 12px 16px; border-left: 3px solid #b78a38; background: #f2e9d7; border-radius: 0 8px 8px 0; }
+.app-table-details dt { color: #76684f; font-size: .75rem; font-weight: 650; letter-spacing: .03em; }
 .app-table-details dd { margin: 3px 0 0; overflow-wrap: anywhere; }
 .app-table-continuation { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .app-table-continuation .app-alert { flex: 1 1 14rem; }
