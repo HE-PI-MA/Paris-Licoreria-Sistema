@@ -23,7 +23,7 @@
           { key: 'price', label: 'Precio', type: 'price', sortable: true },
           { key: 'date', label: 'Fecha', type: 'date', sortable: true },
           { key: 'state', label: 'Estado', type: 'state', states: {
-            ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'neutral' }
+            ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'inactive' }
           } }
         ],
         actions: [

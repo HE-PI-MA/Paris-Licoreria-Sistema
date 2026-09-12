@@ -11,7 +11,7 @@
           { key: 'name', label: 'Producto', sortable: true }, { key: 'category', label: 'Categoría', sortable: true, priority: 2 },
           { key: 'unit', label: 'Unidad base', priority: 2 },
           { key: 'stock', label: 'Disponible', type: 'quantity', sortable: true, priority: 1 },
-          { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'neutral' } } }
+          { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'inactive' } } }
         ], sort: { key: 'name', direction: 'asc' },
         actions: [{ id: 'detail', label: 'Ver detalle', icon: 'info' }, { id: 'edit', label: 'Editar', icon: 'edit', tone: 'edit' },
           { id: 'presentations', label: 'Presentaciones', icon: 'box', tone: 'catalog' }, ...this.stateActions()],
@@ -113,7 +113,7 @@
       add.addEventListener('click', () => edit(null, add), { signal: modal.events.signal });
       table = new UI.DataTable({ container: host, caption: 'Presentaciones de ' + product.name, numbered: true, mode: 'scroll', fillHeight: false, pageSize: 50, load: params => this.api.presentations(product.id, params),
         columns: [{ key: 'name', label: 'Presentación', sortable: true }, { key: 'factor', label: 'Equivalencia', type: 'quantity', sortable: true },
-          { key: 'barcode', label: 'Código de barras' }, { key: 'price', label: 'Precio (Bs)', type: 'price', sortable: true }, { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'neutral' } } }],
+          { key: 'barcode', label: 'Código de barras' }, { key: 'price', label: 'Precio (Bs)', type: 'price', sortable: true }, { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'inactive' } } }],
         sort: { key: 'name', direction: 'asc' }, actionDisplay: 'menu', actions: [{ id: 'edit', label: 'Editar', icon: 'edit', tone: 'edit' }, ...this.stateActions()],
         onAction: ({ action, record, button }) => this.handle(async () => {
           alert.clear();

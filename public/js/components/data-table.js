@@ -379,7 +379,7 @@
       const value = record[column.key];
       if (column.type === 'state') {
         const state = column.states && Object.hasOwn(column.states, value) ? column.states[value] : null;
-        const tone = state && ['success', 'warning', 'error', 'info', 'neutral'].includes(state.tone) ? state.tone : 'neutral';
+        const tone = state && ['success', 'inactive', 'warning', 'error', 'info', 'neutral'].includes(state.tone) ? state.tone : 'neutral';
         cell.append(UI.element('span', 'app-badge app-badge--' + tone, state?.label || this.format(value, column, record)));
       } else cell.textContent = this.format(value, column, record);
     }

@@ -22,6 +22,7 @@
 | Hamburguesa integrada en la cabecera | `views/components/sidebar-opener.ejs` y `views/components/module/header.ejs` |
 | Datos de consulta en bloques | `public/js/components/record-details.js` y `public/css/components/record-details.css` |
 | Botones, tonos, hover, foco y bloqueo | `public/css/components/buttons.css` y `Button` en `public/js/components/ui-core.js` |
+| Etiquetas de estado Activo/Inactivo y otros tonos | `public/css/components/badges.css`; DataTable y RecordDetails seleccionan la clase compartida. |
 | Apariencia de campos, búsqueda y modales | `public/css/components/forms.css`; pieles `app-fields--toolbar` y `app-fields--modal` |
 | Mensajes compartidos | `public/js/components/module-layout.js` |
 | Estilos y comportamiento de login/activación | `public/css/pages/auth.css` y `public/js/pages/` |

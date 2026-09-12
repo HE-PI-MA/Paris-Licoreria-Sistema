@@ -46,12 +46,6 @@
   .app-table th, .app-table td { padding: 8px 6px; }
   .app-table-sequence { width: 2rem; }
 }
-.app-badge { display: inline-block; white-space: nowrap; padding: 3px 10px; border: 1px solid var(--app-border); border-radius: 20px; font-size: .8125rem; font-weight: 600; line-height: 1.5; }
-.app-badge--neutral { color: #655a60; background: #f8f6f7; }
-.app-badge--success { color: var(--app-success); background: var(--app-success-soft); border-color: #bcdcca; }
-.app-badge--warning { color: var(--app-warning); background: var(--app-warning-soft); border-color: #eedaa7; }
-.app-badge--error { color: var(--app-danger); background: var(--app-danger-soft); border-color: #ebbec4; }
-.app-badge--info { color: #285287; background: #edf4ff; border-color: #c8d9f5; }
 @media (max-width: 40rem) {
   .app-table-pagination { width: 100%; justify-content: space-between; }
 }

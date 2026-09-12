@@ -14,7 +14,7 @@
           value.textContent = UI.ValueFormat.number(raw, { type: field.type });
           value.classList.add('app-record-detail-number');
         } else if (field.type === 'state') {
-          const state = raw === 'ACTIVO' ? ['Activo', 'success'] : raw === 'INACTIVO' ? ['Inactivo', 'neutral'] : [String(raw ?? '—'), 'neutral'];
+          const state = raw === 'ACTIVO' ? ['Activo', 'success'] : raw === 'INACTIVO' ? ['Inactivo', 'inactive'] : [String(raw ?? '—'), 'neutral'];
           value.append(UI.element('span', 'app-badge app-badge--' + state[1], state[0]));
         } else value.textContent = raw === null || raw === undefined || raw === '' ? field.empty || '—' : String(raw);
         group.append(term, value); this.element.append(group);

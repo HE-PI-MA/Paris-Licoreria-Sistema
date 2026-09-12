@@ -2,7 +2,7 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U021
+## Estado del desarrollo — U022
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
@@ -16,6 +16,8 @@ Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servido
 
 **Notificaciones U021:** guardar, editar, activar, desactivar y eliminar presentaciones reutiliza la notificación flotante verde del catálogo, con icono y cierre automático a los dos segundos. Los errores siguen visibles para permitir corregirlos o reintentar.
 
+**Estados U022:** etiquetas compartidas en `components/badges.css`. Activo conserva el verde e Inactivo utiliza fondo rojo suave, texto y borde rojizos en Productos, Presentaciones, detalles y demostración.
+
 **Pendiente:** las operaciones de los otros módulos. Inicio conserva el saludo y las pantallas restantes conservan sus espacios de preparación.
 
 La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; Productos incorpora su API y formularios; los demás módulos todavía no están conectados.
@@ -26,6 +28,7 @@ La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, moda
 
 | Documento | Qué explica |
 | --- | --- |
+| [Estados compartidos U022](docs/34_ESTADOS_COMPARTIDOS_U022.md) | Clases CSS reutilizables para estados, comprobaciones e instalación. |
 | [Notificaciones de presentaciones U021](docs/33_NOTIFICACIONES_PRESENTACIONES_U021.md) | Avisos compartidos, duración, errores, comprobaciones e instalación. |
 | [Limpieza y botones U020](docs/32_LIMPIEZA_Y_BOTONES_U020.md) | Hover único, auditoría de referencias, clases compartidas, pruebas e instalación. |
 | [Botones, detalle y campos U019](docs/31_BOTONES_DETALLES_Y_CAMPOS_U019.md) | Marca, campos, listados dentro de modales e instalación. |
