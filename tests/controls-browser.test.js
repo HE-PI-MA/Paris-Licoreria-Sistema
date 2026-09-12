@@ -14,7 +14,7 @@ test('U010: controles compartidos en Chromium', {
     args: JSON.parse(process.env.PARIS_BROWSER_ARGS || '[]') });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } }); context.setDefaultTimeout(7000);
   const page = await context.newPage(), errors = []; page.on('pageerror', error => errors.push(error.message));
-  const visible = text => page.getByText(text, { exact: true }).waitFor({ state: 'visible' });
+  const visible = text => page.getByText(text, { exact: true }).waitFor({ state: text.startsWith('Mostrando ') ? 'attached' : 'visible' });
   const demo = async () => { await page.goto(app.base + '/demostracion/componentes'); await visible('Mostrando 1–10 de 37 registros'); };
   const firstId = () => page.locator('.app-table tbody tr:first-child td:first-child').textContent();
   try {

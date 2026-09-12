@@ -40,25 +40,29 @@ test('U013: cabecera compartida y filtro directo', { skip: process.env.PARIS_UI_
       await page.waitForResponse(r => r.url().includes('term=bebida'));
       failOptions = false;
       await page.getByRole('button', { name: 'Reintentar categoría', exact: true }).click();
-      await page.waitForFunction(() => document.querySelector('#module-category').options.length === 104);
+      await page.waitForFunction(() => document.querySelector('.module-category-field select').options.length === 104);
       assert.deepEqual(optionPages, [1, 2]);
-      assert.equal(await page.locator('#module-category option').last().textContent(), '<img src=x onerror=alert(1)>');
+      assert.equal(await page.locator('.module-category-field select option').last().textContent(), '<img src=x onerror=alert(1)>');
       assert.equal(await page.locator('#module-category').evaluate(el => el === document.activeElement), true);
       assert.equal(await page.locator('.app-filter-feedback').isVisible(), false);
     });
     await t.test('selección inmediata conserva búsqueda pendiente y vuelve a la página uno', async () => {
       await page.getByRole('button', { name: 'Cargar más', exact: true }).click();
-      await page.getByText('Mostrando 1–100 de 130 registros', { exact: true }).waitFor();
+      await page.getByText('Mostrando 1–100 de 130 registros', { exact: true }).waitFor({ state: 'attached' });
       const before = lists.length;
       await page.locator('#module-search').fill('nuevo término');
-      await page.locator('#module-category').selectOption('2');
-      await page.getByText('Mostrando 1–50 de 130 registros', { exact: true }).waitFor();
+      await page.locator('#module-category').click();
+      await page.getByRole('option', { name: 'Categoría 2', exact: true }).click();
+      await page.getByText('Mostrando 1–50 de 130 registros', { exact: true }).waitFor({ state: 'attached' });
       await page.waitForTimeout(350);
       assert.equal(lists.length, before + 1);
       assert.equal(lists.at(-1).term, 'nuevo término'); assert.equal(lists.at(-1).categoryId, '2');
       assert.equal(lists.at(-1).state, undefined); assert.equal(lists.at(-1).lowStock, undefined);
-      await page.locator('#module-category').selectOption('');
-      await page.waitForResponse(r => r.url().includes('/api/productos?') && !r.url().includes('categoryId'));
+      await page.locator('#module-category').click();
+      const cleared = page.waitForResponse(r => r.url().includes('/api/productos?') && !r.url().includes('categoryId'));
+      await page.getByRole('option', { name: 'Todas las categorías', exact: true }).click();
+      await cleared;
+
       assert.equal(await page.locator('dialog[open]').count(), 0);
     });
     await t.test('destruir y reconstruir no duplica eventos y cancela consultas pendientes', async () => {

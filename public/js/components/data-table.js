@@ -96,7 +96,7 @@
       this.table.append(head, this.body);
       this.scroll.append(this.table);
       this.footer = UI.element('footer', 'app-table-footer');
-      this.summary = UI.element('p');
+      this.summary = UI.element('p', 'app-sr-only');
       this.summary.setAttribute('role', 'status');
       this.summary.setAttribute('aria-live', 'polite');
       this.summary.setAttribute('aria-atomic', 'true');
@@ -123,9 +123,10 @@
         this.continuation = UI.element('div', 'app-table-continuation');
         this.continuationMessage = UI.Message.create(this.continuation); this.continuation.hidden = true;
         const refresh = UI.Button.create({ label: 'Actualizar lista', icon: 'refresh' }); refresh.dataset.tableRetry = ''; this.continuation.append(refresh);
-        this.footer.append(this.summary, this.more, this.continuation);
-      } else this.footer.append(this.summary, sizeGroup, nav);
-      this.container.replaceChildren(this.scroll, this.footer);
+        this.footer.append(this.more, this.continuation);
+      } else this.footer.append(sizeGroup, nav);
+      // El estado accesible permanece fuera del pie para anunciar resultados sin mostrar el contador.
+      this.container.replaceChildren(this.scroll, this.summary, this.footer);
       this.updateSortHeaders();
     }
 
@@ -187,6 +188,7 @@
         this.more.disabled = Boolean(this.loadingMore);
         this.more.textContent = this.loadingMore ? 'Cargando…' : this.appendError ? 'Reintentar' : 'Cargar más';
         this.more.setAttribute('aria-busy', String(Boolean(this.loadingMore)));
+        this.footer.hidden = this.more.hidden && this.continuation.hidden;
       }
     }
 
@@ -312,7 +314,7 @@
       this.rows.slice(from).forEach((record, offset) => {
         const index = from + offset;
         const row = UI.element('tr');
-        row.dataset.rowIndex = String(index); row.dataset.rowTone = index % 2 ? 'alternate' : 'base';
+        row.dataset.rowIndex = String(index);
         if (this.numbered) row.append(UI.element('td', 'app-table-sequence', this.rowNumber(index)));
         for (const column of this.columns) {
           const cell = UI.element('td', ['number', 'quantity', 'price'].includes(column.type) ? 'app-table-number' : '');

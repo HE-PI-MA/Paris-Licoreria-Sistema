@@ -23,7 +23,7 @@ test('U009: componentes en navegador real', {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  const visible = async text => page.getByText(text, { exact: true }).waitFor({ state: 'visible' });
+  const visible = async text => page.getByText(text, { exact: true }).waitFor({ state: text.startsWith('Mostrando ') ? 'attached' : 'visible' });
   const demo = async () => {
     await page.goto(app.base + '/demostracion/componentes');
     await visible('Mostrando 1–10 de 37 registros');

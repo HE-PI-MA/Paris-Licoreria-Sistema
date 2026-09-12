@@ -13,7 +13,7 @@ test('U011: regresiones de interacción en Chromium', {
     args: JSON.parse(process.env.PARIS_BROWSER_ARGS || '[]') });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.setDefaultTimeout(7000);
-  const visible = text => page.getByText(text, { exact: true }).waitFor();
+  const visible = text => page.getByText(text, { exact: true }).waitFor({ state: text.startsWith('Mostrando ') ? 'attached' : 'visible' });
   try {
     await t.test('login adaptable: decoración contenida y formulario completo en ventanas bajas y texto ampliado', async () => {
       for (const [width, height, largeText] of [[1440, 1000, false], [1100, 700, false], [1440, 450, false],

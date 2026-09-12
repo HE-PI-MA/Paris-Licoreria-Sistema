@@ -45,7 +45,7 @@
         this.value[field.name] = field.type === 'dates' ? { from: value[field.name]?.from || '', to: value[field.name]?.to || '' } : String(value[field.name] || '');
       }
       this.searchInput.value = this.value.term;
-      if (this.mode === 'inline') for (const field of this.fields) field.control.value = this.value[field.name];
+      if (this.mode === 'inline') for (const field of this.fields) { field.control.value = this.value[field.name]; this.inline.get(field.name)?.enhanced.syncLabel(); }
       this.renderSummary();
       return notify ? this.emit() : Promise.resolve();
     }
@@ -98,7 +98,7 @@
       const message = UI.Message.create(feedback);
       const retry = UI.Button.create({ label: 'Reintentar ' + field.label.toLocaleLowerCase('es') });
       feedback.append(retry); this.container.append(feedback);
-      this.inline.set(field.name, { feedback, message, retry, disabled: select.disabled, busy: select.getAttribute('aria-busy'),
+      this.inline.set(field.name, { feedback, message, retry, enhanced: new UI.SearchSelect({ select, searchable: false, popup: true, pageSize: 100 }), disabled: select.disabled, busy: select.getAttribute('aria-busy'),
         options: Array.from(select.options, option => option.cloneNode(true)) });
       select.addEventListener('change', () => {
         this.flushSearch(); this.value[field.name] = select.value;
@@ -143,7 +143,8 @@
           select.append(retained); select.value = retained.value;
         }
         entry.message.clear(); entry.feedback.hidden = true; select.disabled = entry.disabled;
-        if (restoreFocus) select.focus();
+        entry.enhanced.syncOptions(); entry.enhanced.syncDisabled();
+        if (restoreFocus) entry.enhanced.input.focus();
       } catch (error) {
         if (this.destroyed || error.name === 'AbortError') return;
         entry.feedback.hidden = false;
@@ -204,6 +205,7 @@
       this.destroyed = true; window.clearTimeout(this.timer); this.events.abort(); this.modal?.destroy(); this.summary.remove(); this.status.remove();
       for (const field of this.fields) {
         const entry = this.inline.get(field.name); if (!entry) continue;
+        entry.enhanced.destroy();
         field.control.disabled = entry.disabled;
         if (entry.busy === null) field.control.removeAttribute('aria-busy'); else field.control.setAttribute('aria-busy', entry.busy);
         field.control.replaceChildren(...entry.options); entry.feedback.remove();

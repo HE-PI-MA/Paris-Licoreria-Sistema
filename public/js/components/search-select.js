@@ -1,5 +1,6 @@
 /**
  * Selector con búsqueda local o por páginas del servidor. Conserva el select original para FormData.
+ * searchable=false reutiliza la selección y teclado sin buscador; popup=true superpone las opciones.
  * El cuadro visible controla teclado y foco; las respuestas antiguas se cancelan y nunca pisan la búsqueda actual.
  */
 (() => {
@@ -8,25 +9,26 @@
   let sequence = 0;
   class SearchSelect {
     static controls = new WeakMap();
-    constructor({ select, load, pageSize = 20, debounce = 250 } = {}) {
+    constructor({ select, load, pageSize = 20, debounce = 250, searchable = true, popup = false } = {}) {
       if (!(select instanceof HTMLSelectElement) || select.multiple || SearchSelect.controls.has(select)) {
         throw new TypeError('Se necesita un select simple sin inicializar.');
       }
       if ((load !== undefined && typeof load !== 'function') || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
         throw new TypeError('Consulta o tamaño de página no válido.');
       }
-      Object.assign(this, { select, load, pageSize, debounce });
+      Object.assign(this, { select, load, pageSize, debounce, searchable, popup });
       this.events = new AbortController(); this.requestId = 0; this.options = []; this.active = -1;
       this.original = { id: select.id, hidden: select.hidden, tabindex: select.getAttribute('tabindex') };
-      this.localOptions = Array.from(select.options).filter(option => option.value && !option.disabled)
+      this.localOptions = Array.from(select.options).filter(option => (option.value || !this.searchable) && !option.disabled)
         .map(option => ({ value: option.value, label: option.textContent }));
       const id = 'paris-select-' + (++sequence);
-      this.root = UI.element('div', 'app-search-select');
+      this.root = UI.element('div', 'app-search-select' + (!searchable ? ' app-search-select--choice' : '') + (popup ? ' app-search-select--popup' : ''));
       this.input = UI.element('input', 'app-input');
       this.input.id = select.id || id; select.id = id + '-source';
+      this.input.readOnly = !searchable;
       this.input.type = 'text'; this.input.autocomplete = 'off'; this.input.spellcheck = false;
       this.input.setAttribute('role', 'combobox');
-      this.input.setAttribute('aria-autocomplete', 'list');
+      this.input.setAttribute('aria-autocomplete', searchable ? 'list' : 'none');
       this.input.setAttribute('aria-expanded', 'false');
       for (const name of ['aria-label', 'aria-labelledby', 'aria-describedby']) {
         if (select.hasAttribute(name)) this.input.setAttribute(name, select.getAttribute(name));
@@ -34,6 +36,7 @@
       this.input.setAttribute('aria-required', String(select.required));
       this.input.placeholder = 'Buscar y seleccionar…';
       this.clear = UI.Button.create({ label: 'Limpiar selección', icon: 'close', iconOnly: true });
+      this.clear.hidden = !searchable;
       const control = UI.element('div', 'app-search-select-control'); control.append(this.input, this.clear);
       this.panel = UI.element('div', 'app-search-select-panel'); this.panel.hidden = true;
       this.list = UI.element('div', 'app-search-select-list'); this.list.id = id + '-list';
@@ -49,11 +52,12 @@
       }
       SearchSelect.controls.set(select, this);
       this.syncLabel(); this.syncDisabled();
-      this.observer = new MutationObserver(() => this.syncDisabled());
-      this.observer.observe(select, { attributes: true, attributeFilter: ['disabled', 'required'] });
+      this.observer = new MutationObserver(() => { this.syncDisabled(); if (!this.load) this.syncOptions(); });
+      this.observer.observe(select, { attributes: true, childList: true, subtree: true, characterData: true, attributeFilter: ['disabled', 'required', 'aria-busy', 'label', 'value'] });
       const settings = { signal: this.events.signal };
-      this.input.addEventListener('click', () => { if (!this.opened) this.open(); }, settings);
+      this.input.addEventListener('click', () => { if (!this.searchable && this.opened) this.close(); else if (!this.opened) this.open(); }, settings);
       this.input.addEventListener('input', () => {
+        if (!this.searchable) return;
         const term = this.input.value;
         this.opened = true;
         if (select.value) { select.value = ''; select.dispatchEvent(new Event('change', { bubbles: true })); }
@@ -79,12 +83,20 @@
       select.addEventListener('change', () => { if (!this.opened) this.syncLabel(); }, settings);
       select.form?.addEventListener('reset', () => queueMicrotask(() => { if (!this.destroyed) { this.close(); this.syncLabel(); } }), settings);
     }
+    /** Actualiza el catálogo del select original sin instalar nuevas escuchas ni perder su valor. */
+    syncOptions() {
+      this.localOptions = Array.from(this.select.options).filter(option => (option.value || !this.searchable) && !option.disabled)
+        .map(option => ({ value: option.value, label: option.textContent }));
+      if (this.opened) this.ready = this.fetchOptions(this.searchable ? this.input.value : '');
+      else this.syncLabel();
+    }
     syncDisabled() {
       this.input.disabled = this.clear.disabled = this.select.disabled;
       this.input.setAttribute('aria-required', String(this.select.required));
+      this.input.setAttribute('aria-busy', this.select.getAttribute('aria-busy') || 'false');
       if (this.select.disabled) this.close();
     }
-    syncLabel() { this.input.value = this.select.value ? this.select.selectedOptions[0]?.textContent || '' : ''; }
+    syncLabel() { this.input.value = this.select.value || !this.searchable ? this.select.selectedOptions[0]?.textContent || '' : ''; }
     setValue(option, notify = false) {
       if (option && String(option.value)) {
         const value = String(option.value);
@@ -122,7 +134,7 @@
         }
         if (id !== this.requestId || this.destroyed || !this.opened) return;
         if (!result || !Array.isArray(result.options) || !Number.isSafeInteger(result.total) || result.total < 0 || result.options.length > this.pageSize ||
-            result.options.some(item => !item || !['number', 'string'].includes(typeof item.value) || String(item.value) === '' || typeof item.label !== 'string')) {
+            result.options.some(item => !item || !['number', 'string'].includes(typeof item.value) || (this.searchable && String(item.value) === '') || typeof item.label !== 'string')) {
           throw new TypeError('Respuesta de opciones no válida.');
         }
         const options = [...(page === 1 ? [] : this.options), ...result.options.map(item => ({ value: String(item.value), label: item.label }))];
@@ -130,6 +142,7 @@
             (!result.options.length && result.total > options.length)) throw new TypeError('Página de opciones no válida.');
         this.options = options; this.page = page; this.renderOptions();
         this.message.show(options.length ? 'info' : 'empty', options.length ? options.length + ' de ' + result.total + ' opciones.' : 'No se encontraron opciones.');
+        if (!this.searchable && options.length) this.message.clear();
         this.more.hidden = options.length >= result.total;
       } catch (_) {
         if (id !== this.requestId || this.destroyed || !this.opened) return;
@@ -165,11 +178,19 @@
         else this.move(this.active + (event.key === 'ArrowDown' ? 1 : -1));
       } else if (this.opened && ['Home', 'End'].includes(event.key)) {
         event.preventDefault(); this.move(event.key === 'Home' ? 0 : this.options.length - 1);
-      } else if (this.opened && event.key === 'Enter') {
+      } else if (!this.searchable && !this.opened && ['Enter', ' '].includes(event.key)) {
+        event.preventDefault(); this.open().then(() => { if (this.opened) this.move(Math.max(0, this.options.findIndex(option => option.value === this.select.value))); });
+      } else if (this.opened && (event.key === 'Enter' || (!this.searchable && event.key === ' '))) {
         event.preventDefault(); if (this.active >= 0) this.choose(this.active);
       } else if (this.opened && event.key === 'Escape') {
         event.preventDefault(); event.stopPropagation(); this.close();
       } else if (event.key === 'Tab') this.close();
+      else if (!this.searchable && event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        const time = Date.now(); this.prefix = time - (this.typedAt || 0) < 700 ? (this.prefix || '') + event.key : event.key; this.typedAt = time;
+        const find = () => { const index = this.options.findIndex(option => option.label.toLocaleLowerCase('es').startsWith(this.prefix.toLocaleLowerCase('es'))); if (index >= 0) this.move(index); };
+        if (this.opened) find(); else this.open().then(() => { if (this.opened) find(); });
+      }
     }
     destroy() {
       if (this.destroyed) return;

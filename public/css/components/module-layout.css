@@ -15,19 +15,19 @@
   margin: calc(-1 * var(--module-space)) calc(-1 * var(--module-space)) 0;
   padding: 12px 20px; background: var(--sidebar-bg); border-bottom: 1px solid var(--sidebar-line);
 }
-.module-heading { min-width: 0; }
-.module-heading h1 { margin: 0; color: #f7f3e9; font-size: 1.75rem; font-weight: 700; line-height: 1.3; letter-spacing: -.03em; overflow-wrap: anywhere; }
+.module-heading { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.module-heading h1 { min-width: 0; margin: 0; color: #f7f3e9; font-size: 1.75rem; font-weight: 700; line-height: 1.3; letter-spacing: -.03em; overflow-wrap: anywhere; }
 .module-actions { display: flex; flex-wrap: wrap; gap: var(--module-space); }
 .module-content-panel { min-width: 0; border: 1px solid #e4dcdf; border-radius: .875rem; background: #fff; display: flex; flex-direction: column; }
 /* Buscador y selectores se muestran directamente sobre el espacio de trabajo. */
 .module-controls-panel { min-width: 0; }
 .module-controls-row { display: flex; align-items: flex-end; gap: var(--module-space); }
 .module-search-field { flex: 1; min-width: 0; }
-.module-category-field { flex: 0 1 16rem; min-width: 0; }
+.module-category-field { flex: 0 1 18rem; min-width: 0; }
 .module-category-field .app-input { width: 100%; text-overflow: ellipsis; }
 .module-search-input .app-input { padding-left: 2.75rem; }
 .module-search-input { position: relative; }
-.module-search-input > .paris-icon { position: absolute; left: .875rem; top: 50%; transform: translateY(-50%); width: 1.25rem; height: 1.25rem; color: #847c80; pointer-events: none; }
+.module-search-input > .paris-icon { position: absolute; left: .875rem; top: 50%; transform: translateY(-50%); width: 1.25rem; height: 1.25rem; color: #8a661f; pointer-events: none; }
 .module-controls-help { margin: var(--module-space) 0 0; color: #756b6f; font-size: .875rem; }
 .module-panel-heading { flex: 0 0 auto; padding: var(--module-space); border-bottom: 1px solid #eee8eb; }
 .module-panel-heading h2 { margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.5; }
@@ -46,12 +46,16 @@
 .module-layout--listing .module-content-panel { min-height: 0; border: 0; border-radius: 0; background: transparent; }
 .module-layout--listing .module-content-area { min-height: 0; padding: 0; }
 .module-layout--listing .module-messages > h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.module-layout--listing .module-controls-row .app-input { border-color: #d2c7b5; background: #fffcf6; }
+/* Misma piel para búsqueda y categoría; foco dorado y desplegable del componente compartido. */
+.module-controls-row .app-input { border-color: #c5b698; background: #faf6ee; box-shadow: 0 2px 4px #3b2d1310; min-height: 46px; }
+.module-controls-row .app-input:hover:not(:disabled) { border-color: #a38b5d; }
+.module-controls-row .app-input:focus { border-color: #b38225; box-shadow: 0 0 0 3px #d9a44133; }
 @media (max-width: 48rem) {
-  .module-header { align-items: stretch; flex-direction: column; justify-content: center; min-height: 84px; padding: 12px; }
-  .module-actions, .module-primary-action { width: 100%; }
+  .module-header { flex-wrap: wrap; padding: 10px; }
+  .module-heading h1 { font-size: 1.4rem; }
 }
 @media (max-width: 30rem) {
+  .module-actions, .module-primary-action { width: 100%; }
   .module-controls-row { flex-direction: column; align-items: stretch; gap: var(--module-space); }
   .module-filter-button { align-self: flex-start; }
   .module-category-field { flex-basis: auto; }

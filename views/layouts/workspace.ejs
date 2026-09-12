@@ -6,7 +6,7 @@
   <meta name="csrf-token" content="<%= csrfToken %>">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title><%= title %> | París Licorería</title>
+  <title><%= title.toLocaleUpperCase('es') %> | PARÍS LICORERÍA</title>
   <script src="/js/components/sidebar-preference.js"></script>
   <link rel="stylesheet" href="/css/app.css">
   <link rel="stylesheet" href="/css/components/sidebar.css">
@@ -40,10 +40,6 @@
   <a class="paris-skip-link" href="#module-content">Ir al contenido</a>
   <%- include('../components/sidebar') %>
   <div class="paris-workspace" id="paris-workspace">
-    <header class="workspace-mobile-header">
-      <button class="workspace-menu-button" type="button" data-sidebar-open aria-label="Abrir menú" aria-controls="paris-sidebar" aria-expanded="false"><%- include('../components/icon', { name: 'menu' }) %></button>
-      <span>París Licorería</span>
-    </header>
     <main class="workspace-main" id="module-content" tabindex="-1">
       <% if (moduleUi) { %>
         <%# El marco se comparte; contentView viene de module-layouts.js. %>
@@ -57,7 +53,7 @@
           <%- include('../components/module/messages') %>
         </div>
       <% } else { %>
-      <header class="workspace-heading"><h1><%= title %></h1></header>
+      <header class="workspace-heading"><%- include('../components/sidebar-opener') %><h1><%= title %></h1></header>
       <% if (page.id === 'perfil') { %>
         <section class="workspace-profile-card" aria-labelledby="profile-title">
           <div class="workspace-profile-summary"><span class="workspace-profile-avatar" aria-hidden="true"><%= profile.initials %></span><div><h2 id="profile-title"><%= profile.name %></h2><p><%= profile.role %></p></div></div>

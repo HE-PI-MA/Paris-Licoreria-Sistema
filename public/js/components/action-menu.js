@@ -15,7 +15,7 @@
       this.events = new AbortController();
       this.onSelect = onSelect;
       this.root = UI.element('div', 'app-action-menu');
-      this.trigger = UI.Button.create({ label: triggerLabel });
+      this.trigger = UI.Button.create({ label: triggerLabel, variant: 'primary' });
       this.trigger.setAttribute('aria-label', label);
       this.trigger.setAttribute('aria-haspopup', 'menu');
       this.trigger.setAttribute('aria-expanded', 'false');

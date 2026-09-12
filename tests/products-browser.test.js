@@ -36,7 +36,7 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
   const size=Number(url.searchParams.get('pageSize')||10),start=(Number(url.searchParams.get('page')||1)-1)*size;
   return send({records:selected.slice(start,start+size),total:selected.length});
  });
- const visible=text=>page.getByText(text,{exact:true}).waitFor();
+ const visible=text=>page.getByText(text,{exact:true}).waitFor({state:text.startsWith('Mostrando ')?'attached':'visible'});
  const menu=async(name)=>{await page.getByRole('button',{name:'Acciones del registro 1',exact:true}).first().click();await page.getByRole('menuitem',{name,exact:true}).click();};
  try{
   await page.goto(app.base+'/login');await page.locator('[name=nombre_usuario]').fill('audit_user');await page.locator('[name=contrasena]').fill(password);await page.locator('[data-login-submit]').click();await page.waitForURL('**/inicio');
@@ -50,7 +50,7 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
   await t.test('teclado, descarte de cambios y retorno de foco',async()=>{
    await page.locator('[data-module-primary]').click();await page.getByRole('textbox',{name:'Nombre del producto *',exact:true}).fill('Pendiente');
    await page.keyboard.press('Escape');const confirm=page.getByRole('dialog',{name:'Descartar cambios',exact:true});await confirm.waitFor();
-   await confirm.getByRole('button',{name:'Cancelar',exact:true}).click();assert.equal(await page.locator('[name=name]').inputValue(),'Pendiente');
+   await confirm.getByRole('button',{name:'Cancelar',exact:true}).click();assert.equal(await page.locator('[name=name]').inputValue(),'PENDIENTE');
    await page.keyboard.press('Escape');await confirm.getByRole('button',{name:'Descartar cambios',exact:true}).click();
    assert.equal(await page.locator('dialog[open]').count(),0);assert.equal(await page.locator('[data-module-primary]').evaluate(el=>el===document.activeElement),true);
   });
@@ -65,7 +65,7 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
    await page.waitForFunction(()=>document.querySelector('dialog[open]').getAttribute('aria-busy')==='true');
    releaseSave();saveGate=null;await visible('No se pudo confirmar la operación. Revisa la conexión y vuelve a intentarlo desde este formulario.');
    assert.equal(calls.length,1);await page.getByRole('button',{name:'Guardar',exact:true}).click();await visible('Mostrando 1–13 de 13 registros');
-   assert.equal(calls.length,2);assert.equal(calls[0].key,calls[1].key);assert.equal(rows.filter(r=>r.name==='Producto nuevo').length,1);
+   assert.equal(calls.length,2);assert.equal(calls[0].key,calls[1].key);assert.equal(rows.filter(r=>r.name==='PRODUCTO NUEVO').length,1);
   });
   await t.test('edición protege unidad; presentaciones protegen factor usado y guardan decimales',async()=>{
    await menu('Editar');await page.getByRole('dialog',{name:'Editar producto',exact:true}).waitFor();assert.equal(await page.locator('select[name=unitId]').isDisabled(),true);
@@ -75,8 +75,8 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
    await manager.getByRole('button',{name:'Acciones del registro 1',exact:true}).click();await page.getByRole('menuitem',{name:'Editar',exact:true}).click();
    await page.getByRole('dialog',{name:'Editar presentación',exact:true}).waitFor();assert.equal(await page.locator('[name=factor]').evaluate(n=>n.readOnly),true);
    await page.getByRole('button',{name:'Cancelar',exact:true}).click();
-   await manager.getByRole('button',{name:'Nueva presentación',exact:true}).click();await page.locator('[name=name]').fill('Caja de 12');await page.locator('[name=factor]').fill('12');await page.locator('[name=price]').fill('95.50');
-   await page.getByRole('button',{name:'Guardar',exact:true}).click();await visible('Mostrando 1–2 de 2 registros');assert.equal(calls.at(-1).body.price,'95.50');
+   await manager.getByRole('button',{name:'Nueva presentación',exact:true}).click();await page.locator('[name=name]').fill('Caja de 12');await page.locator('[name=factor]').fill('12');await page.locator('[name=price]').fill('95.50');await page.locator('[name=barcode]').fill('aBc-123');
+   await page.getByRole('button',{name:'Guardar',exact:true}).click();await visible('Mostrando 1–2 de 2 registros');assert.equal(calls.at(-1).body.price,'95.50');assert.equal(calls.at(-1).body.barcode,'aBc-123');assert.equal(calls.at(-1).body.name,'CAJA DE 12');
    await manager.getByRole('button',{name:'Cerrar',exact:true}).click();
   });
   await t.test('error de eliminación permanece visible y pantalla adaptable sin desbordar',async()=>{

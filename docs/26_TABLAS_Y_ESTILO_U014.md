@@ -1,5 +1,7 @@
 # Tablas adaptables y estilo compartido — U014
 
+Documento de la entrega U014. U015 actualiza marca, filas, contador, selector, mayúsculas y cabecera móvil; consultar [Ajustes visuales U015](27_AJUSTES_VISUALES_U015.md).
+
 Productos utiliza una tabla directa con numeración, cabecera fija y desplazamiento interno. El fondo combina arena y carbón; los botones principales son azules, con icono y texto blanco y un color uniforme. Las cabeceras de escritorio del sidebar y del módulo comparten 84px. Los logos se reducen proporcionalmente, sin recortarlos.
 
 ## Funcionamiento del listado

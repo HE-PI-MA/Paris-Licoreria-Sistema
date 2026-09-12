@@ -1,5 +1,6 @@
 /**
  * Utilidades visuales compartidas: elementos con texto seguro, iconos locales y botones.
+ * TextCase normaliza solo texto del negocio marcado explícitamente por cada formulario.
  * Los iconos se clonan de plantillas EJS controladas; los datos nunca se interpretan como HTML.
  */
 (() => {
@@ -71,5 +72,25 @@
     }
   }
 
-  Object.assign(UI, { Icon, Button });
+  /** Normaliza campos de texto del negocio al escribir, respetando composición y posición del cursor. */
+  class TextCase {
+    constructor(root = document) {
+      this.events = new AbortController();
+      const normalize = event => {
+        const input = event.target;
+        if (event.isComposing || !input.matches?.('[data-uppercase]') ||
+            !(input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement && ['text', 'search'].includes(input.type))) return;
+        const value = input.value, start = input.selectionStart, end = input.selectionEnd, direction = input.selectionDirection;
+        const upper = value.toLocaleUpperCase('es');
+        if (upper === value) return;
+        input.value = upper;
+        if (start !== null) input.setSelectionRange(value.slice(0, start).toLocaleUpperCase('es').length, value.slice(0, end).toLocaleUpperCase('es').length, direction);
+      };
+      root.addEventListener('input', normalize, { capture: true, signal: this.events.signal });
+      root.addEventListener('compositionend', normalize, { capture: true, signal: this.events.signal });
+    }
+    destroy() { this.events.abort(); }
+  }
+  Object.assign(UI, { Icon, Button, TextCase });
+  UI.textCase = UI.textCase || new TextCase();
 })();

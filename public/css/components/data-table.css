@@ -1,6 +1,8 @@
 /* Tabla semántica con desplazamiento contenido, estados y pie de paginación compartidos. */
 .app-data-table { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; max-width: 100%; }
-.app-table-scroll { flex: 1; min-width: 0; width: 100%; overflow: auto; overscroll-behavior: contain; min-height: 0; scrollbar-gutter: stable; scrollbar-color: #aa9470 #e5ded2; background: #e7e0d4; border: 1px solid #d4c7b2; border-radius: 10px 10px 0 0; }
+.app-table-scroll { flex: 1; min-width: 0; width: 100%; overflow: auto; overscroll-behavior: contain; min-height: 0; scrollbar-width: none; background: #e7e0d4; border: 1px solid #d4c7b2; border-radius: 10px; }
+/* Oculta solo la barra visual: rueda, tacto, teclado y carga progresiva siguen funcionando. */
+.app-table-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .app-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; font-size: .9375rem; }
 .app-table th, .app-table td { padding: 10px; border-bottom: 1px solid #ded4c4; vertical-align: middle; }
 .app-table td { overflow-wrap: anywhere; }
@@ -9,11 +11,11 @@
 .app-table-sort { display: inline-flex; align-items: center; gap: 6px; padding: 6px 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; text-align: inherit; }
 .app-table-sort:focus-visible { outline: 2px solid var(--app-gold-600); outline-offset: 3px; border-radius: 4px; }
 .app-table tbody tr { background: #fffcf6; }
-.app-table tbody tr[data-row-tone="alternate"], .app-table tbody tr.app-table-details { background: #eee7db; }
-.app-table tbody tr:hover { background: #eae0cc; }
+.app-table tbody tr:hover { background: #f5eddc; }
 .app-table .app-table-number { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .app-table-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .app-table-actions .app-button { font-size: .875rem; }
+.app-table-actions .app-action-menu > .app-button { white-space: nowrap; overflow-wrap: normal; }
 .app-table-state { height: 13rem; }
 .app-table-state .app-alert { justify-content: center; }
 .app-table-state .app-button { margin-top: 10px; }
@@ -39,7 +41,7 @@
   .app-table-sequence { width: 2rem; }
   .app-table-actions .app-button { padding: 8px; min-height: 38px; }
 }
-.app-badge { display: inline-block; padding: 3px 10px; border: 1px solid var(--app-border); border-radius: 20px; font-size: .8125rem; font-weight: 600; line-height: 1.5; }
+.app-badge { display: inline-block; white-space: nowrap; padding: 3px 10px; border: 1px solid var(--app-border); border-radius: 20px; font-size: .8125rem; font-weight: 600; line-height: 1.5; }
 .app-badge--neutral { color: #655a60; background: #f8f6f7; }
 .app-badge--success { color: var(--app-success); background: var(--app-success-soft); border-color: #bcdcca; }
 .app-badge--warning { color: var(--app-warning); background: var(--app-warning-soft); border-color: #eedaa7; }

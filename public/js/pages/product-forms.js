@@ -21,6 +21,8 @@
       for (const [key, item] of Object.entries({ maxLength, min, max, step })) if (item !== undefined) input[key] = item;
       if (type === 'textarea') input.rows = 3;
       for (const item of options || []) { const option = UI.element('option', '', item.label); option.value = item.value; input.append(option); }
+      // Nombres y descripciones se guardan en mayúsculas al editarlos; los códigos se conservan exactos.
+      if (['name', 'description'].includes(name)) input.dataset.uppercase = '';
       input.value = value ?? '';
       host.append(label, input);
       if (help) { const text = UI.element('p', 'app-field-help', help); text.id = input.id + '-help'; input.setAttribute('aria-describedby', text.id); host.append(text); }

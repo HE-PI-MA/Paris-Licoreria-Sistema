@@ -121,11 +121,11 @@ test('U014: DataTable continua y adaptable', { skip: process.env.PARIS_UI_BROWSE
         queries.push(number);
         return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ records: Array.from({ length: Math.min(size, 113 - (number - 1) * size) }, (_, i) => ({ id: 800 + (number - 1) * size + i, name: 'Registro ' + i, category: 'Otros', unit: 'Unidad', stock: 10, minimum: 1, state: 'ACTIVO' })), total: 113 }) });
       });
-      await page.goto(app.base + '/productos'); await page.getByText('Mostrando 1–50 de 113 registros', { exact: true }).waitFor();
+      await page.goto(app.base + '/productos'); await page.getByText('Mostrando 1–50 de 113 registros', { exact: true }).waitFor({ state: 'attached' });
       await page.locator('#products-table .app-table-scroll').evaluate(el => { el.scrollTop = el.scrollHeight; });
-      await page.getByText('Mostrando 1–100 de 113 registros', { exact: true }).waitFor();
+      await page.getByText('Mostrando 1–100 de 113 registros', { exact: true }).waitFor({ state: 'attached' });
       await page.getByRole('button', { name: 'Cargar más', exact: true }).focus(); await page.keyboard.press('Enter');
-      await page.getByText('Mostrando 1–113 de 113 registros', { exact: true }).waitFor();
+      await page.getByText('Mostrando 1–113 de 113 registros', { exact: true }).waitFor({ state: 'attached' });
       assert.deepEqual(queries, [1, 2, 3]);
       assert.equal(await page.locator('#products-table .app-table-scroll').evaluate(el => el === document.activeElement), true);
       assert.equal(await page.locator('#products-table tbody tr[data-row-index]').count(), 113);

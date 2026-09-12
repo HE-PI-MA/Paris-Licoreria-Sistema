@@ -19,30 +19,34 @@
 | Búsquedas, filtros, selectores y fechas | `public/js/components/filter-bar.js`, `search-select.js`, `date-range.js` |
 | Ordenamiento y menú de acciones | `public/js/components/data-table.js`, `action-menu.js` |
 | Medir navegación local | `scripts/diagnosticar-navegacion.js` |
+| Texto del negocio en mayúsculas | `TextCase` en `public/js/components/ui-core.js`; marcar campos con `data-uppercase`. |
+| Hamburguesa integrada en la cabecera | `views/components/sidebar-opener.ejs` y `views/components/module/header.ejs` |
 | Mensajes compartidos | `public/js/components/module-layout.js` |
 | Estilos y comportamiento de login/activación | `public/css/pages/auth.css` y `public/js/pages/` |
 | Compilación y actualización de plantillas EJS | `src/core/TemplateCache.js` |
 | Configuración general de Express y orden del middleware | `src/app.js` |
 
-## Valores visuales vigentes
+## Valores visuales vigentes — U015
 
 Modificar las variables de `:root` en `sidebar.css`; `--module-space` está centralizada en `base/tokens.css`. Evitar bloques repetidos al final del archivo:
 
 | Variable | Valor actual | Uso |
 | --- | --- | --- |
 | `--module-space` | `10px` | Espaciado compartido del cuerpo de módulos. |
-| `--sidebar-full-logo-height` | `135px` | Imagen con letras, menú expandido y móvil. |
-| `--sidebar-symbol-logo-height` | `100px` | Símbolo del menú contraído. |
-| `--sidebar-width` | `17.5rem` | Ancho expandido. |
+| `--sidebar-full-logo-height` | `112px` | Caja de imagen completa; compensa márgenes transparentes para llenar la cabecera. |
+| `--sidebar-symbol-logo-height` | `70px` | Símbolo del menú contraído. |
+| `--sidebar-width` | `14rem` | Ancho expandido. |
 | `--sidebar-rail` | `5.5rem` | Ancho contraído. |
-| `--sidebar-brand-height` | Símbolo + 20 px | Bloque de marca: 120 px. |
-| `--sidebar-header-height` | Bloque de marca | Cabecera expandida/móvil: 120 px. En escritorio contraído se agregan 2.5rem + .625rem para el botón inferior. |
+| `--sidebar-brand-height` | Cabecera menos 1px | Bloque de marca: 83px. |
+| `--sidebar-header-height` | `84px` | Cabecera del menú; altura mínima compartida con la cabecera del módulo. |
 
-Con raíz de 16 px, el ancho expandido es 280 px, el contraído 88 px y la cabecera contraída 170 px. Los 50 px del botón inferior solo se reservan en modo contraído. Las alturas de imagen incluyen sus márgenes transparentes internos.
+Con raíz de 16px, el ancho expandido es 224px y el contraído 88px. Ambas cabeceras del sidebar conservan 84px. Las alturas de imagen incluyen márgenes transparentes internos. En móvil la hamburguesa se integra en la cabecera del módulo; no hay una segunda barra. Los controles pueden pasar a otra fila para evitar desbordamientos.
 
 Las imágenes originales están en `public/img/login/paris-login-logo.webp` y `public/img/brand/paris-isologo.png`. CSS conserva sus proporciones con `object-fit: contain`; no corta el logo para producir el símbolo.
 
 La fuente del espacio de trabajo es Inter local. Los iconos comunes son SVG locales de Bootstrap Icons; conservar `public/licenses/bootstrap-icons-LICENSE.txt`. Los estilos base de autenticación tienen su propia escala de espaciado: no convertir indiscriminadamente todos los controles a un único padding.
+
+La tabla usa filas uniformes y conserva el desplazamiento con barra oculta. El contador solo se anuncia a lectores de pantalla; los controles del pie siguen disponibles cuando son necesarios. Consultar [U015](27_AJUSTES_VISUALES_U015.md) para las variantes del selector y las reglas de mayúsculas; [U014](26_TABLAS_Y_ESTILO_U014.md) documenta carga, numeración y prioridades.
 
 ## Cómo documentar
 
@@ -62,7 +66,7 @@ Los include de EJS proceden de la configuración del servidor. Los datos de usua
 
 Usar las pruebas existentes para comprobar sesión, licencia, permisos y páginas compartidas. Añadir pruebas cuando aparezcan operaciones de negocio o se corrija un fallo concreto. La prueba MySQL requiere una base desechable independiente; no activar esa prueba contra datos reales.
 
-Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. El paquete U011 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
+Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. El paquete U015 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
 
 ## Organización JavaScript desde U008
 
