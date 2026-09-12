@@ -11,7 +11,7 @@
   class DataTable {
     constructor({ container, columns, records = [], load, actions = [], onAction,
       getRowId = record => record.id, pageSize = 10, pageSizes = [5, 10, 25, 50],
-      caption = 'Listado de registros', locale = 'es-BO', currency = 'BOB', actionDisplay = 'buttons', sort = null, mode = 'pages', numbered = false } = {}) {
+      caption = 'Listado de registros', locale = 'es-BO', currency = 'BOB', actionDisplay = 'buttons', sort = null, mode = 'pages', numbered = false, fillHeight = true } = {}) {
       if (!(container instanceof HTMLElement) || !Array.isArray(columns) || !columns.length) {
         throw new TypeError('La tabla necesita un contenedor y columnas.');
       }
@@ -30,7 +30,7 @@
           new Set(actions.map(action => action.id)).size !== actions.length) {
         throw new TypeError('Las acciones necesitan nombres e identificadores únicos.');
       }
-      if (!['pages', 'scroll'].includes(mode) || typeof numbered !== 'boolean' || !['buttons', 'menu'].includes(actionDisplay) || new Set(columns.map(column => column.key)).size !== columns.length) {
+      if (!['pages', 'scroll'].includes(mode) || typeof numbered !== 'boolean' || typeof fillHeight !== 'boolean' || !['buttons', 'menu'].includes(actionDisplay) || new Set(columns.map(column => column.key)).size !== columns.length) {
         throw new TypeError('Presentación de acciones o columnas no válida.');
       }
       if (columns.some(column => ![0, 1, 2, 3].includes(column.priority ?? 0)) || (columns[0].priority ?? 0) !== 0) {
@@ -54,6 +54,8 @@
       container.classList.add('app-data-table');
       this.build(caption);
       container.classList.toggle('app-data-table--scroll', mode === 'scroll');
+      // En modales cortos, la tabla ajusta su alto a las filas; los listados de módulo llenan el espacio.
+      container.classList.toggle('app-data-table--fit', !fillHeight);
       this.observer = new ResizeObserver(() => this.updatePriorities());
       this.observer.observe(container);
       this.scroll.addEventListener('scroll', () => {
@@ -481,7 +483,7 @@
       this.clearMenus();
       this.events.abort();
       delete this.container.dataset.dataTableMounted;
-      this.container.classList.remove('app-data-table', 'app-data-table--scroll');
+      this.container.classList.remove('app-data-table', 'app-data-table--scroll', 'app-data-table--fit');
       this.container.removeAttribute('aria-busy');
       this.container.replaceChildren();
     }

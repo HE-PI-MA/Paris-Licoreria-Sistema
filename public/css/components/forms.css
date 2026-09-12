@@ -29,6 +29,9 @@
   box-shadow: 0 0 0 3px rgba(217, 164, 65, .22);
 }
 
+/* Oculta únicamente el texto de ejemplo al enfocar; conserva etiquetas y valores escritos. */
+.app-input:focus::placeholder { opacity: 0; }
+
 /* Selectores, textos extensos, ayudas y errores usan la misma escala visual. */
 textarea.app-input { min-height: 7rem; resize: vertical; }
 select.app-input { padding-right: 2rem; }

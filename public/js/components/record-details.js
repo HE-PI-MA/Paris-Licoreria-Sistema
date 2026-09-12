@@ -1,4 +1,4 @@
-/** Información de consulta en bloques: campos configurables, valores seguros, cantidades y estados. No realiza operaciones del negocio. */
+/** Información de consulta alineada en un contenedor: campos configurables, valores seguros, cantidades y estados. No realiza operaciones del negocio. */
 (() => {
   'use strict';
   const UI = window.ParisUI;

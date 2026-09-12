@@ -7,12 +7,12 @@
   color: var(--app-text); background: var(--app-surface); box-shadow: 0 8px 25px #0002; z-index: 50;
 }
 .app-action-menu-panel:not([hidden]) { display: grid; gap: 4px; }
-/* Los tonos describen la acción y conservan texto e icono para no depender solo del color. */
-.app-action-menu-panel .app-button { --action-bg: #e6efff; --action-ink: #174eaa; justify-content: flex-start; text-align: left; background: var(--action-bg); color: var(--action-ink); border-color: transparent; box-shadow: none; }
-.app-action-menu-panel [data-action-tone="edit"] { --action-bg: #fff0c9; --action-ink: #725000; }
-.app-action-menu-panel [data-action-tone="catalog"] { --action-bg: #ede6fa; --action-ink: #63379c; }
-.app-action-menu-panel [data-action-tone="success"] { --action-bg: #deefe4; --action-ink: #18623e; }
-.app-action-menu-panel [data-action-tone="warning"] { --action-bg: #fce7d3; --action-ink: #8b4215; }
+/* Todos los tonos usan relleno sólido e icono/texto blancos, igual que Eliminar. */
+.app-action-menu-panel .app-button { --action-bg: #285d96; --action-ink: #fff; justify-content: flex-start; text-align: left; background: var(--action-bg); color: var(--action-ink); border-color: transparent; box-shadow: none; }
+.app-action-menu-panel [data-action-tone="edit"] { --action-bg: #806019; --action-ink: #fff; }
+.app-action-menu-panel [data-action-tone="catalog"] { --action-bg: #694095; --action-ink: #fff; }
+.app-action-menu-panel [data-action-tone="success"] { --action-bg: #22734d; --action-ink: #fff; }
+.app-action-menu-panel [data-action-tone="warning"] { --action-bg: #9b4c20; --action-ink: #fff; }
 .app-action-menu-panel [data-action-tone="danger"] { --action-bg: #a93246; --action-ink: #fff; }
 .app-action-menu-panel .app-button:hover:not(:disabled) { border-color: currentColor; filter: brightness(.96); }
 .app-action-menu-panel .app-button:focus-visible { outline: 2px solid var(--action-ink); outline-offset: -3px; }

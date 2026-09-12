@@ -17,8 +17,9 @@
   overflow-wrap: anywhere;
   transition: background-color 120ms ease, border-color 120ms ease;
 }
-.app-button--primary { color: #fff; background: #2463d6; border-color: #3c7aeb; box-shadow: 0 2px 4px #15294926; }
-.app-button--primary:hover:not(:disabled) { background: #1c50b2; border-color: #2463d6; }
+/* Acción principal: dorado sólido de la marca, con texto oscuro y sin degradado. */
+.app-button--primary { color: var(--app-black-soft); background: var(--app-gold-500); border-color: #bd892f; box-shadow: 0 2px 4px #39290f26; }
+.app-button--primary:hover:not(:disabled) { background: var(--app-gold-300); border-color: var(--app-gold-600); }
 .app-button--secondary { color: #39352e; background: #f1ede5; border-color: #cfc5b4; }
 .app-button--secondary:hover:not(:disabled) { background: #e5ddcf; border-color: #ac9b7f; }
 .app-button--danger { color: #fff; background: #ac3546; border-color: #bd4a5b; }

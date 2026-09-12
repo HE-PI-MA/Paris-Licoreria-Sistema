@@ -38,7 +38,10 @@
 .app-table-continuation { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .app-table-continuation .app-alert { flex: 1 1 14rem; }
 .app-table-continuation:empty { display: none; }
-.app-data-table--scroll .app-table-scroll { flex-basis: 0; }
+/* Modal: alto natural para pocas filas, con desplazamiento y carga continua cuando crece. */
+.app-data-table--scroll:not(.app-data-table--fit) .app-table-scroll { flex-basis: 0; }
+.app-data-table--fit { flex: 0 1 auto; }
+.app-data-table--fit .app-table-scroll { flex: 0 1 auto; max-height: min(26rem, 50vh); max-height: min(26rem, 50dvh); }
 .app-table-more { margin-left: auto; }
 @media (max-width: 30rem) {
   .app-table th, .app-table td { padding: 8px 6px; }
