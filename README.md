@@ -2,7 +2,7 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U029
+## Estado del desarrollo — U030
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
@@ -24,9 +24,11 @@ Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servido
 
 **Compras U029:** una categoría nueva escrita al registrar un producto se conserva y se guarda con la compra. El modal explica cómo contar el producto, cómo comprarlo, cuánto trae cada paquete y los precios; los campos muestran ejemplos. Conserva las filas compactas, catálogos compartidos, borrador y avisos globales. Ver [Categorías y campos claros U029](docs/41_CATEGORIAS_Y_CAMPOS_CLAROS_U029.md).
 
+**Inventario U030:** existencias por producto, lote y ubicación; traslados, conteos, retiros, avisos e historial, con clases y estilos compartidos. Preparar MySQL antes de usar el módulo o registrar compras: [Inventario U030](docs/42_INVENTARIO_U030.md).
+
 **Pendiente:** las operaciones de los otros módulos. Inicio conserva el saludo y las pantallas restantes conservan sus espacios de preparación.
 
-La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; Productos, Proveedores y Compras incorporan su API y formularios. Inventario, Ventas, Caja, Reportes y Usuarios todavía no tienen sus operaciones conectadas a la interfaz.
+La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; Productos, Proveedores, Compras e Inventario incorporan su API y formularios. Ventas, Caja, Reportes y Usuarios todavía no tienen sus operaciones conectadas a la interfaz.
 
 La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, modales, confirmaciones, tablas, filtros, selectores, fechas y menús de acciones. Login y activación comparten AuthForm. CSS conserva su organización por componentes; la auditoría U011 corrige interacciones y optimiza la compilación de EJS sin cambiar el diseño.
 
@@ -34,6 +36,7 @@ La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, moda
 
 | Documento | Qué explica |
 | --- | --- |
+| [Inventario U030](docs/42_INVENTARIO_U030.md) | Existencias, traslados, conteos, retiros, historial, preparación y permisos. |
 | [Compras U029](docs/41_CATEGORIAS_Y_CAMPOS_CLAROS_U029.md) | Categorías nuevas al guardar, ejemplos, etiquetas claras, permisos e instalación. |
 | [Selector de estado U024](docs/36_SELECTOR_ESTADO_GLOBAL_U024.md) | Corrección compartida, teclado, validación e instalación sin migraciones. |
 | [Proveedores U023](docs/35_PROVEEDORES_U023.md) | Operaciones, clases compartidas, preparación del NIT, permisos, comprobaciones e instalación. |
@@ -70,15 +73,18 @@ Conservar `.env`, dependencias, licencia, activación y base de datos. U012 aña
 
 U023 añade el NIT opcional a proveedor. Con el servidor detenido y la base respaldada, ejecutar una vez `node scripts/setup-suppliers.js` con permisos de instalación. Actualizar los permisos de ejecución según [Proveedores U023](docs/35_PROVEEDORES_U023.md); no se conceden privilegios automáticamente ni se modifica la estructura al iniciar el servidor.
 
+U030 requiere `node scripts/setup-inventory.js` una vez, con servidor detenido y cuenta de instalación, y actualizar los permisos de ejecución. Ver la guía U030 antes de reiniciar Compras o Inventario.
+
 ```powershell
 npm test
 node scripts/setup-products.js --comprobar
 node scripts/setup-suppliers.js --comprobar
+node scripts/setup-inventory.js --comprobar
 node scripts/db-check.js
 node server.js
 ```
 
-El primer comando ejecuta pruebas simuladas; la integración con MySQL real se omite si no se configura expresamente. Los comandos de preparación con --comprobar verifican U012 y U023 sin alterar la estructura. `db-check.js` consulta cuatro comprobaciones sin corregir datos; `server.js` inicia el servidor.
+El primer comando ejecuta pruebas simuladas; la integración con MySQL real se omite si no se configura expresamente. Los comandos de preparación con --comprobar verifican U012, U023 y U030 sin alterar la estructura. `db-check.js` consulta cuatro comprobaciones sin corregir datos; `server.js` inicia el servidor.
 
 Para una instalación nueva, seguir la configuración y la [migración U004](docs/09_PARCHE_U004.md). Se conserva `pnpm-lock.yaml`; no se actualizan dependencias en U012.
 

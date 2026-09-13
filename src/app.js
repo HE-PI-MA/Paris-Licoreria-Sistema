@@ -11,6 +11,10 @@ const CsrfMiddleware = require('./middleware/CsrfMiddleware');
 const makeRateLimits = require('./middleware/rateLimits');
 const safeLog = require('./utils/safeLog');
 const TemplateCache = require('./core/TemplateCache');
+const InventoryRepository = require('./repositories/InventoryRepository');
+const InventoryService = require('./services/InventoryService');
+const InventoryController = require('./controllers/InventoryController');
+const InventoryRoutes = require('./routes/inventory.routes');
 const PurchaseRepository = require('./repositories/PurchaseRepository');
 const PurchaseService = require('./services/PurchaseService');
 const PurchaseRoutes = require('./routes/purchase.routes');
@@ -137,6 +141,7 @@ class App {
     this.licenseMiddleware = new LicenseMiddleware(activationService);
 
     this.webController = new WebController(activationService);
+    this.inventoryController = new InventoryController(new InventoryService(this.options.inventoryRepository || new InventoryRepository(database.getPool())));
     this.purchaseController = new CatalogController(new PurchaseService(this.options.purchaseRepository || new PurchaseRepository(database.getPool())), { label: 'Compras', event: 'PURCHASE_REQUEST_FAILED' });
     this.productController = new ProductController(new ProductService(this.options.productRepository || new ProductRepository(database.getPool())));
     this.supplierController = new SupplierController(new SupplierService(this.options.supplierRepository || new SupplierRepository(database.getPool())));
@@ -159,6 +164,7 @@ class App {
     this.app.use('/api/licencia', licenseRoutes.getRouter());
     this.app.use('/api/auth', authRoutes.getRouter());
     this.app.use('/api/productos', new ProductRoutes(this.productController, this.licenseMiddleware, this.authMiddleware).getRouter());
+    this.app.use('/api/inventario', new InventoryRoutes(this.inventoryController, this.licenseMiddleware, this.authMiddleware).getRouter());
     this.app.use('/api/compras', new PurchaseRoutes(this.purchaseController, this.licenseMiddleware, this.authMiddleware).getRouter());
     this.app.use('/api/proveedores', new SupplierRoutes(this.supplierController, this.licenseMiddleware, this.authMiddleware).getRouter());
   }

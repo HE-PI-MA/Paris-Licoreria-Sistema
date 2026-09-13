@@ -43,7 +43,7 @@
       if (selected) enhanced.setValue(selected);
       this.selectors.push(enhanced); return input;
     }
-    start(path, payload) {
+    start(path, payload, initialFocus) {
       const cancel = UI.Button.create({ label: 'Cancelar' });
       cancel.addEventListener('click', () => this.modal.requestClose(), { signal: this.modal.events.signal });
       const save = UI.Button.create({ label: 'Guardar', icon: 'success', variant: 'primary', type: 'submit' }); save.setAttribute('form', this.form.id);
@@ -54,7 +54,7 @@
         onSuccess: async result => { this.modal.close(); await this.onSaved(result); }
       });
       this.modal.open(this.opener);
-      this.form.querySelector('[name="name"]').focus();
+      (initialFocus || this.form.querySelector('[name="name"]'))?.focus();
     }
   }
   UI.CatalogForm = CatalogForm;

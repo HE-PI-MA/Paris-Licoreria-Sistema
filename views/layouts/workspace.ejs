@@ -27,7 +27,7 @@
   <% if (page.id === 'productos') { %>
     <link rel="stylesheet" href="/css/pages/products.css">
   <% } %>
-  <% if (['productos', 'proveedores', 'compras'].includes(page.id)) { %>
+  <% if (['productos', 'proveedores', 'compras', 'inventario'].includes(page.id)) { %>
     <script src="/js/components/catalog-api.js" defer></script>
     <script src="/js/components/catalog-form.js" defer></script>
   <% } %>
@@ -47,6 +47,13 @@
     <script src="/js/pages/purchase-view.js" defer></script>
     <script src="/js/pages/purchase-form.js" defer></script>
     <script src="/js/pages/purchases.js" defer></script>
+  <% } %>
+  <% if (page.id === 'inventario') { %>
+    <script src="/js/components/decimal.js" defer></script>
+    <script src="/js/pages/products-api.js" defer></script>
+    <script src="/js/pages/inventory-view.js" defer></script>
+    <script src="/js/pages/inventory-form.js" defer></script>
+    <script src="/js/pages/inventory.js" defer></script>
   <% } %>
   <% if (page.id === 'demo-componentes') { %>
     <link rel="stylesheet" href="/css/pages/components-demo.css">

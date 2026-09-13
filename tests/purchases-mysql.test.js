@@ -12,10 +12,10 @@ test('U029: compra atómica, precisión y privilegios en MySQL real',{skip:proce
   await admin.query('CREATE DATABASE '+db+' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');owner=mysql.createPool({...config,database:db,connectionLimit:8});
   for(const name of ['02_creacion_tablas.sql','03_rutinas.sql','04_vistas.sql','03_datos_iniciales.sql'])for(const sql of readSql(path.join(__dirname,'fixtures/v2',name)))await owner.query(sql);
   for(const sql of readSql(path.join(__dirname,'../database/migrations/U004.sql')))await owner.query(sql);
-  const setup=new ProductsSetup(owner);await owner.query('INSERT INTO app_migration(id,checksum) VALUES(?,?)',['U004',setup.checksum('U004')]);await setup.run();await new SuppliersSetup(owner).run();
+  const setup=new ProductsSetup(owner);await owner.query('INSERT INTO app_migration(id,checksum) VALUES(?,?)',['U004',setup.checksum('U004')]);await setup.run();await new SuppliersSetup(owner).run();await new (require('../scripts/setup-inventory'))(owner).run();
   await owner.query("INSERT INTO usuario(id_rol,nombre,apellido,nombre_usuario,contrasena) VALUES(1,'Prueba','Local','u029_test','synthetic-only')");
   await admin.query('CREATE USER ?@? IDENTIFIED BY ?',[account,'localhost',secret]);
-  for(const [priv,tables]of [['SELECT',['usuario','app_migration','unidad_medida','vw_compras_totales','vw_stock_producto']],['SELECT,INSERT,UPDATE,DELETE',['producto','presentacion_producto','proveedor']],['SELECT,INSERT',['categoria','compra','detalle_compra','lote_producto','lote_ubicacion','ubicacion']],['SELECT',['detalle_venta']],['SELECT,INSERT,UPDATE',['catalogo_operacion']]])for(const table of tables)await admin.query('GRANT '+priv+' ON '+db+'.'+table+' TO ?@?',[account,'localhost']);
+  for(const [priv,tables]of [['SELECT',['usuario','app_migration','unidad_medida','vw_compras_totales','vw_stock_producto']],['SELECT,INSERT,UPDATE,DELETE',['producto','presentacion_producto','proveedor']],['SELECT,INSERT',['inventario_movimiento','categoria','compra','detalle_compra','lote_producto','lote_ubicacion','ubicacion']],['SELECT',['detalle_venta']],['SELECT,INSERT,UPDATE',['catalogo_operacion']]])for(const table of tables)await admin.query('GRANT '+priv+' ON '+db+'.'+table+' TO ?@?',[account,'localhost']);
   pool=mysql.createPool({...config,database:db,user:account,password:secret,connectionLimit:8});repo=new Repository(pool);service=new Service(repo);
   await new (require('../scripts/check-purchases'))(pool).run();
   let saved,payload=body();

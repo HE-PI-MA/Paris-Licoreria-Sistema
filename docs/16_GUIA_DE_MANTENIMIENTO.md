@@ -130,3 +130,11 @@ Desde [U028](40_NOTIFICACIONES_GLOBALES_U028.md), los resultados de acciones, in
 Desde [U029](41_CATEGORIAS_Y_CAMPOS_CLAROS_U029.md), Categoría en Nueva compra reutiliza SearchSelect con allowCustom. PurchaseInput permite categoryId o categoryName únicamente en productos nuevos; PurchaseService resuelve la categoría con ProductRepository dentro de OperationStore. ProductInput.productFields concentra las reglas comunes sin duplicarlas. Conservar el hash normalizado anterior para las compras por ID.
 
 CatalogForm.field, CatalogForm.selector y SearchSelect aceptan placeholder para declarar ejemplos. Mantener las etiquetas visibles y la regla global de ocultar solo el placeholder al enfocar. PurchaseForm.setClassification restaura tanto IDs como nombres de categorías del borrador; no agregar escrituras en input/change ni estilos locales.
+
+## Inventario U030
+
+Consultar [Inventario U030](42_INVENTARIO_U030.md). InventoryPage, InventoryView e InventoryForm reutilizan los componentes visuales y sus clases CSS; no hay hoja de estilos de Inventario. InventoryController extiende CatalogController. InventoryInput reutiliza RecordInput/ProductInput. LocationRepository comparte las ubicaciones con Compras. InventoryService conserva reglas y transacciones; InventoryRepository bloquea las existencias; InventoryMovementRepository concentra el historial.
+
+No actualizar cantidades fuera de la transacción de OperationStore ni cambiar la cantidad comprada original para corregir un conteo. Un traslado descuenta el origen antes de sumar al destino. Un conteo registra su diferencia antes de modificar la existencia: el límite del lote contempla esa diferencia. Un retiro utiliza el trigger existente de ajuste_inventario y no un segundo descuento en JavaScript. Conservar motivo, actor, versión e idempotencia.
+
+Preparar U030 con el servidor detenido mediante scripts/setup-inventory.js; el arranque de Express no realiza migraciones. Las compras nuevas necesitan la tabla de movimientos para guardar la ubicación original. El historial anterior sin ubicación debe identificarse como no registrado, nunca reconstruirse usando el destino actual.

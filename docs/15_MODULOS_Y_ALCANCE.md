@@ -2,9 +2,9 @@
 
 ## Qué funciona hoy
 
-Las nueve páginas tienen la estructura compartida: cabecera, controles, contenido y mensajes. La navegación está protegida por licencia, sesión y rol. Inicio muestra el saludo. Productos está implementado en U012: catálogo y presentaciones conectados a MySQL, con permisos de administrador. Los otros módulos mantienen su estado de preparación y sus controles desactivados.
+Las nueve páginas tienen la estructura compartida: cabecera, controles, contenido y mensajes. La navegación está protegida por licencia, sesión y rol. Inicio muestra el saludo. Productos está implementado en U012: catálogo y presentaciones conectados a MySQL, con permisos de administrador. Proveedores U023, Compras U029 e Inventario U030 también están conectados. Ventas, Caja, Reportes y Usuarios mantienen su estado de preparación y sus controles desactivados.
 
-Mi perfil consulta los datos reales del usuario autenticado. Cerrar sesión funciona desde el pie del sidebar. La guía vigente de Productos es `24_PRODUCTOS_U012.md`; las otras operaciones siguientes siguen previstas.
+Mi perfil consulta los datos reales del usuario autenticado. Cerrar sesión funciona desde el pie del sidebar. La guía vigente de Productos es `24_PRODUCTOS_U012.md`; la guía `42_INVENTARIO_U030.md` detalla las operaciones nuevas de existencias; las restantes funciones indicadas como pendientes siguen previstas.
 
 ## Funciones por módulo
 
@@ -16,7 +16,7 @@ Este es el alcance inicial propuesto a partir del esquema existente. Los campos,
 | **Ventas** | Buscar presentaciones, agregar cantidades a una venta, calcular el total, registrar pagos y consultar el historial autorizado. Exigir caja abierta y stock disponible. Las anulaciones necesitan permiso explícito y motivo. | Ambos roles |
 | **Caja** | Abrir una sesión con monto inicial, consultar sus cobros, contar efectivo por denominaciones y cerrar mostrando efectivo esperado, contado y diferencia. La API deberá validar el usuario responsable de la caja. | Ambos roles |
 | **Productos** | Mantener el catálogo: nombre, categoría, unidad base, stock mínimo y estado. Gestionar presentaciones, código de barras, conversión y precio de venta. | Administrador |
-| **Inventario** | Consultar existencias físicas y disponibles por producto, lote y ubicación; revisar vencimientos y stock bajo. Registrar bajas justificadas por daño, pérdida o vencimiento y consultar los movimientos. | Administrador |
+| **Inventario** | Consultar existencias físicas y disponibles por producto, lote y ubicación; revisar vencimientos y stock bajo. Trasladar entre ubicaciones, corregir por conteo, registrar retiros justificados y consultar los movimientos. Implementado en U030. | Administrador |
 | **Compras** | Registrar abastecimiento: proveedor, presentaciones, cantidades, costos, lotes, ubicación y vencimiento cuando corresponda. Consultar compras y detalles. Una compra registrada incorpora existencias. | Administrador |
 | **Proveedores** | Registrar y actualizar nombre, contacto, teléfono, dirección y estado; consultar las compras asociadas. | Administrador |
 | **Reportes** | Consultar ventas y compras por período, productos más vendidos, inventario y diferencias de caja. Impresión y exportación se definirán al diseñar esta sección; aún no están implementadas. | Administrador |

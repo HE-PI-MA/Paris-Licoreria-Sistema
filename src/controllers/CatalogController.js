@@ -3,13 +3,18 @@ const { RecordError } = require('../domain/RecordInput');
 const safeLog = require('../utils/safeLog');
 class CatalogController {
   constructor(service, { label = 'Proveedores', event = 'SUPPLIER_REQUEST_FAILED' } = {}) { Object.assign(this, { service, label, event }); }
+  /** Cada módulo puede declarar sus argumentos sin copiar manejo HTTP, errores ni respuestas. */
+  arguments(req, method, write) {
+    const args = write ? [req.authUser.idUsuario, req.get('x-operation-id')] : [];
+    if (method === 'list' || method === 'locations') args.push(req.query);
+    else if (method === 'create') args.push(req.body);
+    else { args.push(req.params.id); if (write) args.push(req.body); }
+    return args;
+  }
   handle(method, { write = false, created = false } = {}) {
     return async (req, res) => {
       try {
-        const args = write ? [req.authUser.idUsuario, req.get('x-operation-id')] : [];
-        if (method === 'list' || method === 'locations') args.push(req.query);
-        else if (method === 'create') args.push(req.body);
-        else { args.push(req.params.id); if (write) args.push(req.body); }
+        const args = this.arguments(req, method, write);
         return res.status(created ? 201 : 200).json(await this.service[method](...args));
       } catch (error) {
         if (error instanceof RecordError) return res.status(error.status).json({ error: error.message, fieldErrors: error.fieldErrors });
