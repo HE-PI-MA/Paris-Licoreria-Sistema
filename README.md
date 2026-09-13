@@ -2,13 +2,15 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U023
+## Estado del desarrollo — U024
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
 **Productos U012:** catálogo conectado a MySQL, búsqueda y filtros remotos, edición, estados, eliminación protegida y presentaciones con equivalencias, barras y precios. Acceso de administrador. El stock se consulta, no se edita aquí.
 
 **Proveedores U023:** catálogo de proveedores con búsqueda remota, filtro por estado, creación, detalle, edición, activación y eliminación protegida cuando no existen compras. NIT opcional y único. Acceso de administrador. Reutiliza DataTable, formularios, modales, avisos y estilos; Productos y Proveedores comparten CatalogApi, CatalogForm, RecordInput y OperationStore.
+
+**Selectores U024:** Estado usa el selector global en formularios de Proveedores, Productos y Presentaciones. Mantiene las opciones Activo/Inactivo, el teclado y el bloqueo de envío sin abrir la lista nativa del navegador.
 
 **Interfaz U015:** cabecera compacta con marca ampliada y hamburguesa integrada en móvil. Texto en mayúsculas, buscador y categoría con estilo compartido, botones de acciones primarios y tabla uniforme sin barra ni contador visibles. Se conservan carga por bloques, numeración, prioridades y teclado.
 
@@ -30,6 +32,7 @@ La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, moda
 
 | Documento | Qué explica |
 | --- | --- |
+| [Selector de estado U024](docs/36_SELECTOR_ESTADO_GLOBAL_U024.md) | Corrección compartida, teclado, validación e instalación sin migraciones. |
 | [Proveedores U023](docs/35_PROVEEDORES_U023.md) | Operaciones, clases compartidas, preparación del NIT, permisos, comprobaciones e instalación. |
 | [Estados compartidos U022](docs/34_ESTADOS_COMPARTIDOS_U022.md) | Clases CSS reutilizables para estados, comprobaciones e instalación. |
 | [Notificaciones de presentaciones U021](docs/33_NOTIFICACIONES_PRESENTACIONES_U021.md) | Avisos compartidos, duración, errores, comprobaciones e instalación. |

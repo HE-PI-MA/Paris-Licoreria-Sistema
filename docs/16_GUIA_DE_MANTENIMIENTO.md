@@ -107,6 +107,8 @@ RecordInput contiene reglas comunes de primitivas, paginación y RecordError; lo
 
 Proveedores usa estilos compartidos; no tiene una hoja CSS propia. El selector de controles utiliza `module-select-field` tanto para estado como para categoría. SupplierService debe validar versiones y compras antes de eliminar; no trasladar esas reglas al navegador. La preparación del NIT es explícita y aditiva, nunca se ejecuta al arrancar el servidor. No modificar U004 ni U012 para instalar otro módulo.
 
+Desde [U024](36_SELECTOR_ESTADO_GLOBAL_U024.md), `CatalogForm.state()` monta SearchSelect sin búsqueda para todos los formularios de catálogo. Conservar este método compartido al agregar Estado: mantiene el estilo, el valor del formulario, teclado y bloqueo de envío. Las elecciones fijas solo muestran las opciones declaradas; no agregan Sin selección de forma automática. No crear estilos locales para este campo.
+
 ## Productos y componentes U017
 
 Consultar [U017](29_PRODUCTOS_Y_MODALES_U017.md). Modal admite un icono local y cierra mediante su pie; conservar Cancelar/Cerrar y requestClose para comprobar cambios pendientes. RecordDetails reutiliza ValueFormat y muestra texto seguro. La alineación numérica es centrada con la misma Inter del listado. SearchSelect se limpia editando su texto. ModuleLayout oculta su región cuando no hay aviso, pero mantiene los errores accesibles.

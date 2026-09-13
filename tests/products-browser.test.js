@@ -56,6 +56,8 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
   });
   await t.test('teclado, descarte de cambios y retorno de foco',async()=>{
    await page.locator('[data-module-primary]').click();await page.getByRole('textbox',{name:'Nombre del producto *',exact:true}).fill('Pendiente');
+   assert.equal(await page.getByRole('combobox',{name:'Estado *',exact:true}).inputValue(),'Activo');
+   assert.equal(await page.locator('select[name=state]').isHidden(),true);
    await page.keyboard.press('Escape');const confirm=page.getByRole('dialog',{name:'Descartar cambios',exact:true});await confirm.waitFor();
    await confirm.getByRole('button',{name:'Cancelar',exact:true}).click();assert.equal(await page.locator('[name=name]').inputValue(),'PENDIENTE');
    await page.keyboard.press('Escape');await confirm.getByRole('button',{name:'Descartar cambios',exact:true}).click();
@@ -81,6 +83,8 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
    const manager=page.getByRole('dialog',{name:'Presentaciones: Producto 01',exact:true});
    await manager.getByRole('button',{name:'Acciones del registro 1',exact:true}).click();await page.getByRole('menuitem',{name:'Editar',exact:true}).click();
    await page.getByRole('dialog',{name:'Editar presentación',exact:true}).waitFor();assert.equal(await page.locator('[name=factor]').evaluate(n=>n.readOnly),true);
+   assert.equal(await page.getByRole('combobox',{name:'Estado *',exact:true}).inputValue(),'Activo');
+   assert.equal(await page.locator('select[name=state]').isHidden(),true);
    await page.getByRole('button',{name:'Cancelar',exact:true}).click();
    await manager.getByRole('button',{name:'Nueva presentación',exact:true}).click();await page.locator('[name=name]').fill('Caja de 12');await page.locator('[name=factor]').fill('12');await page.locator('[name=price]').fill('95.50');await page.locator('[name=barcode]').fill('aBc-123');
    await page.getByRole('button',{name:'Guardar',exact:true}).click();await visible('Mostrando 1–2 de 2 registros');

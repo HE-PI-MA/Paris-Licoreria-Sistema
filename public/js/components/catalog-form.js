@@ -30,8 +30,13 @@
       if (help) { const text = UI.element('p', 'app-field-help', help); text.id = input.id + '-help'; input.setAttribute('aria-describedby', text.id); host.append(text); }
       this.grid.append(host); return input;
     }
-    state(value = 'ACTIVO') { return this.field('state', 'Estado', { type: 'select', value, required: true,
-      options: [{ value: 'ACTIVO', label: 'Activo' }, { value: 'INACTIVO', label: 'Inactivo' }] }); }
+    /** Estado utiliza el selector global sin búsqueda; el select original conserva validación y FormData. */
+    state(value = 'ACTIVO') {
+      const select = this.field('state', 'Estado', { type: 'select', value, required: true,
+        options: [{ value: 'ACTIVO', label: 'Activo' }, { value: 'INACTIVO', label: 'Inactivo' }] });
+      this.selectors.push(new UI.SearchSelect({ select, searchable: false }));
+      return select;
+    }
     selector(name, label, kind, selected, help) {
       const input = this.field(name, label, { type: 'select', required: true, help, options: [{ value: '', label: 'Seleccionar' }] });
       const enhanced = new UI.SearchSelect({ select: input, load: params => this.api.options(kind, params) });

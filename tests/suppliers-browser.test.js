@@ -41,10 +41,40 @@ test('U023: Proveedores completo con datos ficticios en navegador',{skip:process
    await page.keyboard.press('Escape');await confirm('Descartar cambios');assert.equal(await page.locator('dialog[open]').count(),0);
    assert.equal(await page.locator('[data-module-primary]').evaluate(n=>n===document.activeElement),true);
   });
+  await t.test('U024: Estado usa el selector global, conserva el valor y no desplaza el formulario',async()=>{
+   await page.locator('[data-module-primary]').click();
+   const modal=page.locator('dialog[open]'),choice=modal.getByRole('combobox',{name:'Estado *',exact:true});
+   assert.equal(await modal.locator('select[name=state]').isHidden(),true);
+   assert.equal(await choice.evaluate(n=>n.readOnly),true);
+   const height=(await modal.boundingBox()).height;
+   await choice.click();
+   const panel=modal.locator('.app-search-select-panel:visible');
+   assert.deepEqual(await panel.getByRole('option').allTextContents(),['Activo','Inactivo']);
+   assert.equal((await modal.boundingBox()).height,height);
+   await shot('u024-estado-proveedor');
+   await page.keyboard.press('Escape');assert.equal(await choice.getAttribute('aria-expanded'),'false');
+   assert.equal(await page.locator('dialog[open]').count(),1);
+   await choice.press('ArrowDown');await choice.press('End');await choice.press('Enter');
+   assert.equal(await modal.locator('form').evaluate(form=>new FormData(form).get('state')),'INACTIVO');
+   await page.keyboard.press('Escape');await confirm('Cancelar');
+   // Los cambios de disabled no deben introducir una tercera opción "Sin selección".
+   await modal.locator('select[name=state]').evaluate(select=>{select.disabled=true;});
+   await page.waitForFunction(()=>document.querySelector('dialog[open] [role=combobox]').disabled);
+   await modal.locator('select[name=state]').evaluate(select=>{select.disabled=false;});
+   await page.waitForFunction(()=>!document.querySelector('dialog[open] [role=combobox]').disabled);
+   await choice.click();assert.deepEqual(await panel.getByRole('option').allTextContents(),['Activo','Inactivo']);
+   await page.keyboard.press('Escape');await modal.getByRole('button',{name:'Cancelar',exact:true}).click();await confirm('Descartar cambios');
+   await menu(2,'Editar');
+   assert.equal(await choice.inputValue(),'Inactivo');
+   assert.equal(await modal.locator('form').evaluate(form=>new FormData(form).get('state')),'INACTIVO');
+   await modal.getByRole('button',{name:'Cancelar',exact:true}).click();
+   assert.equal(await page.locator('dialog[open]').count(),0);
+  });
   await t.test('validación, Guardando y reintento tras respuesta perdida no duplica el proveedor',async()=>{
    await page.locator('[data-module-primary]').click();await page.getByRole('button',{name:'Guardar',exact:true}).click();assert.equal(await page.locator('[name=name]').getAttribute('aria-invalid'),'true');
    await page.locator('[name=name]').fill('Proveedor nuevo');await page.locator('[name=contact]').fill('<b>Contacto</b>');await page.locator('[name=nit]').fill('001234567');await page.locator('[name=phone]').fill('70012345');
    gate=new Promise(r=>{releaseGate=r;});await page.getByRole('button',{name:'Guardar',exact:true}).click();await page.getByText('Guardando…',{exact:true}).waitFor();
+   assert.equal(await page.getByRole('combobox',{name:'Estado *',exact:true}).isDisabled(),true);
    await page.locator('dialog[open] form').evaluate(form=>form.dispatchEvent(new Event('submit',{cancelable:true})));
    releaseGate();gate=null;await page.getByText('No se pudo confirmar la operación. Revisa la conexión y vuelve a intentarlo desde este formulario.',{exact:true}).waitFor();
    assert.equal(posts.length,1);await page.getByRole('button',{name:'Guardar',exact:true}).click();await page.locator('dialog[open]').waitFor({state:'detached'});

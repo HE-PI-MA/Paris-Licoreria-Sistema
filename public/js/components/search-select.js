@@ -47,7 +47,8 @@
       this.retry = UI.Button.create({ label: 'Reintentar opciones', icon: 'refresh' }); this.retry.hidden = true;
       this.panel.append(this.list, this.more, this.retry); this.root.append(control, this.panel);
       select.insertAdjacentElement('afterend', this.root); select.hidden = true; select.tabIndex = -1;
-      if (!Array.from(select.options).some(option => option.value === '')) {
+      // La búsqueda necesita poder vaciar el valor al escribir. Una elección fija conserva solo sus opciones declaradas.
+      if (searchable && !Array.from(select.options).some(option => option.value === '')) {
         const empty = UI.element('option', '', 'Sin selección'); empty.value = ''; select.prepend(empty);
       }
       SearchSelect.controls.set(select, this);
