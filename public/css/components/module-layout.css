@@ -23,8 +23,8 @@
 .module-controls-panel { min-width: 0; }
 .module-controls-row { display: flex; align-items: flex-end; gap: var(--module-space); }
 .module-search-field { flex: 1; min-width: 0; }
-.module-category-field { flex: 0 1 18rem; min-width: 0; }
-.module-category-field .app-input { width: 100%; text-overflow: ellipsis; }
+.module-select-field { flex: 0 1 18rem; min-width: 0; }
+.module-select-field .app-input { width: 100%; text-overflow: ellipsis; }
 .module-search-input .app-input { padding-left: 2.75rem; }
 .module-search-input { position: relative; }
 .module-search-input > .paris-icon { position: absolute; left: .875rem; top: 50%; transform: translateY(-50%); width: 1.25rem; height: 1.25rem; color: #8a661f; pointer-events: none; }
@@ -55,5 +55,5 @@
   .module-actions, .module-primary-action { width: 100%; }
   .module-controls-row { flex-direction: column; align-items: stretch; gap: var(--module-space); }
   .module-filter-button { align-self: flex-start; }
-  .module-category-field { flex-basis: auto; }
+  .module-select-field { flex-basis: auto; }
 }

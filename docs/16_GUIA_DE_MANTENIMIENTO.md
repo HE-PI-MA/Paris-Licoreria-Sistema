@@ -28,6 +28,10 @@
 | Estilos y comportamiento de login/activación | `public/css/pages/auth.css` y `public/js/pages/` |
 | Compilación y actualización de plantillas EJS | `src/core/TemplateCache.js` |
 | Configuración general de Express y orden del middleware | `src/app.js` |
+| Transporte HTTP de catálogos y formularios compartidos | `public/js/components/catalog-api.js` y `catalog-form.js` |
+| Operaciones y campos de Proveedores | `public/js/pages/suppliers.js`, `supplier-form.js` y `src/services/SupplierService.js` |
+| Validación común de entradas y transacciones de reintentos | `src/domain/RecordInput.js` y `src/repositories/OperationStore.js` |
+| Preparación del NIT de Proveedores | `scripts/setup-suppliers.js` y `database/migrations/U023.sql` |
 
 ## Valores visuales vigentes — U017
 
@@ -71,7 +75,7 @@ Los include de EJS proceden de la configuración del servidor. Los datos de usua
 
 Usar las pruebas existentes para comprobar sesión, licencia, permisos y páginas compartidas. Añadir pruebas cuando aparezcan operaciones de negocio o se corrija un fallo concreto. La prueba MySQL requiere una base desechable independiente; no activar esa prueba contra datos reales.
 
-Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. El paquete U020 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
+Preparar únicamente los archivos revisados. Revisar el diff y conservar `.env`, claves, activación y respaldos fuera del commit. El paquete U023 incluye un publicador que verifica los archivos y limita el commit al manifiesto. Un push fallido deja el commit local disponible para reintentar, sin usar force.
 
 ## Organización JavaScript desde U008
 
@@ -81,7 +85,7 @@ Las clases no reemplazan los componentes EJS ni las hojas CSS. La guía `18_ORGA
 
 ## Componentes compartidos desde U009
 
-Consultar `20_COMPONENTES_COMPARTIDOS_U009.md` antes de desarrollar Productos. Reutilizar Button, Message, Modal, Confirm, FormController, NotificationCenter y DataTable. La clase propia del módulo coordina las operaciones y conserva las llamadas al servidor. El pie de paginación pertenece a DataTable.
+Consultar `20_COMPONENTES_COMPARTIDOS_U009.md` antes de desarrollar otro módulo. Reutilizar Button, Message, Modal, Confirm, FormController, NotificationCenter y DataTable. La clase propia del módulo coordina las operaciones y conserva las llamadas al servidor. El pie de paginación pertenece a DataTable.
 
 Cada archivo nuevo o modificado lleva un comentario inicial en español con su propósito, y comentarios en las decisiones relevantes. CSS agrupa las definiciones originales por componente. Los iconos JavaScript proceden de las plantillas EJS del catálogo local.
 
@@ -94,6 +98,14 @@ El mapa `23_MAPA_ARCHIVOS_Y_COMENTARIOS.md` identifica la responsabilidad de cad
 Las hojas de autenticación se enlazan únicamente en login y activación; no volver a importarlas desde `app.css`. Reutilizar `.app-sr-only` para texto accesible oculto.
 
 Después de editar una vista EJS en desarrollo, TemplateCache invalida las funciones compiladas. Si la carpeta está en un recurso de red que no comunica cambios, reiniciar el servidor o desactivar la caché al construir App con `{ templateCache: false }`. En producción, reiniciar el proceso al desplegar.
+
+## Catálogos compartidos U023
+
+Consultar [Proveedores U023](35_PROVEEDORES_U023.md). CatalogApi concentra JSON, CSRF, consultas y reintentos; ProductsApi la extiende para sus selectores y presentaciones. CatalogForm concentra Modal, campos y FormController; ProductForm, PresentationForm y SupplierForm declaran sus campos y solicitudes. Cargar esos componentes antes de los scripts de página, como hace workspace.ejs. No copiar sus implementaciones al desarrollar Compras.
+
+RecordInput contiene reglas comunes de primitivas, paginación y RecordError; los validadores de cada dominio conservan las reglas específicas. ProductError permanece como alias compatible. OperationStore concentra la transacción de catalogo_operacion y el resultado de reintentos de ambos catálogos. Conservar la escritura del negocio y su resultado en la misma transacción.
+
+Proveedores usa estilos compartidos; no tiene una hoja CSS propia. El selector de controles utiliza `module-select-field` tanto para estado como para categoría. SupplierService debe validar versiones y compras antes de eliminar; no trasladar esas reglas al navegador. La preparación del NIT es explícita y aditiva, nunca se ejecuta al arrancar el servidor. No modificar U004 ni U012 para instalar otro módulo.
 
 ## Productos y componentes U017
 

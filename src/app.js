@@ -15,6 +15,10 @@ const ProductRepository = require('./repositories/ProductRepository');
 const ProductService = require('./services/ProductService');
 const ProductController = require('./controllers/ProductController');
 const ProductRoutes = require('./routes/product.routes');
+const SupplierRepository = require('./repositories/SupplierRepository');
+const SupplierService = require('./services/SupplierService');
+const SupplierController = require('./controllers/SupplierController');
+const SupplierRoutes = require('./routes/supplier.routes');
 
 const SystemRepository = require('./repositories/SystemRepository');
 const SystemService = require('./services/SystemService');
@@ -128,6 +132,7 @@ class App {
 
     this.webController = new WebController(activationService);
     this.productController = new ProductController(new ProductService(this.options.productRepository || new ProductRepository(database.getPool())));
+    this.supplierController = new SupplierController(new SupplierService(this.options.supplierRepository || new SupplierRepository(database.getPool())));
   }
 
   configureRoutes() {
@@ -147,6 +152,7 @@ class App {
     this.app.use('/api/licencia', licenseRoutes.getRouter());
     this.app.use('/api/auth', authRoutes.getRouter());
     this.app.use('/api/productos', new ProductRoutes(this.productController, this.licenseMiddleware, this.authMiddleware).getRouter());
+    this.app.use('/api/proveedores', new SupplierRoutes(this.supplierController, this.licenseMiddleware, this.authMiddleware).getRouter());
   }
 
   configureErrors() {

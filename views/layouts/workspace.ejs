@@ -26,9 +26,19 @@
   <% } %>
   <% if (page.id === 'productos') { %>
     <link rel="stylesheet" href="/css/pages/products.css">
+  <% } %>
+  <% if (['productos', 'proveedores'].includes(page.id)) { %>
+    <script src="/js/components/catalog-api.js" defer></script>
+    <script src="/js/components/catalog-form.js" defer></script>
+  <% } %>
+  <% if (page.id === 'productos') { %>
     <script src="/js/pages/products-api.js" defer></script>
     <script src="/js/pages/product-forms.js" defer></script>
     <script src="/js/pages/products.js" defer></script>
+  <% } %>
+  <% if (page.id === 'proveedores') { %>
+    <script src="/js/pages/supplier-form.js" defer></script>
+    <script src="/js/pages/suppliers.js" defer></script>
   <% } %>
   <% if (page.id === 'demo-componentes') { %>
     <link rel="stylesheet" href="/css/pages/components-demo.css">

@@ -1,10 +1,11 @@
 /** Acceso SQL al catálogo: consultas paginadas, transacciones y bloqueo de productos/presentaciones; nunca modifica existencias ni historial. */
 const crypto = require('node:crypto');
+const OperationStore = require('./OperationStore');
 const { ProductError } = require('../domain/ProductInput');
 class ProductRepository {
   static productFields = 'p.id_producto AS id, p.nombre AS name, p.id_categoria AS categoryId, p.id_unidad_medida AS unitId, p.descripcion AS description, p.stock_minimo AS minimum, p.estado AS state';
   static presentationFields = 'pp.id_presentacion AS id, pp.id_producto AS productId, pp.nombre_presentacion AS name, pp.factor_conversion AS factor, pp.codigo_barras AS barcode, pp.precio_venta AS price, pp.estado AS state';
-  constructor(pool) { this.pool = pool; }
+  constructor(pool) { this.pool = pool; this.operations = new OperationStore(pool); }
   /** La versión refleja solo los campos editables; el stock no provoca conflictos de formulario. */
   version(row, presentation = false) {
     const keys = presentation ? ['id', 'productId', 'name', 'factor', 'barcode', 'price', 'state'] : ['id', 'name', 'categoryId', 'unitId', 'description', 'minimum', 'state'];
@@ -96,23 +97,6 @@ class ProductRepository {
   async updatePresentation(c, productId, id, v) { await c.query('UPDATE presentacion_producto SET nombre_presentacion=?,factor_conversion=?,codigo_barras=?,precio_venta=?,estado=? WHERE id_producto=? AND id_presentacion=?', [v.name,v.factor,v.barcode,v.price,v.state,productId,id]); return { id }; }
   async presentationState(c, productId, id, state) { await c.query('UPDATE presentacion_producto SET estado=? WHERE id_producto=? AND id_presentacion=?', [state,productId,id]); return { id }; }
   async deletePresentation(c, productId, id) { await c.query('DELETE FROM presentacion_producto WHERE id_producto=? AND id_presentacion=?', [productId,id]); return { id, deleted: true }; }
-  /** Guarda operación y resultado en la MISMA transacción para que un reintento no duplique una escritura confirmada. */
-  async write({ userId, key, hash }, operation) {
-    const c = await this.pool.getConnection();
-    try {
-      await c.beginTransaction();
-      try { await c.query('INSERT INTO catalogo_operacion (id_usuario,clave,solicitud_hash) VALUES(?,?,?)', [userId,key,hash]); }
-      catch (error) {
-        if (error.code !== 'ER_DUP_ENTRY') throw error;
-        const [[saved]] = await c.query('SELECT solicitud_hash AS hash, resultado AS result FROM catalogo_operacion WHERE id_usuario=? AND clave=? FOR UPDATE', [userId,key]);
-        if (!saved || saved.hash !== hash || !saved.result) throw new ProductError(409, 'Este identificador de guardado ya fue usado con otros datos. Vuelve a abrir el formulario.');
-        await c.commit();
-        return typeof saved.result === 'string' ? JSON.parse(saved.result) : saved.result;
-      }
-      const result = await operation(c);
-      await c.query('UPDATE catalogo_operacion SET resultado=? WHERE id_usuario=? AND clave=?', [JSON.stringify(result),userId,key]);
-      await c.commit(); return result;
-    } catch (error) { await c.rollback(); throw error; } finally { c.release(); }
-  }
+  write(metadata, operation) { return this.operations.write(metadata, operation); }
 }
 module.exports = ProductRepository;

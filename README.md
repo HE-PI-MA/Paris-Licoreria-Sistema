@@ -2,11 +2,13 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U022
+## Estado del desarrollo — U023
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
 **Productos U012:** catálogo conectado a MySQL, búsqueda y filtros remotos, edición, estados, eliminación protegida y presentaciones con equivalencias, barras y precios. Acceso de administrador. El stock se consulta, no se edita aquí.
+
+**Proveedores U023:** catálogo de proveedores con búsqueda remota, filtro por estado, creación, detalle, edición, activación y eliminación protegida cuando no existen compras. NIT opcional y único. Acceso de administrador. Reutiliza DataTable, formularios, modales, avisos y estilos; Productos y Proveedores comparten CatalogApi, CatalogForm, RecordInput y OperationStore.
 
 **Interfaz U015:** cabecera compacta con marca ampliada y hamburguesa integrada en móvil. Texto en mayúsculas, buscador y categoría con estilo compartido, botones de acciones primarios y tabla uniforme sin barra ni contador visibles. Se conservan carga por bloques, numeración, prioridades y teclado.
 
@@ -20,7 +22,7 @@ Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servido
 
 **Pendiente:** las operaciones de los otros módulos. Inicio conserva el saludo y las pantallas restantes conservan sus espacios de preparación.
 
-La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; Productos incorpora su API y formularios; los demás módulos todavía no están conectados.
+La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; Productos y Proveedores incorporan su API y formularios. Compras, Inventario, Ventas, Caja, Reportes y Usuarios todavía no tienen sus operaciones conectadas a la interfaz.
 
 La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, modales, confirmaciones, tablas, filtros, selectores, fechas y menús de acciones. Login y activación comparten AuthForm. CSS conserva su organización por componentes; la auditoría U011 corrige interacciones y optimiza la compilación de EJS sin cambiar el diseño.
 
@@ -28,6 +30,7 @@ La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, moda
 
 | Documento | Qué explica |
 | --- | --- |
+| [Proveedores U023](docs/35_PROVEEDORES_U023.md) | Operaciones, clases compartidas, preparación del NIT, permisos, comprobaciones e instalación. |
 | [Estados compartidos U022](docs/34_ESTADOS_COMPARTIDOS_U022.md) | Clases CSS reutilizables para estados, comprobaciones e instalación. |
 | [Notificaciones de presentaciones U021](docs/33_NOTIFICACIONES_PRESENTACIONES_U021.md) | Avisos compartidos, duración, errores, comprobaciones e instalación. |
 | [Limpieza y botones U020](docs/32_LIMPIEZA_Y_BOTONES_U020.md) | Hover único, auditoría de referencias, clases compartidas, pruebas e instalación. |
@@ -59,14 +62,17 @@ Los documentos U002–U006E registran entregas anteriores; los valores visuales 
 
 Conservar `.env`, dependencias, licencia, activación y base de datos. U012 añade únicamente una tabla de control de reintentos. Instalarla una vez con `node scripts/setup-products.js`, usando una cuenta con permisos de instalación. No volver a ejecutar la migración U004.
 
+U023 añade el NIT opcional a proveedor. Con el servidor detenido y la base respaldada, ejecutar una vez `node scripts/setup-suppliers.js` con permisos de instalación. Actualizar los permisos de ejecución según [Proveedores U023](docs/35_PROVEEDORES_U023.md); no se conceden privilegios automáticamente ni se modifica la estructura al iniciar el servidor.
+
 ```powershell
 npm test
 node scripts/setup-products.js --comprobar
+node scripts/setup-suppliers.js --comprobar
 node scripts/db-check.js
 node server.js
 ```
 
-El primer comando ejecuta pruebas simuladas; la integración con MySQL real se omite si no se configura expresamente. El segundo comprueba U012. `db-check.js` consulta cuatro comprobaciones sin corregir datos; `server.js` inicia el servidor.
+El primer comando ejecuta pruebas simuladas; la integración con MySQL real se omite si no se configura expresamente. Los comandos de preparación con --comprobar verifican U012 y U023 sin alterar la estructura. `db-check.js` consulta cuatro comprobaciones sin corregir datos; `server.js` inicia el servidor.
 
 Para una instalación nueva, seguir la configuración y la [migración U004](docs/09_PARCHE_U004.md). Se conserva `pnpm-lock.yaml`; no se actualizan dependencias en U012.
 
@@ -80,7 +86,7 @@ Desarrollo local: `NODE_ENV=development`, `HOST=127.0.0.1`, `PORT=3100`. Producc
 
 La base visual reutilizable incluye botones, campos, modales, confirmaciones, mensajes, notificaciones y tablas. Guía y ejemplos: [Componentes compartidos](docs/20_COMPONENTES_COMPARTIDOS_U009.md).
 
-La demostración está en `/demostracion/componentes`, disponible con licencia y sesión de administrador. Utiliza datos ficticios en memoria; Productos usa su propia API y la base configurada en `/productos`.
+La demostración está en `/demostracion/componentes`, disponible con licencia y sesión de administrador. Utiliza datos ficticios en memoria; Productos y Proveedores usan sus respectivas API y la base configurada en `/productos` y `/proveedores`.
 
 ## Controles compartidos U010
 

@@ -30,7 +30,7 @@ async function server(options={}) {
   process.env.TRUST_PROXY=options.production?'loopback':'';
   delete process.env.TLS_CERT_PATH;delete process.env.TLS_KEY_PATH;
   const pool=options.pool||sessionPool();
-  const app=new App({sessionStore:new MySqlSessionStore(pool),productRepository:options.productRepository || {list:async()=>({records:[],total:0}),options:async()=>({options:[],total:0})}});
+  const app=new App({sessionStore:new MySqlSessionStore(pool),supplierRepository:options.supplierRepository || {list:async()=>({records:[],total:0})},productRepository:options.productRepository || {list:async()=>({records:[],total:0}),options:async()=>({options:[],total:0})}});
   const ac=app.licenseController.activationService,ls=ac.licenseService;
   let installed=signed(license),currentUser={...user};
   let data=JSON.stringify({version:1,producto:'PARIS_LICORERIA',licenciaId:license.licenciaId,equipo:fingerprint,fechaActivacion:'2026-01-01T00:00:00Z'});

@@ -10,6 +10,7 @@
     "db:migrate": "node scripts/migrate.js",
     "admin:create": "node scripts/create-admin.js",
     "db:products": "node scripts/setup-products.js",
+    "db:suppliers": "node scripts/setup-suppliers.js",
     "db:check": "node scripts/db-check.js"
   },
   "keywords": [],
