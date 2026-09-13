@@ -19,7 +19,7 @@
     async saved(result){if(this.destroyed)return;window.ParisModule.resetMessage();this.notifications.show('success','Compra N.º '+result.id+' guardada correctamente.');await this.table.refresh();}
     async detail(id,opener){
       try{const record=await this.api.detail(id);if(!this.destroyed)this.track(P.PurchaseView.purchase(record,opener));}
-      catch(error){if(!this.destroyed)window.ParisModule.showMessage('error',error.userMessage || 'No se pudo consultar la compra.');}
+      catch(error){if(!this.destroyed && error.name!=='AbortError')this.notifications.show('error',error.userMessage || 'No se pudo consultar la compra.');}
     }
     destroy(){if(this.destroyed)return;this.destroyed=true;this.events.abort();this.filters.destroy();this.table.destroy();this.notifications.destroy();for(const modal of this.dialogs){modal.close();}this.dialogs.clear();}
   }

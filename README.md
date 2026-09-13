@@ -2,7 +2,7 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U027
+## Estado del desarrollo — U028
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
@@ -18,7 +18,7 @@ Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servido
 
 **Interfaz U020:** hover compartido con Eliminar, botones dorados de marca, menú con rellenos sólidos, campos centralizados y limpieza de código sin referencias. Se conserva el detalle alineado y los ejemplos de campos que se ocultan al enfocar. Presentaciones usa una lista continua de alto adaptable. Se conservan los encabezados informativos, sugerencias flotantes y avisos de U018, junto con el sidebar automático U016.
 
-**Notificaciones U021:** guardar, editar, activar, desactivar y eliminar presentaciones reutiliza la notificación flotante verde del catálogo, con icono y cierre automático a los dos segundos. Los errores siguen visibles para permitir corregirlos o reintentar.
+**Notificaciones U021:** guardar, editar, activar, desactivar y eliminar presentaciones reutiliza la notificación flotante verde del catálogo, con icono y cierre automático a los dos segundos. Desde U028, los errores de acciones también utilizan la notificación global, roja y temporal.
 
 **Estados U022:** etiquetas compartidas en `components/badges.css`. Activo conserva el verde e Inactivo utiliza fondo rojo suave, texto y borde rojizos en Productos, Presentaciones, detalles y demostración.
 
@@ -114,3 +114,7 @@ Compras permite escribir una ubicación nueva y guardarla en la misma transacci�
 ## Formulario compacto U027
 
 Proveedor e ingreso comparten una fila adaptable con nombre, teléfono, ubicación y observación, reutilizando la clase global existente. Ver [instalación U027](docs/39_FILA_PROVEEDOR_INGRESO_U027.md).
+
+## Notificaciones de acciones U028
+
+Productos, Presentaciones, Proveedores y Compras usan NotificationCenter para los errores de acciones. El aviso rojo tiene icono, fondo completo y cierre automático a los dos segundos, igual que los demás resultados. Ver [corrección e instalación U028](docs/40_NOTIFICACIONES_GLOBALES_U028.md).

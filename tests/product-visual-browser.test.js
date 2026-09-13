@@ -75,8 +75,8 @@ test('U017: diseño compartido y catálogo en navegador', { skip: process.env.PA
       await action('Presentaciones'); const manager = page.getByRole('dialog', { name: 'Presentaciones: ' + rows[0].name, exact: true }); await manager.locator('tr[data-row-index="0"]').waitFor();
       await shot('u017-presentaciones.png'); await manager.getByRole('button', { name: 'Cerrar', exact: true }).click();
     });
-    await t.test('notificaciones con icono y título, error persistente y texto seguro', async () => {
-      await page.evaluate(() => { window.visualNotice = new ParisUI.NotificationCenter(); visualNotice.show('success', 'Producto de demostración guardado.', { duration: 0 }); visualNotice.show('error', '<img src=x onerror=alert(1)>', { duration: 1 }); });
+    await t.test('notificaciones con icono y título, error temporal y texto seguro', async () => {
+      await page.evaluate(() => { window.visualNotice = new ParisUI.NotificationCenter(); visualNotice.show('success', 'Producto de demostración guardado.', { duration: 0 }); visualNotice.show('error', '<img src=x onerror=alert(1)>'); });
       assert.equal(await page.locator('.app-toast:visible .app-toast-title').count(), 2);
       assert.equal(await page.locator('.app-toast:visible .app-alert-icon [data-message-icon]:not([hidden]) svg').count(), 2);
       assert.equal(await page.locator('.app-toast img').count(), 0); await page.waitForTimeout(30); assert.equal(await page.locator('.app-toast[data-kind="error"]').isVisible(), true);

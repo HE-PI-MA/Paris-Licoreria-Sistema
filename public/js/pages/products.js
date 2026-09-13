@@ -30,12 +30,12 @@
       { id: 'state', label: row => row.state === 'ACTIVO' ? 'Desactivar' : 'Activar', icon: 'refresh', tone: row => row.state === 'ACTIVO' ? 'warning' : 'success' },
       { id: 'delete', label: 'Eliminar', icon: 'trash', variant: 'danger' }
     ]; }
-    async handle(task, alert) {
+    async handle(task) {
       try { await task(); }
       catch (error) {
         if (this.destroyed || error.name === 'AbortError') return;
         const text = error.userMessage || 'No se pudo completar la operación. Actualiza el listado e inténtalo nuevamente.';
-        if (alert) alert.show('error', text); else window.ParisModule.showMessage('error', text);
+        this.notifications.show('error', text);
       }
     }
     /** Confirma el resultado con la notificación compartida y actualiza los listados afectados. */
@@ -95,15 +95,12 @@
       const help = UI.element('p', 'app-field-help', product.state === 'ACTIVO' ? 'Equivalencias en ' + product.unit + '. Los precios se expresan en bolivianos.' : 'Producto inactivo. Actívalo para agregar o activar presentaciones.');
       const add = UI.Button.create({ label: 'Nueva presentación', icon: 'plus', variant: 'primary', disabled: product.state !== 'ACTIVO' });
       toolbar.append(help, add); const host = UI.element('div'); content.append(toolbar, host);
-      const alert = UI.Message.create(content);
       let table;
       const modal = new UI.Modal({ title: 'Presentaciones: ' + product.name, icon: 'box', size: 'large', content,
         onClose: () => { table?.destroy(); modal.destroy(); this.dialogs.delete(modal); }
       });
-      // El éxito es temporal y flotante; la alerta del modal queda para errores que requieren atención.
-      const saved = async (message = 'Presentación guardada correctamente.') => {
-        alert.clear(); await this.saved(message, table);
-      };
+      // Los resultados y errores utilizan la misma instancia global, sobre el modal activo.
+      const saved = (message = 'Presentación guardada correctamente.') => this.saved(message, table);
       const edit = (row, button) => {
         const form = new Catalog.PresentationForm({ api: this.api, product, record: row, opener: button, onSaved: () => saved() });
         const onClose = form.modal.onClose;
@@ -116,11 +113,10 @@
           { key: 'barcode', label: 'Código de barras' }, { key: 'price', label: 'Precio (Bs)', type: 'price', sortable: true }, { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'inactive' } } }],
         sort: { key: 'name', direction: 'asc' }, actionDisplay: 'menu', actions: [{ id: 'edit', label: 'Editar', icon: 'edit', tone: 'edit' }, ...this.stateActions()],
         onAction: ({ action, record, button }) => this.handle(async () => {
-          alert.clear();
           if (action === 'edit') return edit(await this.api.presentation(product.id, record.id), button);
           return this.change(action, record, '/' + product.id + '/presentaciones/' + record.id,
             () => saved(action === 'delete' ? 'Presentación eliminada.' : 'Estado de la presentación actualizado.'));
-        }, alert)
+        })
       });
       const close = UI.Button.create({ label: 'Cerrar' }); close.addEventListener('click', () => modal.requestClose(), { signal: modal.events.signal });
       modal.footer.append(close); this.dialogs.add(modal); modal.open(opener);

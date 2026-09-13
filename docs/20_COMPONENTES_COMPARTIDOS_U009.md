@@ -113,7 +113,7 @@ La confirmación usa Modal. Cancelar recibe el foco inicial. No se emplean alert
 
 Tipos compartidos: info, success, warning, error, loading y empty. ParisModule conserva showMessage, clearMessage y resetMessage; la carga actualiza aria-busy en el contenido. Message también puede utilizarse por separado con create, show y clear.
 
-Las notificaciones de éxito e información duran seis segundos por defecto; su duración se pausa al pasar el puntero o mantener el foco dentro, y al ocultar la pestaña. Errores, advertencias y carga permanecen hasta cerrarse de manera explícita. show devuelve { close }; al finalizar una carga, cerrar ese aviso y emitir el resultado. Los avisos se ubican en el diálogo superior cuando corresponde. destroy retira el centro y sus eventos.
+Desde U028, éxito, información, errores y advertencias duran dos segundos por defecto, sin botón Cerrar. Su duración se pausa al pasar el puntero o mantener el foco dentro, y al ocultar la pestaña. Solo la notificación de carga permanece hasta su cierre explícito. show devuelve { close }; al finalizar una carga, cerrar ese aviso y emitir el resultado. Los avisos se ubican en el diálogo superior cuando corresponde. destroy retira el centro y sus eventos.
 
 ## DataTable para Productos y otros módulos
 

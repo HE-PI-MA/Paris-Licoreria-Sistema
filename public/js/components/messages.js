@@ -76,7 +76,7 @@
       host.append(this.region);
     }
 
-    /** Error, advertencia y carga no desaparecen automáticamente, aunque se envíe duration. */
+    /** Todos los resultados comparten duración y pausa; una carga continúa hasta que termina su operación. */
     show(kind, text, { duration = 2000 } = {}) {
       if (!Object.hasOwn(Message.defaults, kind)) throw new TypeError('Tipo de mensaje no válido.');
       this.moveToTop();
@@ -86,8 +86,8 @@
       const copy = UI.element('div', 'app-toast-copy');
       message.text.replaceWith(copy);
       copy.append(UI.element('strong', 'app-toast-title', labels[kind]), message.text);
-      const persistent = ['error', 'warning', 'loading'].includes(kind);
-      // Los avisos breves se retiran solos; los problemas pendientes siguen siendo descartables.
+      const persistent = kind === 'loading';
+      // Éxitos, errores y advertencias se retiran solos con el mismo comportamiento global.
       const close = persistent ? UI.Button.create({ label: 'Cerrar', variant: 'notice' }) : null;
       if (close) { close.setAttribute('aria-label', 'Cerrar notificación'); message.element.append(close); }
       else message.element.tabIndex = 0; // Pausa también al leer el aviso con teclado.

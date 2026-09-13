@@ -64,7 +64,7 @@ test('U018: encabezados, avisos y sugerencias sin desplazar el formulario', {
       assert.ok(await dialog.locator('.app-record-detail').evaluateAll(nodes => nodes.every(n => getComputedStyle(n).borderTopWidth === '0px' && getComputedStyle(n).backgroundColor === 'rgba(0, 0, 0, 0)')));
       await shot('detalle'); await dialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
     });
-    await t.test('aviso verde completo, sin botón, se retira a los dos segundos; errores permanecen', async () => {
+    await t.test('aviso verde completo, sin botón, se retira a los dos segundos; errores temporales', async () => {
       await page.mouse.move(0, 0); await page.clock.install(); await page.clock.pauseAt(new Date(Date.now() + 1000));
       await page.evaluate(() => { window.testNotices = new ParisUI.NotificationCenter(); testNotices.show('success', 'Producto guardado correctamente.'); });
       const success = page.locator('.app-toast[data-kind=success]');
@@ -72,8 +72,9 @@ test('U018: encabezados, avisos y sugerencias sin desplazar el formulario', {
       assert.equal(await success.evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(34, 115, 77)');
       await shot('aviso'); await page.clock.fastForward(1900); assert.equal(await success.count(), 1);
       await page.clock.fastForward(150); assert.equal(await success.count(), 0);
-      await page.evaluate(() => testNotices.show('error', 'Error de demostración', { duration: 1 }));
-      await page.clock.fastForward(5000); assert.equal(await page.locator('.app-toast[data-kind=error]').count(), 1);
+      await page.evaluate(() => testNotices.show('error', 'Error de demostración'));
+      await page.clock.fastForward(1900); assert.equal(await page.locator('.app-toast[data-kind=error]').count(), 1);
+      await page.clock.fastForward(201); assert.equal(await page.locator('.app-toast[data-kind=error]').count(), 0);
       await page.evaluate(() => testNotices.destroy()); await page.clock.resume();
     });
     await t.test('campos sin tarjeta extra ni historial; vacío no abre sugerencias', async () => {

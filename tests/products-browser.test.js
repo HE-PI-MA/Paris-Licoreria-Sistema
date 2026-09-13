@@ -1,4 +1,4 @@
-/** Productos U012/U021 en Chromium: interfaz, reintentos y notificaciones de presentaciones con API ficticia. */
+/** Productos U012/U028 en Chromium: interfaz, reintentos y notificaciones de presentaciones con API ficticia. */
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {server,password}=require('./support/application-fixture');
@@ -25,6 +25,7 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
    if(/^\/\d+\/presentaciones\/\d+\/(estado|eliminar|editar)$/.test(path)){
     if(failPresentation){failPresentation=false;return send({error:'No se pudo actualizar la presentación de prueba.'},409);}
     const id=Number(path.split('/')[3]),row=children.find(r=>r.id===id);
+    if(path.endsWith('/eliminar')&&row.used)return send({error:'La presentación tiene historial de compras o ventas. Puedes desactivarla.'},409);
     if(path.endsWith('/eliminar'))children=children.filter(r=>r.id!==id);
     else Object.assign(row,body);
     return send({id});
@@ -93,7 +94,7 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
    assert.equal(calls.at(-1).body.price,'95.50');assert.equal(calls.at(-1).body.barcode,'aBc-123');assert.equal(calls.at(-1).body.name,'CAJA DE 12');
    await manager.getByRole('button',{name:'Cerrar',exact:true}).click();
   });
-  await t.test('U021: edición, estados y eliminación notifican sin franja fija; errores permanecen',async()=>{
+  await t.test('U028: éxitos y errores comparten notificación, duración y protección del historial',async()=>{
    await menu('Presentaciones');
    const manager=page.getByRole('dialog',{name:'Presentaciones: Producto 01',exact:true});
    await manager.locator('tr[data-row-index="1"]').waitFor();
@@ -128,19 +129,31 @@ test('U012: Productos, formularios y presentaciones en navegador', {skip:process
     if(process.env.PARIS_UI_SCREENSHOTS){require('node:fs').mkdirSync(process.env.PARIS_UI_SCREENSHOTS,{recursive:true});await page.screenshot({path:require('node:path').join(process.env.PARIS_UI_SCREENSHOTS,'u021-notificacion-presentaciones.png'),animations:'disabled'});}
     await assertNotice('Estado de la presentación actualizado.');
     failPresentation=true;await invoke(2,'Activar');await confirm('Activar');
-    const error=manager.locator('.app-modal-body .app-alert[data-kind=error]');
+    const error=manager.locator('.app-toast[data-kind=error]');
     await error.getByText('No se pudo actualizar la presentación de prueba.',{exact:true}).waitFor();
-    await page.clock.runFor(5000);assert.equal(await error.isVisible(),true);assert.equal(await toast.count(),0);
+    assert.equal(await manager.locator('.app-modal-body .app-alert[data-kind=error]:visible').count(),0);
+    assert.equal(await error.locator('button').count(),0);assert.equal(await error.evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(170, 51, 67)');
+    assert.ok(await error.locator('[data-message-icon=error] svg').isVisible());
+    await page.mouse.move(0,0);await page.clock.runFor(1900);assert.equal(await error.count(),1);
+    await page.clock.runFor(201);assert.equal(await error.count(),0);assert.equal(await toast.count(),0);
     await invoke(2,'Activar');await confirm('Activar');await assertNotice('Estado de la presentación actualizado.');
-    assert.equal(await error.isVisible(),false);assert.equal(children[1].state,'ACTIVO');
+    assert.equal(await error.count(),0);assert.equal(children[1].state,'ACTIVO');
     await invoke(2,'Eliminar');await confirm('Eliminar');await assertNotice('Presentación eliminada.');
     assert.equal(await manager.locator('tr[data-row-index]').count(),1);
+    const before=(await manager.locator('.app-modal-body').boundingBox()).height;
+    await invoke(1,'Eliminar');await confirm('Eliminar');
+    await error.getByText('La presentación tiene historial de compras o ventas. Puedes desactivarla.',{exact:true}).waitFor();
+    assert.equal(children.length,1);assert.equal(children[0].used,true);
+    assert.equal((await manager.locator('.app-modal-body').boundingBox()).height,before);
+    if(process.env.PARIS_UI_SCREENSHOTS)await page.screenshot({path:require('node:path').join(process.env.PARIS_UI_SCREENSHOTS,'u028-error-presentaciones.png')});
+    await page.mouse.move(0,0);await page.clock.runFor(2100);assert.equal(await error.count(),0);
+    if(process.env.PARIS_UI_SCREENSHOTS)await page.screenshot({path:require('node:path').join(process.env.PARIS_UI_SCREENSHOTS,'u028-error-retirado.png')});
     assert.equal(await page.locator('dialog[open]').count(),1);
     await manager.getByRole('button',{name:'Cerrar',exact:true}).click();
     assert.equal(await page.locator('dialog[open]').count(),0);
    }finally{await page.clock.resume();}
   });
-  await t.test('error de eliminación permanece visible y pantalla adaptable sin desbordar',async()=>{
+  await t.test('error de eliminación usa el aviso global y pantalla adaptable sin desbordar',async()=>{
    await menu('Eliminar');await page.getByRole('button',{name:'Eliminar',exact:true}).click();await visible('El producto tiene historial de compras o ventas. Puedes desactivarlo.');
    for(const width of [1440,900,390,320]){await page.setViewportSize({width,height:850});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'ancho '+width);}
    await page.setViewportSize({width:1440,height:1000});

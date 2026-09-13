@@ -1,5 +1,7 @@
 # Notificaciones compartidas de Presentaciones — U021
 
+> Actualización U028: la decisión anterior de mantener errores fijos fue sustituida por notificaciones temporales compartidas. Ver [comportamiento vigente](40_NOTIFICACIONES_GLOBALES_U028.md). Esta guía conserva el detalle histórico de U021.
+
 ## Problema y corrección
 
 Presentaciones mostraba sus operaciones completadas con `Message.show('success', ...)` dentro del cuerpo del modal. Eso generaba una franja fija debajo de la tabla, con apariencia y duración distintas de los avisos flotantes de Productos.

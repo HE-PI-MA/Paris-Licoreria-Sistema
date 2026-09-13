@@ -157,21 +157,21 @@ test('U009: componentes en navegador real', {
       assert.deepEqual(result, { safe: true, calls: 2 });
     });
 
-    await t.test('notificaciones persistentes y pausa mientras se leen', async () => {
+    await t.test('notificaciones temporales y pausa mientras se leen', async () => {
       await demo();
       await page.mouse.move(0, 0);
       await page.evaluate(() => {
         window.testNotices = new window.ParisUI.NotificationCenter();
-        testNotices.show('error', 'Error persistente de prueba', { duration: 1 });
+        testNotices.show('error', 'Error temporal de prueba', { duration: 150 });
         testNotices.show('success', 'Éxito con pausa', { duration: 150 });
         testNotices.region.lastElementChild.focus();
       });
       await page.waitForTimeout(250);
-      await visible('Error persistente de prueba');
+      assert.equal(await page.getByText('Error temporal de prueba', { exact: true }).count(), 0);
       await visible('Éxito con pausa');
       await page.locator('[data-module-primary]').focus();
       await page.getByText('Éxito con pausa', { exact: true }).waitFor({ state: 'detached' });
-      await visible('Error persistente de prueba');
+      assert.equal(await page.getByText('Error temporal de prueba', { exact: true }).count(), 0);
       await page.evaluate(() => { testNotices.destroy(); delete window.testNotices; });
     });
 

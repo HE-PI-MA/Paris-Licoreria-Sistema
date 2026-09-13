@@ -36,7 +36,7 @@
     async handle(task) {
       try { await task(); }
       catch (error) {
-        if (!this.destroyed && error.name !== 'AbortError') window.ParisModule.showMessage('error', error.userMessage || 'No se pudo completar la operación. Actualiza el listado e inténtalo nuevamente.');
+        if (!this.destroyed && error.name !== 'AbortError') this.notifications.show('error', error.userMessage || 'No se pudo completar la operación. Actualiza el listado e inténtalo nuevamente.');
       }
     }
     async saved(message) {
