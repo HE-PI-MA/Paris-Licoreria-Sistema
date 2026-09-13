@@ -80,5 +80,34 @@ test('U016: sidebar automático en navegador', { skip: process.env.PARIS_UI_BROW
         await quiet.setViewportSize({width:1440,height:900}); assert.equal((await quiet.locator('.paris-sidebar').boundingBox()).width,224);
       } finally { await plainBrowser.close(); }
     });
+    await t.test('U032: perfil compacto sobre el usuario, contenido en el sidebar móvil y completo', async () => {
+      for (const width of [768, 390, 320, 1000, 1440]) {
+        await viewport(width);
+        if (width <= 768) await page.locator('[data-sidebar-open]').click();
+        await page.locator('#profile-trigger').click();
+        const sidebar = await page.locator('#paris-sidebar').boundingBox();
+        const menu = await page.locator('#profile-menu').boundingBox();
+        const trigger = await page.locator('#profile-trigger').boundingBox();
+        assert.ok(menu.x >= 0 && menu.y >= 0 && menu.x + menu.width <= width, 'menú dentro de pantalla: ' + width);
+        if (width <= 768 || width > 1200) {
+          assert.ok(menu.x >= sidebar.x && menu.x + menu.width <= sidebar.x + sidebar.width, 'menú contenido en sidebar: ' + width);
+          assert.ok(menu.y + menu.height < trigger.y, 'menú encima del usuario: ' + width);
+        } else assert.ok(menu.x >= sidebar.x + sidebar.width, 'menú al lado de la barra de iconos');
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        for (const item of await page.locator('#profile-menu [role=menuitem]').all()) {
+          assert.equal(await item.evaluate(el => el.scrollWidth > el.clientWidth), false, 'opción sin desbordamiento');
+        }
+        if ([1440, 1000, 390].includes(width)) await screenshot('sidebar-u032-perfil-' + width + '.png');
+        await page.keyboard.press('Escape');
+        assert.equal(await page.locator('#profile-menu').isVisible(), false);
+        assert.equal(await page.locator('#profile-trigger').evaluate(el => el === document.activeElement), true);
+        if (width <= 768) {
+          assert.equal(await page.locator('#paris-sidebar').isVisible(), true);
+          await page.keyboard.press('Escape');
+          assert.equal(await page.locator('[data-sidebar-open]').evaluate(el => el === document.activeElement), true);
+        }
+      }
+      assert.deepEqual(errors, []);
+    });
   } finally { await browser.close(); await app.close(); }
 });

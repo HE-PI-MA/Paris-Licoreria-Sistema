@@ -2,7 +2,11 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U031
+## Estado del desarrollo — U033
+
+**Login U033:** usuario y contraseña muestran su escritura exacta, incluso al pulsar el ojo. Se desactivan la autocapitalización y la autocorrección solicitadas al teclado móvil. Conserva la validación de credenciales y las protecciones existentes. Incluye el menú compacto U032. Ver [Login y actualización U033](docs/46_LOGIN_Y_ACTUALIZACION_U033.md).
+
+**Menú de perfil U032:** Mi perfil y Cerrar sesión se abren encima del usuario, dentro del ancho del sidebar en móvil y escritorio. En la barra de iconos se abren a su lado. Ajuste compartido de CSS, sin cambios de base de datos. Ver [Menú de perfil U032](docs/45_MENU_PERFIL_U032.md).
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 

@@ -1,4 +1,7 @@
 /* Campos comunes y validación. Los estilos propios del login permanecen en auth.css. */
+/* Credenciales y otros textos exactos conservan su escritura, también al mostrar la contraseña. */
+.app-input-verbatim { text-transform: none; }
+
 .app-field {
   display: grid;
   min-width: 0;
