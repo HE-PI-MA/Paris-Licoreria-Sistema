@@ -11,6 +11,10 @@ const CsrfMiddleware = require('./middleware/CsrfMiddleware');
 const makeRateLimits = require('./middleware/rateLimits');
 const safeLog = require('./utils/safeLog');
 const TemplateCache = require('./core/TemplateCache');
+const PurchaseRepository = require('./repositories/PurchaseRepository');
+const PurchaseService = require('./services/PurchaseService');
+const PurchaseRoutes = require('./routes/purchase.routes');
+const CatalogController = require('./controllers/CatalogController');
 const ProductRepository = require('./repositories/ProductRepository');
 const ProductService = require('./services/ProductService');
 const ProductController = require('./controllers/ProductController');
@@ -77,6 +81,8 @@ class App {
     this.app.post('/api/auth/login', this.limits.login);
     this.app.post('/api/licencia/activar', this.limits.activation);
     this.app.get('/api/licencia/estado', this.limits.status);
+    // La compra acepta hasta 50 filas; los demás endpoints conservan el límite anterior.
+    this.app.use('/api/compras', express.json({ limit: '128kb' }));
     this.app.use(express.json({ limit: '16kb' }));
     this.sessionStore = this.options.sessionStore || new MySqlSessionStore(database.getPool());
     this.app.use(session({
@@ -131,6 +137,7 @@ class App {
     this.licenseMiddleware = new LicenseMiddleware(activationService);
 
     this.webController = new WebController(activationService);
+    this.purchaseController = new CatalogController(new PurchaseService(this.options.purchaseRepository || new PurchaseRepository(database.getPool())), { label: 'Compras', event: 'PURCHASE_REQUEST_FAILED' });
     this.productController = new ProductController(new ProductService(this.options.productRepository || new ProductRepository(database.getPool())));
     this.supplierController = new SupplierController(new SupplierService(this.options.supplierRepository || new SupplierRepository(database.getPool())));
   }
@@ -152,6 +159,7 @@ class App {
     this.app.use('/api/licencia', licenseRoutes.getRouter());
     this.app.use('/api/auth', authRoutes.getRouter());
     this.app.use('/api/productos', new ProductRoutes(this.productController, this.licenseMiddleware, this.authMiddleware).getRouter());
+    this.app.use('/api/compras', new PurchaseRoutes(this.purchaseController, this.licenseMiddleware, this.authMiddleware).getRouter());
     this.app.use('/api/proveedores', new SupplierRoutes(this.supplierController, this.licenseMiddleware, this.authMiddleware).getRouter());
   }
 

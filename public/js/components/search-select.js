@@ -10,14 +10,14 @@
   let sequence = 0;
   class SearchSelect {
     static controls = new WeakMap();
-    constructor({ select, load, pageSize = 20, debounce = 250, searchable = true } = {}) {
+    constructor({ select, load, pageSize = 20, debounce = 250, searchable = true, allowCustom = false } = {}) {
       if (!(select instanceof HTMLSelectElement) || select.multiple || SearchSelect.controls.has(select)) {
         throw new TypeError('Se necesita un select simple sin inicializar.');
       }
       if ((load !== undefined && typeof load !== 'function') || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
         throw new TypeError('Consulta o tamaño de página no válido.');
       }
-      Object.assign(this, { select, load, pageSize, debounce, searchable });
+      Object.assign(this, { select, load, pageSize, debounce, searchable, allowCustom });
       this.events = new AbortController(); this.requestId = 0; this.options = []; this.active = -1;
       this.original = { id: select.id, hidden: select.hidden, tabindex: select.getAttribute('tabindex') };
       this.localOptions = this.readOptions();
@@ -26,6 +26,8 @@
       this.input = UI.element('input', 'app-input');
       this.input.id = select.id || id; select.id = id + '-source';
       this.input.readOnly = !searchable;
+      // El alta integrada puede conservar texto libre; el catálogo se crea solo al guardar la operación principal.
+      if (allowCustom) { this.input.name = select.name + 'Text'; this.input.dataset.uppercase = ''; }
       this.input.type = 'text'; this.input.autocomplete = 'off'; this.input.spellcheck = false;
       this.input.setAttribute('role', 'combobox');
       this.input.setAttribute('aria-autocomplete', searchable ? 'list' : 'none');
@@ -103,14 +105,14 @@
       this.input.setAttribute('aria-busy', this.select.getAttribute('aria-busy') || 'false');
       if (this.select.disabled) this.close();
     }
-    syncLabel() { this.input.value = this.select.value || !this.searchable ? this.select.selectedOptions[0]?.textContent || '' : ''; }
+    syncLabel() { if (this.allowCustom && !this.select.value) return; this.input.value = this.select.value || !this.searchable ? this.select.selectedOptions[0]?.textContent || '' : ''; }
     setValue(option, notify = false) {
       if (option && String(option.value)) {
         const value = String(option.value);
         let node = Array.from(this.select.options).find(item => item.value === value);
         if (!node) { node = UI.element('option', '', option.label); node.value = value; this.select.append(node); }
         this.select.value = value;
-      } else this.select.value = '';
+      } else { this.select.value = ''; this.input.value = ''; }
       this.syncLabel();
       if (notify) this.select.dispatchEvent(new Event('change', { bubbles: true }));
     }

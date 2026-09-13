@@ -52,6 +52,11 @@ select.app-input { padding-right: 2rem; }
 .app-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--module-space); }
 .app-field--wide { grid-column: 1 / -1; }
 .app-form { display: grid; gap: var(--module-space); min-width: 0; }
+/* Secciones y resumen reutilizables para formularios con un listado de detalles. */
+.app-form-section { min-width: 0; }
+.app-form-section-title { margin: 0 0 var(--module-space); padding-block: .4rem; border-bottom: 1px solid var(--field-border, var(--app-border)); font-size: .9rem; color: var(--field-label-ink, var(--app-text)); }
+.app-form-toolbar { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--module-space); }
+.app-form-total { flex: 1 1 12rem; margin-right: auto; display: block; padding: .8rem; text-align: right; font-size: 1.15rem; font-weight: 700; background: var(--app-gold-100, #f4e6c7); border-radius: var(--app-radius-sm); }
 .app-checkbox { display: flex; align-items: start; gap: var(--module-space); }
 .app-checkbox input { margin-top: .35rem; accent-color: var(--app-gold-600); }
 

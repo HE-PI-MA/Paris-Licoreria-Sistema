@@ -1,4 +1,4 @@
 <%# Plantillas para JavaScript; las formas proceden del mismo catálogo local usado por el sidebar. %>
-<% for (const iconName of ['plus', 'search', 'filter', 'refresh', 'info', 'success', 'warning', 'error', 'box', 'truck', 'close', 'edit', 'trash']) { %>
+<% for (const iconName of ['plus', 'search', 'filter', 'refresh', 'info', 'success', 'warning', 'error', 'box', 'bag', 'truck', 'close', 'edit', 'trash']) { %>
   <template data-ui-icon="<%= iconName %>"><%- include('icon', { name: iconName }) %></template>
 <% } %>

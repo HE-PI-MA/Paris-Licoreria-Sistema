@@ -102,3 +102,7 @@ Para medir navegación local: detener el servidor y ejecutar `node scripts/diagn
 `TemplateCache` reutiliza las funciones compiladas de EJS. En desarrollo invalida la caché al editar vistas; si falla la vigilancia, la desactiva. En producción se reinicia el servidor después de desplegar plantillas. No almacena páginas HTML ni decisiones de acceso: sesión, usuario y licencia se revalidan.
 
 Las contraseñas admiten hasta 72 bytes UTF-8, el mismo límite utilizado al crear el administrador. Los formularios de acceso permanecen bloqueados tras el éxito hasta completar su redirección.
+
+## Compras U025
+
+El módulo Compras registra proveedor, productos y presentaciones desde un único formulario con autocompletado y borrador de filas. Guarda todo junto con el stock en una transacción idempotente. Consultar [uso, instalación y pruebas](docs/37_COMPRAS_U025.md). Comprobación de solo lectura: `npm run db:purchases`.

@@ -116,3 +116,9 @@ Consultar [U017](29_PRODUCTOS_Y_MODALES_U017.md). Modal admite un icono local y 
 ## Limpieza U020
 
 Consultar [Limpieza y botones U020](32_LIMPIEZA_Y_BOTONES_U020.md). La apariencia y el hover de los botones se definen únicamente en buttons.css; ActionMenu selecciona un tono de Button. Reutilizar app-field--wide en los formularios. DataTable solo construye paginación en modo pages. Los cálculos de posición en los componentes flotantes se conservan para evitar recortes. Antes de retirar un método, buscar llamadas, callbacks, documentación y pruebas: una API pública puede no utilizarse todavía desde una página.
+
+## Compras U025
+
+Consultar [Compras U025](37_COMPRAS_U025.md). PurchaseForm hereda CatalogForm; usa SearchSelect con allowCustom para texto libre y PurchaseDraft para filas sin guardar. Nunca crear catálogos desde el evento input/change: PurchaseService guarda los catálogos nuevos, compra, lotes y resultado de OperationStore en una única transacción. Reutilizar ProductRepository/SupplierRepository y Decimal para conservar las validaciones y la precisión. CatalogController concentra la adaptación HTTP de Compras y Proveedores.
+
+Compras conserva los permisos de administrador y CSRF. No llamar sp_registrar_compra dentro de OperationStore: el COMMIT interno separaría los catálogos de la compra. Para cualquier operación posterior del historial, diseñar sus propias reglas de stock; U025 solo registra y consulta compras. No ejecutar setup ni modificar datos al arrancar la página.

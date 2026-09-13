@@ -176,3 +176,26 @@ Referencias: [Componentes U009](20_COMPONENTES_COMPARTIDOS_U009.md), [Filtros y 
 ## Componentes de consulta U017
 
 `public/js/components/record-details.js` incorpora RecordDetails para información semántica y segura; su estilo está en `public/css/components/record-details.css`. ValueFormat, en ui-core.js, sirve a DataTable y RecordDetails. Modal, SearchSelect y NotificationCenter conservan sus responsabilidades y utilizan la presentación de U017.
+
+## Archivos de Compras U025
+
+| Archivo | Responsabilidad |
+| --- | --- |
+| src/domain/PurchaseInput.js | Contrato y validación de la compra completa. |
+| src/services/PurchaseService.js | Reglas, versiones, conversión y guardado conjunto. |
+| src/repositories/PurchaseRepository.js | Lectura paginada e inserción de compra, detalles y lotes. |
+| src/controllers/CatalogController.js | Adaptación HTTP compartida, errores y claves de operación. |
+| src/routes/purchase.routes.js | Rutas con sesión, activación y permiso administrador. |
+| public/js/components/decimal.js | Cálculo decimal exacto compartido entre Node y navegador. |
+| public/js/pages/purchase-draft.js | Borrador temporal de filas y total. |
+| public/js/pages/purchase-form.js | Formulario con autocompletado y alta integrada. |
+| public/js/pages/purchase-view.js | Detalles y columnas mediante componentes compartidos. |
+| public/js/pages/purchases.js | Coordinación del listado, búsqueda, modal y notificaciones. |
+| views/compras/content.ejs | Punto de montaje de la tabla del módulo. |
+| scripts/check-purchases.js | Comprobación de dependencias, motores y consultas, sin escribir datos. |
+| tests/support/purchase-fixture.js | Repositorios y transacciones ficticios. |
+| tests/purchases.test.js | Reglas, rollback, reintentos, precisión y acceso HTTP. |
+| tests/purchases-browser.test.js | Interacción real con datos ficticios en Chromium. |
+| tests/purchases-mysql.test.js | Transacciones, stock y permisos en MySQL desechable. |
+
+Los archivos compartidos modificados conservan sus cabeceras de propósito. No hay una hoja CSS de Compras: forms.css define las secciones, acciones y total reutilizables.

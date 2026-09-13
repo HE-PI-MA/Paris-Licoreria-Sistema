@@ -50,8 +50,8 @@ class ProductRepository {
     return { options: rows.map(row => ({ value: String(row.value), label: row.label + (row.abbreviation ? ' (' + row.abbreviation + ')' : '') })), total: Number(count.total) };
   }
   async presentations(productId, input) {
-    const where = ' WHERE pp.id_producto=?' + (input.term ? " AND pp.nombre_presentacion LIKE ? ESCAPE '!'" : '');
-    const args = [productId, ...(input.term ? [this.search(input.term)] : [])];
+    const where = ' WHERE pp.id_producto=?' + (input.term ? " AND pp.nombre_presentacion LIKE ? ESCAPE '!'" : '') + (input.state ? ' AND pp.estado=?' : '');
+    const args = [productId, ...(input.term ? [this.search(input.term)] : []), ...(input.state ? [input.state] : [])];
     const [[count]] = await this.pool.query('SELECT COUNT(*) AS total FROM presentacion_producto pp' + where, args);
     const order = { name: 'pp.nombre_presentacion', price: 'pp.precio_venta', factor: 'pp.factor_conversion', state: 'pp.estado' }[input.sort];
     if (!order) throw new ProductError(400, 'Orden no permitido.');

@@ -33,10 +33,10 @@ test('U006: shared module structure, authenticated navigation, profile and local
       assert.ok(position > previousRegion, `${item.id}: falta la sección ${region} o está fuera de orden`);
       previousRegion = position;
     }
-    if (['productos','proveedores'].includes(item.id)) {
+    if (['productos','proveedores','compras'].includes(item.id)) {
       assert.doesNotMatch(response.text, /data-module-primary[^>]*disabled/);
-      assert.ok(response.text.includes('id="' + (item.id === 'productos' ? 'products' : 'suppliers') + '-table"'));
-      const script = '/js/pages/' + (item.id === 'productos' ? 'products' : 'suppliers') + '.js';
+      assert.ok(response.text.includes('id="' + (item.id === 'productos' ? 'products' : item.id === 'compras' ? 'purchases' : 'suppliers') + '-table"'));
+      const script = '/js/pages/' + (item.id === 'productos' ? 'products' : item.id === 'compras' ? 'purchases' : 'suppliers') + '.js';
       assert.ok(response.text.indexOf('/js/components/catalog-api.js') < response.text.indexOf(script));
       assert.ok(response.text.indexOf('/js/components/catalog-form.js') < response.text.indexOf(script));
     } else {
@@ -44,7 +44,7 @@ test('U006: shared module structure, authenticated navigation, profile and local
       assert.match(response.text, /id="module-search"[^>]+disabled/);
     }
     assert.ok(response.text.includes('data-module-error'));
-    if(!['inicio','productos','proveedores'].includes(item.id))assert.ok(response.text.includes('Módulo en preparación'));
+    if(!['inicio','productos','proveedores','compras'].includes(item.id))assert.ok(response.text.includes('Módulo en preparación'));
   }
   s.setUser({...user,nombre:'<script>alert(1)</script>',apellido:'& Usuario'});
   const profile=await s.request('/perfil',{headers});

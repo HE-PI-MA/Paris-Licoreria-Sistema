@@ -12,11 +12,16 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON paris_licoreria.producto TO 'paris_app'@
 GRANT SELECT, INSERT, UPDATE, DELETE ON paris_licoreria.presentacion_producto TO 'paris_app'@'localhost';
 GRANT SELECT ON paris_licoreria.categoria TO 'paris_app'@'localhost';
 GRANT SELECT ON paris_licoreria.unidad_medida TO 'paris_app'@'localhost';
-GRANT SELECT ON paris_licoreria.detalle_compra TO 'paris_app'@'localhost';
+GRANT SELECT, INSERT ON paris_licoreria.detalle_compra TO 'paris_app'@'localhost';
 GRANT SELECT ON paris_licoreria.detalle_venta TO 'paris_app'@'localhost';
 GRANT SELECT ON paris_licoreria.vw_stock_producto TO 'paris_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON paris_licoreria.catalogo_operacion TO 'paris_app'@'localhost';
 -- U023: ejecutar después de scripts/setup-suppliers.js con una cuenta de instalación.
 GRANT SELECT, INSERT, UPDATE, DELETE ON paris_licoreria.proveedor TO 'paris_app'@'localhost';
-GRANT SELECT ON paris_licoreria.compra TO 'paris_app'@'localhost';
--- No conceder INSERT/UPDATE/DELETE directos sobre el historial.
+GRANT SELECT, INSERT ON paris_licoreria.compra TO 'paris_app'@'localhost';
+-- U025: la compra y los catálogos nuevos se guardan en una sola transacción de la aplicación.
+GRANT SELECT, INSERT ON paris_licoreria.lote_producto TO 'paris_app'@'localhost';
+GRANT SELECT, INSERT ON paris_licoreria.lote_ubicacion TO 'paris_app'@'localhost';
+GRANT SELECT ON paris_licoreria.ubicacion TO 'paris_app'@'localhost';
+GRANT SELECT ON paris_licoreria.vw_compras_totales TO 'paris_app'@'localhost';
+-- No conceder UPDATE/DELETE sobre el historial de compras ni sobre los lotes para esta etapa.

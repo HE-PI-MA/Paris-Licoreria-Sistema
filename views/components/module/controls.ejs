@@ -1,19 +1,19 @@
 <%# Controles compartidos sin tarjeta exterior: categoría o estado directo; otros módulos pueden abrir filtros avanzados. %>
-<% const inlineCategory = moduleUi.filterMode === 'inline-category'; const inlineState = moduleUi.filterMode === 'inline-state'; const inline = inlineCategory || inlineState; %>
+<% const inlineCategory = moduleUi.filterMode === 'inline-category'; const inlineState = moduleUi.filterMode === 'inline-state'; const inline = inlineCategory || inlineState; const searchOnly = moduleUi.filterMode === 'search-only'; %>
 <section class="module-controls-panel" data-module-region="controls" aria-label="Buscador y filtros">
   <div class="module-controls-row app-fields--toolbar">
     <div class="module-search-field">
       <label class="app-sr-only" for="module-search">Buscar</label>
-      <div class="module-search-input"><%- include('../icon', { name: 'search' }) %><input class="app-input" id="module-search" type="search" autocomplete="off" spellcheck="false" placeholder="<%= moduleUi.searchPlaceholder %>" <% if (!moduleUi.enabled) { %>disabled<% } %><% if (!inline) { %> aria-describedby="module-controls-help"<% } %>></div>
+      <div class="module-search-input"><%- include('../icon', { name: 'search' }) %><input class="app-input" id="module-search" type="search" autocomplete="off" spellcheck="false" placeholder="<%= moduleUi.searchPlaceholder %>" <% if (!moduleUi.enabled) { %>disabled<% } %><% if (!inline && !searchOnly) { %> aria-describedby="module-controls-help"<% } %>></div>
     </div>
     <% if (inline) { %>
       <div class="module-select-field">
         <label class="app-sr-only" for="<%= inlineCategory ? 'module-category' : 'module-state' %>"><%= inlineCategory ? 'Categoría' : 'Estado' %></label>
         <select class="app-input" id="<%= inlineCategory ? 'module-category' : 'module-state' %>" name="<%= inlineCategory ? 'categoryId' : 'state' %>"><option value=""><%= inlineCategory ? 'Todas las categorías' : 'Todos los estados' %></option></select>
       </div>
-    <% } else { %>
+    <% } else if (!searchOnly) { %>
       <button class="module-filter-button app-button app-button--secondary" type="button" <% if (!moduleUi.enabled) { %>disabled<% } %> aria-describedby="module-controls-help"><%- include('../icon', { name: 'filter' }) %><span>Filtros</span></button>
     <% } %>
   </div>
-  <% if (!inline) { %><p class="module-controls-help" id="module-controls-help"><%= moduleUi.enabled ? moduleUi.controlsHelp : 'Disponible próximamente.' %></p><% } %>
+  <% if (!inline && !searchOnly) { %><p class="module-controls-help" id="module-controls-help"><%= moduleUi.enabled ? moduleUi.controlsHelp : 'Disponible próximamente.' %></p><% } %>
 </section>

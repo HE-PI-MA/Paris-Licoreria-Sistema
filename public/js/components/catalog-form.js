@@ -4,11 +4,11 @@
   const UI = window.ParisUI;
   let sequence = 0;
   class CatalogForm {
-    constructor({ title, icon, api, record, onSaved, opener }) {
+    constructor({ title, icon, api, record, onSaved, opener, size = 'medium' }) {
       Object.assign(this, { api, record, onSaved, opener }); this.selectors = [];
       this.form = UI.element('form', 'app-form'); this.form.autocomplete = 'off'; this.form.id = 'catalog-form-' + (++sequence);
       this.grid = UI.element('div', 'app-form-grid'); this.form.append(this.grid);
-      this.modal = new UI.Modal({ title, icon, content: this.form, isDirty: () => this.controller?.isDirty(),
+      this.modal = new UI.Modal({ title, icon, size, content: this.form, isDirty: () => this.controller?.isDirty(),
         onClose: () => { this.controller?.destroy(); this.selectors.forEach(item => item.destroy()); this.modal.destroy(); }
       });
     }
@@ -37,9 +37,9 @@
       this.selectors.push(new UI.SearchSelect({ select, searchable: false }));
       return select;
     }
-    selector(name, label, kind, selected, help) {
+    selector(name, label, kind, selected, help, optionsApi = this.api) {
       const input = this.field(name, label, { type: 'select', required: true, help, options: [{ value: '', label: 'Seleccionar' }] });
-      const enhanced = new UI.SearchSelect({ select: input, load: params => this.api.options(kind, params) });
+      const enhanced = new UI.SearchSelect({ select: input, load: params => optionsApi.options(kind, params) });
       if (selected) enhanced.setValue(selected);
       this.selectors.push(enhanced); return input;
     }

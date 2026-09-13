@@ -1,11 +1,12 @@
-/** Conserva una escritura y su resultado en la misma transacción para reintentar sin duplicar datos. Compartido por Productos y Proveedores. */
+/** Conserva una escritura y su resultado en la misma transacción para reintentar sin duplicar datos. Compartido por catálogos y compras. */
 const { RecordError } = require('../domain/RecordInput');
 class OperationStore {
-  constructor(pool) { this.pool = pool; }
+  constructor(pool, { repeatableRead = false } = {}) { this.pool = pool; this.repeatableRead = repeatableRead; }
   /** Guarda operación y resultado en la MISMA transacción para que un reintento no duplique una escritura confirmada. */
   async write({ userId, key, hash }, operation) {
     const c = await this.pool.getConnection();
     try {
+      if (this.repeatableRead) await c.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
       await c.beginTransaction();
       try { await c.query('INSERT INTO catalogo_operacion (id_usuario,clave,solicitud_hash) VALUES(?,?,?)', [userId,key,hash]); }
       catch (error) {
