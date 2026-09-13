@@ -15,8 +15,9 @@
         this.phone.value=record?.phone || '';this.phone.readOnly=Boolean(record);
       });
       this.section('Ingreso');
-      this.location=this.field('locationId','Ubicación de ingreso',{type:'select',required:true,options:[{value:'',label:'Seleccionar ubicación'}]});
-      this.locationSelect=new UI.SearchSelect({select:this.location,load:p=>this.api.request('/ubicaciones'+this.api.query(p),{signal:p.signal})});this.selectors.push(this.locationSelect);
+      this.location=this.lookup('locationId','Ubicación de ingreso *',p=>this.api.request('/ubicaciones'+this.api.query(p),{signal:p.signal}));
+      this.location.control.input.maxLength=80;this.location.control.input.required=true;
+      this.bindLookup(this.location,'location',id=>({id}),()=>{});
       this.observation=this.field('observation','Observación',{maxLength:250,uppercase:true});
       this.section('Producto de la compra');
       this.product=this.lookup('product','Producto',p=>this.productOptions(p));
@@ -25,13 +26,15 @@
       this.unit=super.selector('unitId','Unidad base','units',null,null,this.productsApi);this.unit.required=false;
       this.presentation=this.lookup('presentation','Presentación',p=>this.presentationOptions(p));
       this.bindLookup(this.presentation,'presentation',id=>this.productsApi.presentation(this.selectedProduct.id,id),record=>this.setPresentation(record));
-      this.factor=this.field('factor','Unidades base por presentación',{type:'number',min:'0.001',step:'0.001',value:'1',help:'Ejemplo: un paquete de 6 equivale a 6 unidades base.'});
+      this.factor=this.field('factor','Equivalencia',{type:'number',min:'0.001',step:'0.001',value:'1',help:'Unidades base por presentación. Ejemplo: paquete de 6 = 6 unidades.'});
       this.barcode=this.field('barcode','Código de barras',{maxLength:50,uppercase:false});
-      this.price=this.field('price','Precio de venta de la presentación (Bs)',{type:'number',min:'0',step:'0.01'});
+      const productSection=this.grid.parentElement;
+      this.grid=UI.element('div','app-form-grid app-form-grid--compact');productSection.append(this.grid);
       this.quantity=this.field('quantity','Cantidad comprada',{type:'number',min:'0.001',step:'0.001',value:'1'});
-      this.cost=this.field('cost','Costo por presentación (Bs)',{type:'number',min:'0',step:'0.01'});
+      this.cost=this.field('cost','Costo (Bs)',{type:'number',min:'0',step:'0.01',help:'Por presentación.'});
+      this.price=this.field('price','Precio venta (Bs)',{type:'number',min:'0',step:'0.01',help:'Por presentación.'});
       this.lot=this.field('lotCode','Lote (opcional)',{maxLength:80,uppercase:false});
-      this.expiry=this.field('expiresOn','Vencimiento (opcional)',{type:'date'});
+      this.expiry=this.field('expiresOn','Vencimiento',{type:'date',help:'Opcional.'});
       const toolbar=UI.element('div','app-form-toolbar');
       this.add=UI.Button.create({label:'Agregar producto',icon:'plus',variant:'primary'});
       this.reset=UI.Button.create({label:'Limpiar producto'});toolbar.append(this.add,this.reset);this.form.append(toolbar);
@@ -130,10 +133,14 @@
       if(this.product.control.input.value.trim() || this.presentation.control.input.value.trim() || this.cost.value || this.lot.value || this.expiry.value || this.price.value || this.quantity.value!=='1' || this.factor.value!=='1' || this.editing)throw new UI.CatalogApiError('Agrega el producto que estás editando o pulsa Limpiar producto antes de guardar la compra.');
       if(!this.draft.rows.length)throw new UI.CatalogApiError('Agrega al menos un producto a la compra.');
       return {supplier:this.supplierRecord?this.ref(this.supplierRecord):{name:this.supplier.control.input.value.trim(),phone:this.phone.value.trim()},
-        locationId:this.location.value,observation:this.observation.value,lines:this.draft.payload()};
+        ...(this.location.select.value?{locationId:this.location.select.value}:{locationName:this.location.control.input.value.trim()}),
+        observation:this.observation.value,lines:this.draft.payload()};
     }
     validatePurchase(){
-      return !this.supplier.control.input.value.trim()?{supplierText:'Escribe o selecciona el proveedor.'}:{};
+      const errors={};
+      if(!this.supplier.control.input.value.trim())errors.supplierText='Escribe o selecciona el proveedor.';
+      if(!this.location.control.input.value.trim())errors.locationIdText='Escribe o selecciona la ubicación de ingreso.';
+      return errors;
     }
     addLine(){
       if(this.controller.busy)return;

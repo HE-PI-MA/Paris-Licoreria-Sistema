@@ -120,7 +120,7 @@ Este mapa describe el código propio del proyecto. Las dependencias instaladas, 
 | `views/components/sidebar-icon.ejs` | U006D: el sidebar utiliza el mismo catalogo de iconos que los modulos. |
 | `views/components/sidebar.ejs` | Compone marca, navegación autorizada y perfil del menú lateral adaptable. |
 | `views/components/ui-icons.ejs` | Plantillas para JavaScript; las formas proceden del mismo catálogo local usado por el sidebar. |
-| `views/compras/content.ejs` | Cuerpo de compras: reutiliza el estado de preparación hasta conectar sus operaciones. |
+| `views/compras/content.ejs` | Punto de montaje de la tabla de Compras. |
 | `views/dashboard/content.ejs` | Saludo inicial del espacio de trabajo; el resumen operativo sigue pendiente. |
 | `views/demo/components.ejs` | Demostración aislada: la clase de página mantiene los registros ficticios en memoria. |
 | `views/inventario/content.ejs` | Cuerpo de inventario: reutiliza el estado de preparación hasta conectar sus operaciones. |
@@ -199,3 +199,5 @@ Referencias: [Componentes U009](20_COMPONENTES_COMPARTIDOS_U009.md), [Filtros y 
 | tests/purchases-mysql.test.js | Transacciones, stock y permisos en MySQL desechable. |
 
 Los archivos compartidos modificados conservan sus cabeceras de propósito. No hay una hoja CSS de Compras: forms.css define las secciones, acciones y total reutilizables.
+
+U026 amplía los archivos existentes de Compras para ubicaciones nuevas: PurchaseInput valida el destino, PurchaseService coordina su alta atómica y PurchaseRepository consulta/inserta ubicacion. PurchaseForm reutiliza SearchSelect y la fila app-form-grid--compact de forms.css. Ver docs/38_UBICACIONES_Y_FORMULARIO_U026.md.

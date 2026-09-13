@@ -1,6 +1,7 @@
 /* Campos comunes y validación. Los estilos propios del login permanecen en auth.css. */
 .app-field {
   display: grid;
+  min-width: 0;
   align-content: start;
   gap: var(--app-s2);
 }
@@ -50,6 +51,9 @@ select.app-input { padding-right: 2rem; }
 .app-field-help { color: var(--app-muted); }
 .app-field-error { color: var(--app-danger); font-weight: 550; }
 .app-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--module-space); }
+/* Filas reutilizables de importes, cantidades y fechas; vuelven a distribuirse cuando falta espacio. */
+.app-form-grid--compact { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }
+.app-form-grid + .app-form-grid { margin-top: var(--module-space); }
 .app-field--wide { grid-column: 1 / -1; }
 .app-form { display: grid; gap: var(--module-space); min-width: 0; }
 /* Secciones y resumen reutilizables para formularios con un listado de detalles. */

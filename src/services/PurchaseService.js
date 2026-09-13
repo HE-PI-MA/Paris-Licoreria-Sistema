@@ -19,6 +19,13 @@ class PurchaseService {
     if(await this.repository.namedSupplier(c,data.name))throw new RecordError(409,'El proveedor ya está registrado. Selecciónalo en las sugerencias; si está inactivo, revísalo en Proveedores.');
     return (await this.repository.suppliers.insert(c,data)).id;
   }
+  /** El destino nuevo se crea con la compra. Una coincidencia exacta activa se reutiliza sin modificarla. */
+  async location(c,data) {
+    const row=data.locationId ? await this.repository.location(c,data.locationId) : await this.repository.namedLocation(c,data.locationName);
+    if(row?.state==='ACTIVO')return data.locationId || row.id;
+    if(row || data.locationId)throw new RecordError(422,'La ubicación no está disponible.',{locationIdText:'Elige una ubicación activa o escribe otro nombre.'});
+    return this.repository.insertLocation(c,data.locationName);
+  }
   async product(c,data,cache) {
     if(data.id)return this.current(await this.repository.products.getProduct(data.id,c,true),data,'El producto');
     const previous=cache.get(data.clientKey);
@@ -49,7 +56,7 @@ class PurchaseService {
     try {
       return await this.repository.write(metadata,async c=>{
         if((await this.repository.actor(c,userId))?.state!=='ACTIVO')throw new RecordError(403,'El usuario ya no está activo.');
-        if((await this.repository.location(c,data.locationId))?.state!=='ACTIVO')throw new RecordError(422,'Selecciona una ubicación activa.',{locationId:'La ubicación no está disponible.'});
+        const locationId=await this.location(c,data);
         const supplierId=await this.supplier(c,data.supplier), products=new Map(), presentations=new Map();
         const id=await this.repository.insert(c,supplierId,userId,data.observation);
         for(const [index,line] of data.lines.entries()) {
@@ -58,14 +65,14 @@ class PurchaseService {
             const presentation=await this.presentation(c,product.id,line.presentation,presentations);
             const baseQuantity=Decimal.multiply(line.quantity,presentation.factor,3), units=Decimal.units(baseQuantity,3);
             if(units<=0n || units>999999999999999n)throw new RecordError(422,'La cantidad convertida debe estar entre 0,001 y 999.999.999.999,999 unidades base.');
-            await this.repository.insertLine(c,id,presentation.id,data.locationId,line,baseQuantity);
+            await this.repository.insertLine(c,id,presentation.id,locationId,line,baseQuantity);
           } catch(error) { if(error instanceof RecordError)throw new RecordError(error.status,'Fila '+(index+1)+': '+error.message); throw error; }
         }
         return {id,total};
       });
     } catch(error) {
       if(error instanceof RecordError)throw error;
-      if(error.code==='ER_DUP_ENTRY')throw new RecordError(409,'Ya existe una presentación o código de barras con esos datos. Revisa las sugerencias.');
+      if(error.code==='ER_DUP_ENTRY')throw new RecordError(409,'Ya existe una ubicación, presentación o código de barras con esos datos. Revisa las sugerencias.');
       if(['ER_LOCK_DEADLOCK','ER_LOCK_WAIT_TIMEOUT'].includes(error.code))throw new RecordError(409,'Otra operación está usando estos registros. Reintenta guardar la misma compra.');
       if(['ER_NO_REFERENCED_ROW_2','ER_SIGNAL_EXCEPTION'].includes(error.code))throw new RecordError(409,'Los datos cambiaron o no cumplen las reglas de stock. Revisa las filas antes de reintentar.');
       throw error;

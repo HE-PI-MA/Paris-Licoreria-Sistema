@@ -2,7 +2,7 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U024
+## Estado del desarrollo — U026
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
@@ -24,7 +24,7 @@ Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servido
 
 **Pendiente:** las operaciones de los otros módulos. Inicio conserva el saludo y las pantallas restantes conservan sus espacios de preparación.
 
-La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; Productos y Proveedores incorporan su API y formularios. Compras, Inventario, Ventas, Caja, Reportes y Usuarios todavía no tienen sus operaciones conectadas a la interfaz.
+La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; Productos, Proveedores y Compras incorporan su API y formularios. Inventario, Ventas, Caja, Reportes y Usuarios todavía no tienen sus operaciones conectadas a la interfaz.
 
 La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, modales, confirmaciones, tablas, filtros, selectores, fechas y menús de acciones. Login y activación comparten AuthForm. CSS conserva su organización por componentes; la auditoría U011 corrige interacciones y optimiza la compilación de EJS sin cambiar el diseño.
 
@@ -106,3 +106,7 @@ Las contraseñas admiten hasta 72 bytes UTF-8, el mismo límite utilizado al cre
 ## Compras U025
 
 El módulo Compras registra proveedor, productos y presentaciones desde un único formulario con autocompletado y borrador de filas. Guarda todo junto con el stock en una transacción idempotente. Consultar [uso, instalación y pruebas](docs/37_COMPRAS_U025.md). Comprobación de solo lectura: `npm run db:purchases`.
+
+## Ubicaciones y formulario U026
+
+Compras permite escribir una ubicación nueva y guardarla en la misma transacción. Una coincidencia exacta activa se reutiliza; cancelar no registra el lugar. Cantidad, costo, precio de venta, lote y vencimiento comparten una fila adaptable mediante CSS de formularios compartido. Consultar [uso e instalación U026](docs/38_UBICACIONES_Y_FORMULARIO_U026.md).

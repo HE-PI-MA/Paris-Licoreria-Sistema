@@ -3,6 +3,13 @@ const { ProductInput, ProductError: RecordError } = require('./ProductInput');
 const SupplierInput = require('./SupplierInput');
 class PurchaseInput extends ProductInput {
   static reference(value) { return { id: this.id(value.id), version: this.version(value.version) }; }
+  /** Conserva el contrato anterior por ID; un nombre nuevo se valida antes de iniciar la transacción. */
+  static location(body) {
+    if (body.locationName === undefined) return { locationId: this.id(body.locationId, 'locationIdText') };
+    if (body.locationId !== undefined) throw new RecordError(422, 'Selecciona una ubicación o escribe su nombre.', { locationIdText: 'Indica una sola ubicación de ingreso.' });
+    const name = this.text(body.locationName, 80, 'locationIdText').replace(/\s+/g, ' ').toLocaleUpperCase('es');
+    return { locationName: this.text(name, 80, 'locationIdText') };
+  }
   static date(value) {
     if (!value) return null;
     if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || value < '1000-01-01' || value > '9999-12-31' ||
@@ -12,7 +19,7 @@ class PurchaseInput extends ProductInput {
     return value;
   }
   static purchase(body) {
-    this.body(body, ['supplier', 'locationId', 'observation', 'lines']);
+    this.body(body, ['supplier', 'locationId', 'locationName', 'observation', 'lines']);
     this.body(body.supplier, body.supplier?.id ? ['id', 'version'] : ['name', 'phone']);
     let supplier;
     try { supplier = body.supplier.id ? this.reference(body.supplier) : SupplierInput.supplier({ ...body.supplier, state: 'ACTIVO' }); }
@@ -39,7 +46,7 @@ class PurchaseInput extends ProductInput {
         throw error;
       }
     });
-    return { supplier, locationId: this.id(body.locationId,'locationId'), observation: this.text(body.observation,250,'observation',true), lines };
+    return { supplier, ...this.location(body), observation: this.text(body.observation,250,'observation',true), lines };
   }
   static list(query) {
     this.body(query, ['term','page','pageSize','sort','direction']);

@@ -22,6 +22,7 @@ GRANT SELECT, INSERT ON paris_licoreria.compra TO 'paris_app'@'localhost';
 -- U025: la compra y los catálogos nuevos se guardan en una sola transacción de la aplicación.
 GRANT SELECT, INSERT ON paris_licoreria.lote_producto TO 'paris_app'@'localhost';
 GRANT SELECT, INSERT ON paris_licoreria.lote_ubicacion TO 'paris_app'@'localhost';
-GRANT SELECT ON paris_licoreria.ubicacion TO 'paris_app'@'localhost';
+-- U026: permite registrar una ubicación nueva dentro de la misma compra.
+GRANT SELECT, INSERT ON paris_licoreria.ubicacion TO 'paris_app'@'localhost';
 GRANT SELECT ON paris_licoreria.vw_compras_totales TO 'paris_app'@'localhost';
 -- No conceder UPDATE/DELETE sobre el historial de compras ni sobre los lotes para esta etapa.

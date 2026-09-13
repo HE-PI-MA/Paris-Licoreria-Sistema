@@ -54,6 +54,10 @@ class PurchaseRepository {
   async namedProduct(c,name) { const [[row]]=await c.query('SELECT id_producto AS id FROM producto WHERE nombre=? FOR UPDATE',[name]); return row; }
   async namedPresentation(c,id,name) { const [[row]]=await c.query('SELECT id_presentacion AS id FROM presentacion_producto WHERE id_producto=? AND nombre_presentacion=? FOR UPDATE',[id,name]); return row; }
   async location(c,id) { const [[row]]=await c.query('SELECT estado AS state FROM ubicacion WHERE id_ubicacion=? FOR SHARE',[id]); return row; }
+  async namedLocation(c,name) { const [[row]]=await c.query('SELECT id_ubicacion AS id,estado AS state FROM ubicacion WHERE nombre=? FOR SHARE',[name]); return row; }
+  async insertLocation(c,name) {
+    const [row]=await c.query("INSERT INTO ubicacion(nombre,estado) VALUES(?,'ACTIVO')",[name]);return row.insertId;
+  }
   async actor(c,id) { const [[row]]=await c.query('SELECT estado AS state FROM usuario WHERE id_usuario=? FOR SHARE',[id]); return row; }
   async insert(c,supplierId,userId,observation) {
     const [r]=await c.query('INSERT INTO compra(id_proveedor,id_usuario,observacion) VALUES(?,?,?)',[supplierId,userId,observation || null]); return r.insertId;

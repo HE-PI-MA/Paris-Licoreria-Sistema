@@ -4,6 +4,30 @@ const {PurchaseMemoryRepository,body}=require('./support/purchase-fixture');
 const Service=require('../src/services/PurchaseService'),Input=require('../src/domain/PurchaseInput'),Decimal=require('../public/js/components/decimal');
 const {server,password}=require('./support/application-fixture');
 const key=()=>crypto.randomUUID();
+test('Ubicaciones: conserva el contrato U025 y valida nombres nuevos sin destinos ambiguos',()=>{
+ const payload=body(),previous=Input.purchase(payload);
+ assert.equal(previous.locationId,1);assert.equal(Object.hasOwn(previous,'locationName'),false);
+ const {locationId,...inline}=payload;
+ assert.equal(Input.purchase({...inline,locationName:'  heladera   dos  '}).locationName,'HELADERA DOS');
+ for(const name of ['', ' ', 'a'.repeat(81), '\u0000HELADERA', null, 123])assert.throws(()=>Input.purchase({...inline,locationName:name}),e=>e.status===422);
+ assert.throws(()=>Input.purchase({...payload,locationName:'HELADERA'}),e=>e.status===422);
+});
+test('Ubicaciones: alta atómica, reintento idempotente, reutilización exacta y rechazo de inactivas',async()=>{
+ const repo=new PurchaseMemoryRepository(),service=new Service(repo),payload=body(),operation=key();delete payload.locationId;payload.locationName='heladera';
+ const [a,b]=await Promise.all([service.create(1,operation,payload),service.create(1,operation,payload)]);assert.deepEqual(a,b);
+ assert.equal(repo.pool.data.locations.length,2);assert.equal((await service.detail(a.id)).lines[0].location,'HELADERA');
+ assert.deepEqual(await service.locations({term:'heladera'}),{options:[{value:'2',label:'HELADERA'}],total:1});
+ const ref=r=>({id:r.id,version:r.version});
+ const existing={...payload,supplier:ref(await repo.suppliers.get(1)),lines:[{...payload.lines[0],product:ref(await repo.products.getProduct(1)),presentation:ref(await repo.products.getPresentation(1,1))}]};
+ await service.create(1,key(),existing);assert.equal(repo.pool.data.locations.length,2);assert.equal(repo.pool.data.lines.at(-1).locationId,2);
+ repo.pool.data.locations[1].state='INACTIVO';await assert.rejects(service.create(1,key(),existing),e=>e.status===422&&Boolean(e.fieldErrors.locationIdText));
+ assert.equal(repo.pool.data.locations[1].state,'INACTIVO');assert.equal(repo.pool.data.purchases.length,2);
+});
+test('Ubicaciones: un error tardío revierte el lugar nuevo y permite volver a guardar',async()=>{
+ const repo=new PurchaseMemoryRepository(),service=new Service(repo),payload=body(),operation=key();delete payload.locationId;payload.locationName='CAJA DOS';
+ repo.failLine=true;await assert.rejects(service.create(1,operation,payload));assert.equal(repo.pool.data.locations.length,1);assert.equal(repo.pool.data.operations.size,0);
+ repo.failLine=false;await service.create(1,operation,payload);assert.equal(repo.pool.data.locations.length,2);assert.equal(repo.pool.data.locations[1].name,'CAJA DOS');
+});
 test('Compras: altas conjuntas, equivalencia, total y reintento concurrente sin duplicar',async()=>{
  const repo=new PurchaseMemoryRepository(),service=new Service(repo),payload=body(),operation=key();
  const [a,b]=await Promise.all([service.create(1,operation,payload),service.create(1,operation,payload)]);assert.deepEqual(a,b);assert.equal(a.total,'90.50');
