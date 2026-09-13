@@ -2,7 +2,7 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U026
+## Estado del desarrollo — U027
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
@@ -110,3 +110,7 @@ El módulo Compras registra proveedor, productos y presentaciones desde un únic
 ## Ubicaciones y formulario U026
 
 Compras permite escribir una ubicación nueva y guardarla en la misma transacción. Una coincidencia exacta activa se reutiliza; cancelar no registra el lugar. Cantidad, costo, precio de venta, lote y vencimiento comparten una fila adaptable mediante CSS de formularios compartido. Consultar [uso e instalación U026](docs/38_UBICACIONES_Y_FORMULARIO_U026.md).
+
+## Formulario compacto U027
+
+Proveedor e ingreso comparten una fila adaptable con nombre, teléfono, ubicación y observación, reutilizando la clase global existente. Ver [instalación U027](docs/39_FILA_PROVEEDOR_INGRESO_U027.md).

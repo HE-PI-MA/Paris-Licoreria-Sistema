@@ -8,14 +8,14 @@
       this.productsApi=new window.ParisProducts.ProductsApi();this.suppliersApi=new UI.CatalogApi('/api/proveedores');
       this.draft=new P.PurchaseDraft();this.pending=new Set();this.generation={};this.lookupRecords=new Map();
       this.grid.remove();
-      this.section('Proveedor');
+      this.section('Proveedor e ingreso');
+      this.grid.classList.add('app-form-grid--compact');
       this.supplier=this.lookup('supplier','Nombre o empresa',p=>this.catalogOptions(this.suppliersApi,p));
       this.phone=this.field('phone','Teléfono',{maxLength:30,uppercase:false});
       this.bindLookup(this.supplier,'supplier',id=>this.suppliersApi.detail(id),record=>{
         this.phone.value=record?.phone || '';this.phone.readOnly=Boolean(record);
       });
-      this.section('Ingreso');
-      this.location=this.lookup('locationId','Ubicación de ingreso *',p=>this.api.request('/ubicaciones'+this.api.query(p),{signal:p.signal}));
+      this.location=this.lookup('locationId','Ubicación *',p=>this.api.request('/ubicaciones'+this.api.query(p),{signal:p.signal}));
       this.location.control.input.maxLength=80;this.location.control.input.required=true;
       this.bindLookup(this.location,'location',id=>({id}),()=>{});
       this.observation=this.field('observation','Observación',{maxLength:250,uppercase:true});
