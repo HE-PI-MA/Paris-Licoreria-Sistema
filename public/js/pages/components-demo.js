@@ -10,7 +10,7 @@
     constructor(element) {
       this.element = element;
       this.events = new AbortController();
-      this.notifications = new UI.NotificationCenter();
+      this.notifications = UI.NotificationCenter.shared();
       this.resetRecords();
       this.failNext = false;
       this.table = new UI.DataTable({

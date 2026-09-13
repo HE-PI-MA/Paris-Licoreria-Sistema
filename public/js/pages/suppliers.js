@@ -5,7 +5,7 @@
   class SuppliersPage {
     constructor(element) {
       this.api = new UI.CatalogApi('/api/proveedores');
-      this.notifications = new UI.NotificationCenter(); this.events = new AbortController();
+      this.notifications = UI.NotificationCenter.shared(); this.events = new AbortController();
       this.dialogs = new Set(); this.operations = new Map();
       this.table = new UI.DataTable({ container: element, caption: 'Proveedores', mode: 'scroll', numbered: true, pageSize: 50,
         load: params => this.api.list(params), sort: { key: 'name', direction: 'asc' }, actionDisplay: 'menu',

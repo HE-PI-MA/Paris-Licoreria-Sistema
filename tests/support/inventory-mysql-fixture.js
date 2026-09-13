@@ -11,9 +11,10 @@ async function database(){
   const setup=new (require('../../scripts/setup-products'))(owner);await owner.query('INSERT INTO app_migration(id,checksum) VALUES(?,?)',['U004',setup.checksum('U004')]);await setup.run();await new (require('../../scripts/setup-suppliers'))(owner).run();
   await owner.query("INSERT INTO usuario(id_rol,nombre,apellido,nombre_usuario,contrasena) VALUES(1,'Prueba','Inventario','u030_test','synthetic-only')");
   await new (require('../../scripts/setup-inventory'))(owner).run();
+  await new (require('../../scripts/setup-media'))(owner).run();
   await admin.query('CREATE USER ?@? IDENTIFIED BY ?',[account,'localhost',secret]);
   const permissions=[['SELECT',['usuario','app_migration','unidad_medida','vw_compras_totales','vw_stock_producto','vw_stock_lote_ubicacion','detalle_venta','detalle_venta_lote','venta','sesion_caja']],
-   ['SELECT,INSERT,UPDATE,DELETE',['producto','presentacion_producto','proveedor']],['SELECT,INSERT',['categoria','compra','detalle_compra','lote_producto','ubicacion','ajuste_inventario','inventario_movimiento']],['SELECT,INSERT,UPDATE',['lote_ubicacion','catalogo_operacion']]];
+   ['SELECT,INSERT,UPDATE,DELETE',['producto_imagen','producto','presentacion_producto','proveedor']],['SELECT,INSERT',['categoria','compra','detalle_compra','lote_producto','ubicacion','ajuste_inventario','inventario_movimiento']],['SELECT,INSERT,UPDATE',['lote_ubicacion','catalogo_operacion']]];
   for(const [priv,tables]of permissions)for(const table of tables)await admin.query('GRANT '+priv+' ON '+name+'.'+table+' TO ?@?',[account,'localhost']);
   pool=mysql.createPool({...config,database:name,user:account,password:secret,connectionLimit:8});return {owner,pool,close};
  }catch(error){await close();throw error;}

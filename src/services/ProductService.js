@@ -8,6 +8,14 @@ class ProductService {
     if (row.version !== Input.version(token)) throw new ProductError(409, 'Otra operación modificó este registro. Cierra y vuelve a abrir el formulario para revisar los datos actuales.');
   }
   async list(query) { return this.repository.list(Input.page(query, ['name','category','stock','minimum','state'])); }
+  async photo(id) { return this.required(await this.repository.photos.read(Input.id(id))); }
+  async barcode(value) {
+    const code = Input.text(value, 50, 'barcode');
+    const found = await this.repository.barcode(code);
+    if (!found) return { found: false };
+    if (found.product.state !== 'ACTIVO' || found.product.categoryState !== 'ACTIVO' || found.presentation.state !== 'ACTIVO') throw new ProductError(409, 'El código pertenece a un producto o forma de venta inactivos. Actívalos en Productos antes de usarlos.');
+    return { found: true, ...found };
+  }
   async options(kind, query) { return this.repository.options(kind, Input.page(query)); }
   async detail(id) { return this.required(await this.repository.detail(Input.id(id))); }
   async presentations(id, query) { id = Input.id(id); this.required(await this.repository.getProduct(id)); return this.repository.presentations(id, Input.page(query, ['name','price','factor','state'])); }

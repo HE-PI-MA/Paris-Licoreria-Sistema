@@ -30,6 +30,8 @@
       this.bindLookup(this.presentation,'presentation',id=>this.productsApi.presentation(this.selectedProduct.id,id),record=>this.setPresentation(record));
       this.factor=this.field('factor','¿Cuánto trae?',{type:'number',min:'0.001',step:'0.001',value:'1',placeholder:'Ej.: 6',help:'Paquete de 6: escribe 6. Un kilo contado en gramos: 1000. Una botella: 1.'});
       this.barcode=this.field('barcode','Código de barras',{maxLength:50,uppercase:false,placeholder:'Ej.: 7771234567890'});
+      this.photo=new UI.PhotoField({container:this.grid,form:this.form,modal:this.modal});
+      new UI.BarcodeField({input:this.barcode,signal:this.modal.events.signal,onRead:code=>this.scan(code)});
       const productSection=this.grid.parentElement;
       this.grid=UI.element('div','app-form-grid app-form-grid--compact');productSection.append(this.grid);
       this.quantity=this.field('quantity','Cantidad comprada',{type:'number',min:'0.001',step:'0.001',value:'1',placeholder:'Ej.: 2',help:'Ej.: 2 paquetes de 6 ingresan 12 unidades.'});
@@ -121,6 +123,7 @@
       if(this.presentation){this.presentation.control.setValue(null);this.presentation.status.textContent='';this.setPresentation(null);}
       if(!this.category)return;
       this.setClassification(record,Boolean(record));
+      this.photo?.reset(record,Boolean(record));
     }
     /** Restaura la categoría escrita al reutilizar o editar un producto todavía no guardado. */
     setClassification(record,disabled){
@@ -135,14 +138,37 @@
       this.selectedPresentation=record;
       for(const [input,key,fallback] of [[this.factor,'factor','1'],[this.price,'price',''],[this.barcode,'barcode','']])if(input){input.value=record?.[key] ?? fallback;input.readOnly=Boolean(record);}
     }
+    /** Un código identifica la forma de compra exacta, sin crear registros al escanear. */
+    async scan(code){
+      if(this.controller.busy || this.destroyed)return;
+      const generation=this.generation.scan=(this.generation.scan || 0)+1;
+      const productGeneration=this.generation.product || 0;
+      this.pending.add('scan');
+      try{
+        const result=await this.productsApi.barcode(code,this.modal.events.signal);
+        if(this.destroyed || generation!==this.generation.scan || productGeneration!==(this.generation.product || 0) || this.barcode.value!==code)return;
+        if(!result.found){this.controller.alert.show('info','Código nuevo. Completa el producto y cómo lo compras antes de agregarlo.');return;}
+        if(this.product.control.input.value.trim() && !await UI.Confirm.ask({title:'Usar producto del código',message:'Se reemplazarán los datos del producto que estás editando por '+result.product.name+'. La cantidad y el costo se conservan.',confirmLabel:'Usar producto'}))return;
+        if(this.destroyed || generation!==this.generation.scan || productGeneration!==(this.generation.product || 0))return;
+        this.generation.product=(this.generation.product || 0)+1;this.pending.delete('product');this.productRecord=result.product;
+        this.setProduct(result.product);
+        this.product.control.setValue({value:result.product.id,label:result.product.name});this.product.status.textContent='Existente';
+        this.presentationRecord=result.presentation;this.setPresentation(result.presentation);
+        this.presentation.control.setValue({value:result.presentation.id,label:result.presentation.name});this.presentation.status.textContent='Existente';
+        this.quantity.focus();this.controller.alert.show('success','Código reconocido: '+result.product.name+' — '+result.presentation.name+'.');
+      }catch(error){if(!this.destroyed && generation===this.generation.scan)this.controller.alert.show('error',error.userMessage || 'No se pudo consultar el código.');}
+      finally{if(generation===this.generation.scan)this.pending.delete('scan');}
+    }
     ref(record){return {id:record.id,version:record.version};}
     payload(){
       if(this.pending.size)throw new UI.CatalogApiError('Espera a que termine la selección.');
-      if(this.product.control.input.value.trim() || this.presentation.control.input.value.trim() || this.cost.value || this.lot.value || this.expiry.value || this.price.value || this.quantity.value!=='1' || this.factor.value!=='1' || this.editing)throw new UI.CatalogApiError('Agrega el producto que estás editando o pulsa Limpiar producto antes de guardar la compra.');
+      if(this.product.control.input.value.trim() || this.presentation.control.input.value.trim() || this.cost.value || this.lot.value || this.expiry.value || this.price.value || this.quantity.value!=='1' || this.factor.value!=='1' || this.editing || this.photo.state.value)throw new UI.CatalogApiError('Agrega el producto que estás editando o pulsa Limpiar producto antes de guardar la compra.');
       if(!this.draft.rows.length)throw new UI.CatalogApiError('Agrega al menos un producto a la compra.');
-      return {supplier:this.supplierRecord?this.ref(this.supplierRecord):{name:this.supplier.control.input.value.trim(),phone:this.phone.value.trim()},
+      const data={supplier:this.supplierRecord?this.ref(this.supplierRecord):{name:this.supplier.control.input.value.trim(),phone:this.phone.value.trim()},
         ...(this.location.select.value?{locationId:this.location.select.value}:{locationName:this.location.control.input.value.trim()}),
         observation:this.observation.value,lines:this.draft.payload()};
+      if(new TextEncoder().encode(JSON.stringify(data)).length>4000000)throw new UI.CatalogApiError('Esta compra contiene demasiadas fotos. Reduce las fotos o registra algunas desde Productos.');
+      return data;
     }
     validatePurchase(){
       const errors={};
@@ -160,8 +186,8 @@
         const categoryName=this.categoryLookup.control.input.value.trim();
         if(!categoryName || !this.unit.value)throw new UI.CatalogApiError('Indica la categoría y selecciona cómo cuentas el producto: por unidad, gramo u otra medida de la lista.');
         const product=this.selectedProduct?.id?this.ref(this.selectedProduct):{
-          clientKey:this.selectedProduct?.clientKey || crypto.randomUUID(),name:this.selectedProduct?.name || name,
-          ...(this.category.value?{categoryId:this.category.value}:{categoryName}),unitId:this.unit.value};
+          clientKey:this.selectedProduct?.clientKey || UI.CatalogApi.newKey(),name:this.selectedProduct?.name || name,
+          ...(this.category.value?{categoryId:this.category.value}:{categoryName}),unitId:this.unit.value,...this.photo.payload()};
         const presentation=this.selectedPresentation?.id?this.ref(this.selectedPresentation):{name:this.selectedPresentation?.name || presentationName,
           factor:P.PurchaseDraft.decimal(this.factor.value,3,'la cantidad que trae',true),barcode:this.barcode.value.trim(),price:P.PurchaseDraft.decimal(this.price.value,2,'el precio de venta')};
         const quantity=P.PurchaseDraft.decimal(this.quantity.value,3,'la cantidad',true),cost=P.PurchaseDraft.decimal(this.cost.value,2,'el costo');
@@ -169,7 +195,7 @@
         const baseQuantity=UI.Decimal.multiply(quantity,factor,3);
         if(UI.Decimal.units(baseQuantity,3)<=0n || UI.Decimal.units(baseQuantity,3)>999999999999999n)throw new UI.CatalogApiError('Revisa cuántos paquetes o unidades compras y cuánto trae cada uno.');
         const display={product:this.selectedProduct?.name || name,presentation:this.selectedPresentation?.name || presentationName,
-          categoryId:this.category.value,unitId:this.unit.value,category:UI.SearchSelect.controls.get(this.category).input.value,unit:UI.SearchSelect.controls.get(this.unit).input.value,
+          photoHash:this.selectedProduct?.photoHash,categoryId:this.category.value,unitId:this.unit.value,category:UI.SearchSelect.controls.get(this.category).input.value,unit:UI.SearchSelect.controls.get(this.unit).input.value,
           factor,baseQuantity,price:this.price.value,barcode:this.barcode.value,lotCode:this.lot.value,expiresOn:this.expiry.value};
         this.draft.save({product,presentation,quantity,cost,lotCode:this.lot.value,expiresOn:this.expiry.value},display,this.editing);
         this.updateDraft();this.clearEditor();
@@ -178,6 +204,7 @@
     updateDraft(){this.draftState.value=JSON.stringify(this.draft.payload());this.total.textContent='Total: Bs '+UI.Decimal.format(this.draft.total());this.table.setData(this.draft.rows);}
     clearEditor(){
       if(this.controller?.busy)return;
+      this.generation.scan=(this.generation.scan || 0)+1;this.pending.delete('scan');
       this.editing=null;this.productRecord=null;this.generation.product=(this.generation.product || 0)+1;this.pending.delete('product');
       this.product.control.setValue(null);this.product.status.textContent='';this.setProduct(null);
       this.quantity.value='1';this.cost.value=this.lot.value=this.expiry.value='';this.add.querySelector('span').textContent='Agregar producto';
@@ -192,7 +219,8 @@
       if(this.destroyed || this.controller.busy)return;
       this.clearEditor();this.editing=record.id;
       const line=record.line;
-      this.selectedProduct={...line.product,name:record.product};
+      this.selectedProduct={...line.product,name:record.product,photoHash:record.photoHash};
+      this.photo.reset(this.selectedProduct,true);
       this.product.control.setValue({value:line.product.id || 'draft:'+line.product.clientKey,label:record.product});this.product.status.textContent=line.product.id?'Existente':'Nuevo en esta compra';
       this.setClassification({...record,...line.product},true);
       this.selectedPresentation=line.presentation.id?{...line.presentation,name:record.presentation,factor:record.factor}:null;

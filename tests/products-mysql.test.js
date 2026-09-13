@@ -28,8 +28,9 @@ test('U012: MySQL real, permisos mínimos, reintentos concurrentes e historial',
    await assert.rejects(setup.run(),/otra estructura/);
    await owner.query('ALTER TABLE catalogo_operacion DROP COLUMN inesperada');
   });
+  await new (require('../scripts/setup-media'))(owner).run();
   await admin.query('CREATE USER ?@? IDENTIFIED BY ?',[account,'localhost',secret]);
-  for(const [priv,tables]of [ ['SELECT',['usuario','app_migration','categoria','unidad_medida','detalle_compra','detalle_venta','vw_stock_producto']],['SELECT,INSERT,UPDATE,DELETE',['producto','presentacion_producto']],['SELECT,INSERT,UPDATE',['catalogo_operacion']]])for(const table of tables)await admin.query('GRANT '+priv+' ON '+db+'.'+table+' TO ?@?',[account,'localhost']);
+  for(const [priv,tables]of [ ['SELECT',['usuario','app_migration','categoria','unidad_medida','detalle_compra','detalle_venta','vw_stock_producto']],['SELECT,INSERT,UPDATE,DELETE',['producto_imagen','producto','presentacion_producto']],['SELECT,INSERT,UPDATE',['catalogo_operacion']]])for(const table of tables)await admin.query('GRANT '+priv+' ON '+db+'.'+table+' TO ?@?',[account,'localhost']);
   pool=mysql.createPool({...config,user:account,password:secret,database:db,connectionLimit:4});repo=new Repository(pool);service=new Service(repo);
   await t.test('cuenta limitada consulta e instala ya aplicado sin conceder DDL',async()=>{
    await new ProductsSetup(pool).run({check:true});assert.equal((await service.list({})).total,0);

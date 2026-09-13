@@ -5,9 +5,12 @@ class ProductRoutes {
   constructor(controller, license, auth) {
     this.router = express.Router();
     this.router.use(license.requireActivation, auth.requireAuth, new RoleMiddleware().allow('ADMINISTRADOR'));
+    this.router.use(express.json({ limit: '400kb' }));
     this.router.get('/', controller.handle('list'));
     for (const kind of ['categories','units']) this.router.get('/opciones/' + kind, (req, res, next) => { req.params.kind = kind; return controller.handle('options')(req, res, next); });
     this.router.post('/', controller.handle('create', { write: true, created: true }));
+    this.router.get('/codigo/:code', controller.handle('barcode'));
+    this.router.get('/:id/imagen', controller.handle('photo'));
     this.router.get('/:id', controller.handle('detail'));
     this.router.post('/:id/editar', controller.handle('update', { write: true }));
     this.router.post('/:id/estado', controller.handle('state', { write: true }));

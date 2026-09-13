@@ -11,8 +11,8 @@ class ProductInput extends RecordInput {
     return whole.replace(/^0+(?=\d)/, '') + '.' + fraction.padEnd(scale, '0');
   }
   static product(body, update = false) {
-    this.body(body, ['name', 'categoryId', 'unitId', 'description', 'minimum', 'state', ...(update ? ['version'] : [])]);
-    return this.productFields(body, { categoryId: this.id(body.categoryId, 'categoryId') });
+    this.body(body, ['name', 'categoryId', 'unitId', 'description', 'minimum', 'state', 'photo', ...(update ? ['version'] : [])]);
+    return { ...this.productFields(body, { categoryId: this.id(body.categoryId, 'categoryId') }), ...require('./ProductPhoto').optional(body) };
   }
   /** Comparte las reglas del producto con Compras, que también admite una categoría nueva validada. */
   static productFields(body, category) {

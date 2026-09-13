@@ -22,7 +22,7 @@
       // Formularios del negocio: las recomendaciones pertenecen a los controles de la aplicación.
       form.autocomplete = 'off';
       form.noValidate = true;
-      this.alert = alert || UI.Message.create(form);
+      this.alert = alert || UI.NotificationCenter.channel();
       this.ownsAlert = !alert;
       this.submitHandler = event => { event.preventDefault(); this.submit(); };
       form.addEventListener('submit', this.submitHandler, { signal: this.events.signal });
@@ -161,7 +161,7 @@
       if (this.busy) this.setBusy(false);
       this.events.abort();
       this.clearErrors();
-      if (this.ownsAlert) this.alert.element.remove();
+      if (this.ownsAlert) this.alert.clear();
       this.form.noValidate = this.originalNoValidate;
       if (this.originalAutocomplete === null) this.form.removeAttribute('autocomplete');
       else this.form.setAttribute('autocomplete', this.originalAutocomplete);

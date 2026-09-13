@@ -4,7 +4,7 @@ const SupplierInput = require('./SupplierInput');
 class PurchaseInput extends ProductInput {
   static reference(value) { return { id: this.id(value.id), version: this.version(value.version) }; }
   /** Solo los productos nuevos admiten categoría por nombre; el ID conserva el contrato anterior. */
-  static newProduct(body) {
+  static newProduct(body, photos) {
     let category;
     if (body.categoryName === undefined) category = { categoryId: this.id(body.categoryId, 'categoryId') };
     else {
@@ -15,7 +15,7 @@ class PurchaseInput extends ProductInput {
     return { clientKey: this.key(body.clientKey), ...this.productFields({
       name: this.text(body.name, 120, 'name').toLocaleUpperCase('es'), unitId: body.unitId,
       minimum: '0', description: '', state: 'ACTIVO'
-    }, category) };
+    }, category), ...require('./ProductPhoto').optional(body, photos) };
   }
   /** Conserva el contrato anterior por ID; un nombre nuevo se valida antes de iniciar la transacción. */
   static location(body) {
@@ -42,11 +42,12 @@ class PurchaseInput extends ProductInput {
       throw error;
     }
     if (!Array.isArray(body.lines) || !body.lines.length || body.lines.length > 50) throw new RecordError(422, 'Agrega entre 1 y 50 productos a la compra.');
+    const photos = new Map();
     const lines = body.lines.map((line, index) => {
       try {
         this.body(line, ['product', 'presentation', 'quantity', 'cost', 'lotCode', 'expiresOn']);
-        this.body(line.product, line.product?.id ? ['id', 'version'] : ['clientKey', 'name', 'categoryId', 'categoryName', 'unitId']);
-        const product = line.product.id ? this.reference(line.product) : this.newProduct(line.product);
+        this.body(line.product, line.product?.id ? ['id', 'version'] : ['clientKey', 'name', 'categoryId', 'categoryName', 'unitId', 'photo']);
+        const product = line.product.id ? this.reference(line.product) : this.newProduct(line.product, photos);
         this.body(line.presentation, line.presentation?.id ? ['id', 'version'] : ['name', 'factor', 'barcode', 'price']);
         if (line.presentation.id && !product.id) throw new RecordError(422, 'Un producto nuevo necesita su propia presentación.');
         const presentation = line.presentation.id ? this.reference(line.presentation) : this.presentation({ ...line.presentation,

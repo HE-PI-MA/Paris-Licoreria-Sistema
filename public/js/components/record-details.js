@@ -10,7 +10,9 @@
         const group = UI.element('div', 'app-record-detail' + (field.wide ? ' app-record-detail--wide' : ''));
         const term = UI.element('dt', '', field.label), value = UI.element('dd');
         const raw = record[field.key];
-        if (['number', 'quantity', 'price'].includes(field.type)) {
+        if (field.type === 'photo' && UI.ProductPhoto) {
+          value.append(UI.ProductPhoto.element(record, true));
+        } else if (['number', 'quantity', 'price'].includes(field.type)) {
           value.textContent = UI.ValueFormat.number(raw, { type: field.type });
           value.classList.add('app-record-detail-number');
         } else if (field.type === 'state') {

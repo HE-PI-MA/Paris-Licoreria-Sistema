@@ -37,3 +37,6 @@ body.app-modal-open { overflow: hidden; }
   .app-modal-header h2 { font-size: 1rem; }
   .app-modal-footer .app-button { flex: 1 1 auto; }
 }
+
+.app-modal-body { scrollbar-width: none; }
+.app-modal-body::-webkit-scrollbar { display: none; }

@@ -22,7 +22,7 @@
         throw new TypeError('Registros o tamaños de página no válidos.');
       }
       for (const column of columns) {
-        if (typeof column.key !== 'string' || !column.key || !column.label || !['text', 'number', 'quantity', 'price', 'state', 'date'].includes(column.type || 'text')) {
+        if (typeof column.key !== 'string' || !column.key || !column.label || !['text', 'number', 'quantity', 'price', 'state', 'date', 'product'].includes(column.type || 'text')) {
           throw new TypeError('Columna no válida.');
         }
       }
@@ -377,7 +377,9 @@
     /** Un único formateador sirve para celdas y detalles; ningún valor del usuario se interpreta como HTML. */
     fillCell(cell, column, record) {
       const value = record[column.key];
-      if (column.type === 'state') {
+      if (column.type === 'product' && UI.ProductPhoto) {
+        const item = UI.element('span', 'app-product-cell'); item.append(UI.ProductPhoto.element(record), UI.element('span', '', this.format(value, column, record))); cell.append(item);
+      } else if (column.type === 'state') {
         const state = column.states && Object.hasOwn(column.states, value) ? column.states[value] : null;
         const tone = state && ['success', 'inactive', 'warning', 'error', 'info', 'neutral'].includes(state.tone) ? state.tone : 'neutral';
         cell.append(UI.element('span', 'app-badge app-badge--' + tone, state?.label || this.format(value, column, record)));

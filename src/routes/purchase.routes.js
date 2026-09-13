@@ -5,6 +5,7 @@ class PurchaseRoutes {
   constructor(controller,license,auth) {
     this.router=express.Router();
     this.router.use(license.requireActivation,auth.requireAuth,new RoleMiddleware().allow('ADMINISTRADOR'));
+    this.router.use(express.json({ limit: '4mb' }));
     this.router.get('/',controller.handle('list'));
     this.router.get('/ubicaciones',controller.handle('locations'));
     this.router.get('/:id',controller.handle('detail'));

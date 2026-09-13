@@ -71,7 +71,7 @@ class App {
     this.templateCache = new TemplateCache(this.app, views, { development: !this.config.production, enabled: this.options.templateCache !== false });
     if (this.config.proxies.length) this.app.set('trust proxy', this.config.proxies);
     this.app.use(helmet({ contentSecurityPolicy: {
-      directives: { 'upgrade-insecure-requests': this.config.production ? [] : null }
+      directives: { 'upgrade-insecure-requests': this.config.production ? [] : null, 'img-src': ["'self'", 'data:', 'blob:'], 'media-src': ["'self'", 'blob:'] }
     } }));
     this.app.use((req, res, next) => {
       req.requestId = crypto.randomUUID();
@@ -85,9 +85,9 @@ class App {
     this.app.post('/api/auth/login', this.limits.login);
     this.app.post('/api/licencia/activar', this.limits.activation);
     this.app.get('/api/licencia/estado', this.limits.status);
-    // La compra acepta hasta 50 filas; los demás endpoints conservan el límite anterior.
-    this.app.use('/api/compras', express.json({ limit: '128kb' }));
-    this.app.use(express.json({ limit: '16kb' }));
+    // Las fotos se procesan en sus rutas protegidas. Login y activación mantienen su límite reducido.
+    const smallJson = express.json({ limit: '16kb' });
+    this.app.use((req, res, next) => /^\/api\/(productos|compras)(\/|$)/.test(req.path) ? next() : smallJson(req, res, next));
     this.sessionStore = this.options.sessionStore || new MySqlSessionStore(database.getPool());
     this.app.use(session({
       name: 'paris.sid', secret: this.config.sessionSecret,

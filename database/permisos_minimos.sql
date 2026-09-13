@@ -35,3 +35,6 @@ GRANT SELECT ON paris_licoreria.detalle_venta_lote TO 'paris_app'@'localhost';
 GRANT SELECT ON paris_licoreria.venta TO 'paris_app'@'localhost';
 GRANT SELECT ON paris_licoreria.sesion_caja TO 'paris_app'@'localhost';
 -- La aplicación no necesita CREATE, DROP ni TRIGGER. No conceder UPDATE/DELETE sobre la bitácora.
+
+-- U031: después de scripts/setup-media.js. Una foto opcional por producto.
+GRANT SELECT, INSERT, UPDATE, DELETE ON paris_licoreria.producto_imagen TO 'paris_app'@'localhost';

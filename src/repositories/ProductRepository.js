@@ -3,12 +3,12 @@ const crypto = require('node:crypto');
 const OperationStore = require('./OperationStore');
 const { ProductError } = require('../domain/ProductInput');
 class ProductRepository {
-  static productFields = 'p.id_producto AS id, p.nombre AS name, p.id_categoria AS categoryId, p.id_unidad_medida AS unitId, p.descripcion AS description, p.stock_minimo AS minimum, p.estado AS state';
+  static productFields = 'p.id_producto AS id, p.nombre AS name, p.id_categoria AS categoryId, p.id_unidad_medida AS unitId, p.descripcion AS description, p.stock_minimo AS minimum, p.estado AS state, (SELECT pi.hash FROM producto_imagen pi WHERE pi.id_producto=p.id_producto) AS photoHash';
   static presentationFields = 'pp.id_presentacion AS id, pp.id_producto AS productId, pp.nombre_presentacion AS name, pp.factor_conversion AS factor, pp.codigo_barras AS barcode, pp.precio_venta AS price, pp.estado AS state';
-  constructor(pool) { this.pool = pool; this.operations = new OperationStore(pool); }
+  constructor(pool) { this.pool = pool; this.photos = new (require('./ProductPhotoRepository'))(pool); this.operations = new OperationStore(pool, { repeatableRead: true }); }
   /** La versión refleja solo los campos editables; el stock no provoca conflictos de formulario. */
   version(row, presentation = false) {
-    const keys = presentation ? ['id', 'productId', 'name', 'factor', 'barcode', 'price', 'state'] : ['id', 'name', 'categoryId', 'unitId', 'description', 'minimum', 'state'];
+    const keys = presentation ? ['id', 'productId', 'name', 'factor', 'barcode', 'price', 'state'] : ['id', 'name', 'categoryId', 'unitId', 'description', 'minimum', 'state', 'photoHash'];
     return crypto.createHash('sha256').update(JSON.stringify(keys.map(key => row[key] == null ? null : String(row[key])))).digest('hex');
   }
   decorate(row, presentation = false) { return row && { ...row, version: this.version(row, presentation) }; }
@@ -67,6 +67,14 @@ class ProductRepository {
       EXISTS(SELECT 1 FROM detalle_venta WHERE id_presentacion = ?) AS used`, [id, id]);
     return { ...row, used: Boolean(rows[0].used) };
   }
+  async barcode(code) {
+    const codes = require('../domain/Barcode').alternatives(code);
+    const [matches] = await this.pool.query('SELECT id_producto AS productId,id_presentacion AS id FROM presentacion_producto WHERE codigo_barras IN (' + codes.map(() => '?').join(',') + ')', codes);
+    if (matches.length > 1) throw new ProductError(409, 'Hay dos formas de venta con el mismo código UPC/EAN. Corrige sus códigos en Productos antes de continuar.');
+    const match = matches[0]; if (!match) return null;
+    const product = await this.detail(match.productId), presentation = await this.presentationDetail(match.productId, match.id);
+    return product && presentation ? { product, presentation } : null;
+  }
   async getPresentation(productId, id, c = this.pool, lock = false) {
     const [rows] = await c.query('SELECT ' + ProductRepository.presentationFields + ' FROM presentacion_producto pp WHERE pp.id_producto=? AND pp.id_presentacion=?' + (lock ? ' FOR UPDATE' : ''), [productId, id]);
     return this.decorate(rows[0], true);
@@ -93,15 +101,23 @@ class ProductRepository {
   async unit(c, id) { const [[row]] = await c.query('SELECT id_unidad_medida AS id FROM unidad_medida WHERE id_unidad_medida=? FOR SHARE', [id]); return row; }
   async insertProduct(c, v) {
     const [result] = await c.query('INSERT INTO producto (nombre,id_categoria,id_unidad_medida,descripcion,stock_minimo,estado) VALUES(?,?,?,?,?,?)', [v.name,v.categoryId,v.unitId,v.description || null,v.minimum,v.state]);
+    await this.photos.save(c, result.insertId, v.photo);
     return { id: result.insertId };
   }
-  async updateProduct(c, id, v) { await c.query('UPDATE producto SET nombre=?,id_categoria=?,id_unidad_medida=?,descripcion=?,stock_minimo=?,estado=? WHERE id_producto=?', [v.name,v.categoryId,v.unitId,v.description || null,v.minimum,v.state,id]); return { id }; }
+  async updateProduct(c, id, v) { await c.query('UPDATE producto SET nombre=?,id_categoria=?,id_unidad_medida=?,descripcion=?,stock_minimo=?,estado=? WHERE id_producto=?', [v.name,v.categoryId,v.unitId,v.description || null,v.minimum,v.state,id]); await this.photos.save(c, id, v.photo); return { id }; }
   async productState(c, id, state) { await c.query('UPDATE producto SET estado=? WHERE id_producto=?', [state,id]); return { id }; }
   async deleteProduct(c, id) { await c.query('DELETE FROM presentacion_producto WHERE id_producto=?', [id]); await c.query('DELETE FROM producto WHERE id_producto=?', [id]); return { id, deleted: true }; }
+  async checkBarcode(c, code, id = null) {
+    if (!code) return;
+    const codes = require('../domain/Barcode').alternatives(code);
+    const [rows] = await c.query('SELECT id_presentacion AS id FROM presentacion_producto WHERE codigo_barras IN (' + codes.map(() => '?').join(',') + ') FOR UPDATE', codes);
+    if (rows.some(row => row.id !== id)) throw new ProductError(409, 'Ese código de barras ya pertenece a otra forma de venta.', { barcode: 'Revisa el código del paquete o la unidad.' });
+  }
   async insertPresentation(c, productId, v) {
+    await this.checkBarcode(c, v.barcode);
     const [result] = await c.query('INSERT INTO presentacion_producto (id_producto,nombre_presentacion,factor_conversion,codigo_barras,precio_venta,estado) VALUES(?,?,?,?,?,?)', [productId,v.name,v.factor,v.barcode,v.price,v.state]); return { id: result.insertId };
   }
-  async updatePresentation(c, productId, id, v) { await c.query('UPDATE presentacion_producto SET nombre_presentacion=?,factor_conversion=?,codigo_barras=?,precio_venta=?,estado=? WHERE id_producto=? AND id_presentacion=?', [v.name,v.factor,v.barcode,v.price,v.state,productId,id]); return { id }; }
+  async updatePresentation(c, productId, id, v) { await this.checkBarcode(c, v.barcode, id); await c.query('UPDATE presentacion_producto SET nombre_presentacion=?,factor_conversion=?,codigo_barras=?,precio_venta=?,estado=? WHERE id_producto=? AND id_presentacion=?', [v.name,v.factor,v.barcode,v.price,v.state,productId,id]); return { id }; }
   async presentationState(c, productId, id, state) { await c.query('UPDATE presentacion_producto SET estado=? WHERE id_producto=? AND id_presentacion=?', [state,productId,id]); return { id }; }
   async deletePresentation(c, productId, id) { await c.query('DELETE FROM presentacion_producto WHERE id_producto=? AND id_presentacion=?', [productId,id]); return { id, deleted: true }; }
   write(metadata, operation) { return this.operations.write(metadata, operation); }

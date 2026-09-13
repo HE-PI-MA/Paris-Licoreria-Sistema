@@ -1,0 +1,17 @@
+/* Fotografía y lectura de códigos: los controles usan app-button, app-field y Modal compartidos. */
+.app-input-action { display: flex; align-items: center; gap: 8px; min-width: 0; width: 100%; }
+.app-input-action > .app-input { flex: 1; min-width: 0; }
+.app-input-action > .app-button { flex: 0 0 auto; }
+.app-product-cell { display: flex; align-items: center; gap: 12px; }
+.app-product-photo { position: relative; display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; overflow: hidden; border-radius: 9px; background: #eee4d2; color: #876323; }
+.app-product-photo > .paris-icon { width: 24px; height: 24px; }
+.app-product-photo > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #fffaf1; }
+.app-product-photo--large { width: 112px; height: 112px; }
+.app-photo-field { display: flex; align-items: center; gap: 16px; }
+.app-photo-preview { flex: 0 0 112px; width: 112px; height: 112px; border: 1px solid #d7c8ad; border-radius: 12px; overflow: hidden; background: #fffaf1; }
+.app-photo-preview > img { width: 100%; height: 100%; object-fit: contain; }
+.app-photo-controls { min-width: 0; flex: 1; }
+.app-photo-controls .app-section-toolbar { justify-content: flex-start; }
+.app-scanner-video { display: block; width: 100%; max-height: 45vh; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; background: var(--app-black-soft); }
+.app-scanner-video[hidden], .app-photo-controls [hidden] { display: none; }
+@media (max-width: 30rem) { .app-photo-field { align-items: flex-start; gap: 10px; } .app-product-cell { gap: 8px; } .app-product-photo { flex-basis: 32px; width: 32px; height: 32px; } .app-product-photo--large { width: 112px; height: 112px; } }

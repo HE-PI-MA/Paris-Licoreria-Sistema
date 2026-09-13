@@ -10,6 +10,8 @@ class Element {
       hidden:false,disabled:false,inert:false,value:'',innerHTML:'',textContent:'',type:'password',offsetHeight:24});
     this.classList={toggle:()=>{}};
   }
+  get childNodes(){return this.children;}
+  replaceChildren(...nodes){this.children=nodes;}
   addEventListener(name,fn){if(!this.listeners.has(name))this.listeners.set(name,[]);this.listeners.get(name).push(fn);}
   async emit(name,values={}){const event={target:this,preventDefault(){this.prevented=true;},...values};for(const fn of this.listeners.get(name)||[])await fn(event);return event;}
   querySelector(s){return this.queries.get(s)||null;}
@@ -84,11 +86,11 @@ test('U008: ModuleLayout conserva API, carga, tipos validos y texto sin HTML',()
   const e=environment(),layout=e.element();layout.dataset.moduleLayout='productos';e.document.queries.set('[data-module-layout]',layout);
   const nodes={};for(const key of ['content','status','status-text','error','error-text']){nodes[key]=e.element();layout.queries.set(key==='content'?'[data-module-region="content"]':`[data-module-${key}]`,nodes[key]);}
   const icons=['info','loading','success','warning','empty'].map(kind=>{const icon=e.element();icon.dataset.messageIcon=kind;return icon;});
-  layout.queries.set('[data-message-icon]',icons);nodes['status-text'].textContent='Mensaje inicial';e.window.ParisUI={};e.load('components/messages.js');e.load('components/module-layout.js');
+  layout.queries.set('[data-message-icon]',icons);nodes['status-text'].textContent='Mensaje inicial';e.window.ParisUI={};e.load('components/messages.js');const notices=[];e.window.ParisUI.NotificationCenter.shared=()=>({show:(kind,text)=>notices.push({kind,text})});e.load('components/module-layout.js');
   const api=e.window.ParisModule;assert.equal(api.id,'productos');assert.equal(Object.isFrozen(api),true);
   const detached=api.showMessage;detached('loading');assert.equal(nodes.content.getAttribute('aria-busy'),'true');
   detached('error','<img src=x onerror=alert(1)>');assert.equal(nodes.content.getAttribute('aria-busy'),'false');
-  assert.equal(nodes['error-text'].textContent,'<img src=x onerror=alert(1)>');assert.equal(nodes['error-text'].innerHTML,'');assert.equal(nodes.status.hidden,true);
+  assert.deepEqual(notices.at(-1),{kind:'error',text:'<img src=x onerror=alert(1)>'});assert.equal(nodes['error-text'].innerHTML,'');assert.equal(nodes.status.hidden,true);
   api.clearMessage();assert.equal(nodes.error.hidden,true);api.resetMessage();assert.equal(nodes['status-text'].textContent,'Mensaje inicial');
   assert.throws(()=>api.showMessage('__proto__'),/Tipo de mensaje/);
 });

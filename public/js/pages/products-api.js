@@ -4,6 +4,7 @@
   class ProductsApi extends window.ParisUI.CatalogApi {
     constructor() { super('/api/productos'); }
     options(kind, params) { return this.request('/opciones/' + kind + this.query(params), { signal: params.signal }); }
+    barcode(code, signal) { return this.request('/codigo/' + encodeURIComponent(code), { signal }); }
     presentations(id, params) { return this.request('/' + id + '/presentaciones' + this.query(params), { signal: params.signal }); }
     presentation(id, child) { return this.request('/' + id + '/presentaciones/' + child); }
   }

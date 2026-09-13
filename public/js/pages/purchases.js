@@ -4,7 +4,7 @@
   const UI=window.ParisUI,P=window.ParisPurchases;
   class PurchasesPage {
     constructor(element){
-      this.api=new UI.CatalogApi('/api/compras');this.events=new AbortController();this.dialogs=new Set();this.notifications=new UI.NotificationCenter();
+      this.api=new UI.CatalogApi('/api/compras');this.events=new AbortController();this.dialogs=new Set();this.notifications=UI.NotificationCenter.shared();
       this.table=new UI.DataTable({container:element,caption:'Compras',mode:'scroll',numbered:true,pageSize:50,
         columns:[{key:'date',label:'Fecha',sortable:true},{key:'supplier',label:'Proveedor',sortable:true},{key:'total',label:'Total (Bs)',type:'price',sortable:true},{key:'user',label:'Registrado por',priority:1}],
         sort:{key:'date',direction:'desc'},load:p=>this.api.list(p),actionDisplay:'menu',actions:[{id:'detail',label:'Ver detalle',icon:'info'}],

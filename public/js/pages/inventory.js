@@ -3,7 +3,7 @@
  'use strict';const UI=window.ParisUI,I=window.ParisInventory,V=I.InventoryView;
  class InventoryPage {
   constructor(host){
-   this.api=new UI.CatalogApi('/api/inventario');this.products=new window.ParisProducts.ProductsApi();this.events=new AbortController();this.dialogs=new Set();this.notifications=new UI.NotificationCenter();
+   this.api=new UI.CatalogApi('/api/inventario');this.products=new window.ParisProducts.ProductsApi();this.events=new AbortController();this.dialogs=new Set();this.notifications=UI.NotificationCenter.shared();
    this.table=new UI.DataTable({container:host,caption:'Inventario',mode:'scroll',numbered:true,pageSize:50,sort:{key:'name',direction:'asc'},
     columns:[{key:'name',label:'Producto',sortable:true},{key:'category',label:'Categoría',priority:2},{key:'physicalStock',label:'Cantidad física',type:'quantity',priority:1,sortable:true},
      {key:'stock',label:'Disponible',type:'quantity',sortable:true},{key:'unit',label:'Se cuenta en',priority:1},{key:'stockStatus',label:'Existencias',type:'state',states:V.stockStates,priority:1},{key:'expiryNotice',label:'Vencimiento',type:'state',states:V.expiryStates,priority:2}],

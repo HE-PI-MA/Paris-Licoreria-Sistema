@@ -6,7 +6,7 @@
     constructor({ form, submit, errorBox, successBox, endpoint, busyText, successText, networkError, destination, delay }) {
       Object.assign(this, { form, submit, errorBox, successBox, endpoint, busyText, successText, networkError, destination, delay });
       this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-      this.submitDefaultHtml = submit.innerHTML;
+      this.submitDefaultNodes = Array.from(submit.childNodes);
       this.busy = false;
       this.completed = false;
     }
@@ -68,7 +68,7 @@
           this.busy = false;
           this.submit.disabled = false;
           // Recupera únicamente el contenido original del botón.
-          this.submit.innerHTML = this.submitDefaultHtml;
+          this.submit.replaceChildren(...this.submitDefaultNodes);
         }
       }
     }

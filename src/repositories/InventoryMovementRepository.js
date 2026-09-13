@@ -35,7 +35,7 @@ class InventoryMovementRepository {
   const from=' FROM ('+this.union()+') h WHERE '+conditions.join(' AND '),c=await this.pool.getConnection();
   try{await c.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');await c.beginTransaction();
    const [[{total}]]=await c.query('SELECT COUNT(*) AS total'+from,args);
-   const [records]=await c.query("SELECT h.*,DATE_FORMAT(h.occurred,'%d/%m/%Y %H:%i:%s') AS date"+from+` ORDER BY h.occurred ${input.direction==='asc'?'ASC':'DESC'},h.id DESC LIMIT ? OFFSET ?`,[...args,input.pageSize,(input.page-1)*input.pageSize]);
+   const [records]=await c.query("SELECT h.*,DATE_FORMAT(h.occurred,'%d/%m/%Y %H:%i:%s') AS date"+from+` ORDER BY h.occurred ${input.direction==='asc'?'ASC':'DESC'},LEFT(h.id,1) ${input.direction==='asc'?'ASC':'DESC'},CAST(SUBSTRING(h.id,3) AS UNSIGNED) ${input.direction==='asc'?'ASC':'DESC'} LIMIT ? OFFSET ?`,[...args,input.pageSize,(input.page-1)*input.pageSize]);
    await c.commit();return {records,total:Number(total)};
   }catch(error){await c.rollback();throw error;}finally{c.release();}
  }

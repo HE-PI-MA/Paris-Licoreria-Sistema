@@ -2,7 +2,7 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U030
+## Estado del desarrollo — U031
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
@@ -26,6 +26,8 @@ Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servido
 
 **Inventario U030:** existencias por producto, lote y ubicación; traslados, conteos, retiros, avisos e historial, con clases y estilos compartidos. Preparar MySQL antes de usar el módulo o registrar compras: [Inventario U030](docs/42_INVENTARIO_U030.md).
 
+**Auditoría y fotos U031:** fotos opcionales por producto, guardado atómico desde Compras, lectura de barras con cámara/fotografía/teclado y clases compartidas. Se corrigieron notificaciones, orden del historial y códigos UPC/EAN equivalentes. Requiere preparar la tabla de imágenes: [Auditoría y guía U031](docs/43_AUDITORIA_FOTOS_CODIGOS_U031.md).
+
 **Pendiente:** las operaciones de los otros módulos. Inicio conserva el saludo y las pantallas restantes conservan sus espacios de preparación.
 
 La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; Productos, Proveedores, Compras e Inventario incorporan su API y formularios. Ventas, Caja, Reportes y Usuarios todavía no tienen sus operaciones conectadas a la interfaz.
@@ -36,6 +38,8 @@ La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, moda
 
 | Documento | Qué explica |
 | --- | --- |
+| [Auditoría, fotos y códigos U031](docs/43_AUDITORIA_FOTOS_CODIGOS_U031.md) | Correcciones, CSS, fotos, lector, pruebas, límites e instalación. |
+| [Componentes externos U031](docs/44_COMPONENTES_EXTERNOS_U031.md) | Versiones fijas, procedencia, integridad y licencias locales. |
 | [Inventario U030](docs/42_INVENTARIO_U030.md) | Existencias, traslados, conteos, retiros, historial, preparación y permisos. |
 | [Compras U029](docs/41_CATEGORIAS_Y_CAMPOS_CLAROS_U029.md) | Categorías nuevas al guardar, ejemplos, etiquetas claras, permisos e instalación. |
 | [Selector de estado U024](docs/36_SELECTOR_ESTADO_GLOBAL_U024.md) | Corrección compartida, teclado, validación e instalación sin migraciones. |
@@ -75,16 +79,19 @@ U023 añade el NIT opcional a proveedor. Con el servidor detenido y la base resp
 
 U030 requiere `node scripts/setup-inventory.js` una vez, con servidor detenido y cuenta de instalación, y actualizar los permisos de ejecución. Ver la guía U030 antes de reiniciar Compras o Inventario.
 
+U031 requiere una vez `node scripts/setup-media.js` con permisos de instalación y acceso de la cuenta de ejecución a `producto_imagen`. Ver la guía U031. Las imágenes no se guardan en una carpeta pública.
+
 ```powershell
 npm test
 node scripts/setup-products.js --comprobar
 node scripts/setup-suppliers.js --comprobar
 node scripts/setup-inventory.js --comprobar
+node scripts/setup-media.js --comprobar
 node scripts/db-check.js
 node server.js
 ```
 
-El primer comando ejecuta pruebas simuladas; la integración con MySQL real se omite si no se configura expresamente. Los comandos de preparación con --comprobar verifican U012, U023 y U030 sin alterar la estructura. `db-check.js` consulta cuatro comprobaciones sin corregir datos; `server.js` inicia el servidor.
+El primer comando ejecuta pruebas simuladas; la integración con MySQL real se omite si no se configura expresamente. Los comandos de preparación con --comprobar verifican U012, U023, U030 y U031 sin alterar la estructura. `db-check.js` consulta cuatro comprobaciones sin corregir datos; `server.js` inicia el servidor.
 
 Para una instalación nueva, seguir la configuración y la [migración U004](docs/09_PARCHE_U004.md). Se conserva `pnpm-lock.yaml`; no se actualizan dependencias en U012.
 

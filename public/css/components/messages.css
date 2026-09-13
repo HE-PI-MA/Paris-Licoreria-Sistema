@@ -51,3 +51,6 @@
 @media (prefers-reduced-motion: reduce) {
   .app-alert[data-kind="loading"] .app-alert-icon .paris-icon { animation: none; }
 }
+
+/* Dentro de un modal, los avisos quedan arriba para permitir reintentar con Guardar. */
+.app-modal > .app-notifications { position: absolute; top: 8px; right: 8px; bottom: auto; max-width: calc(100% - 16px); }

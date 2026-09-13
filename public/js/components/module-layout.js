@@ -31,6 +31,7 @@
       if (!Object.hasOwn(this.defaults, kind)) throw new TypeError('Tipo de mensaje no válido.');
       const text = typeof message === 'string' && message.trim() ? message : this.defaults[kind];
       this.clearMessage();
+      if (['success', 'warning', 'error'].includes(kind)) { window.ParisUI.NotificationCenter.shared().show(kind, text); return; }
       if (this.region) this.region.hidden = false;
       this.content.setAttribute('aria-busy', String(kind === 'loading'));
       if (kind === 'error') {

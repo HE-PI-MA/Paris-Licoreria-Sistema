@@ -5,6 +5,13 @@
     constructor(message, status = 0, fieldErrors = {}) { super(message); this.userMessage = message; this.status = status; this.fieldErrors = fieldErrors; }
   }
   class CatalogApi {
+    /** UUID seguro también en navegadores de la red local que no exponen randomUUID. */
+    static newKey() {
+      if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+      const bytes = crypto.getRandomValues(new Uint8Array(16)); bytes[6] = (bytes[6] & 15) | 64; bytes[8] = (bytes[8] & 63) | 128;
+      const text = [...bytes].map(n => n.toString(16).padStart(2, '0')).join('');
+      return [text.slice(0,8),text.slice(8,12),text.slice(12,16),text.slice(16,20),text.slice(20)].join('-');
+    }
     constructor(base) { this.base = base; }
     query({ page = 1, pageSize = 10, query = {}, sort, term } = {}) {
       const params = new URLSearchParams({ page, pageSize });
@@ -41,7 +48,7 @@
       let fingerprint, key;
       return (body, { signal } = {}) => {
         const current = JSON.stringify(body);
-        if (current !== fingerprint) { key = crypto.randomUUID(); fingerprint = current; }
+        if (current !== fingerprint) { key = CatalogApi.newKey(); fingerprint = current; }
         return this.request(path, { body, key, signal });
       };
     }

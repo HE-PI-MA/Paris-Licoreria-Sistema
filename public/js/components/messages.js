@@ -58,6 +58,11 @@
   }
 
   class NotificationCenter {
+    static shared() { if (!this.instance || !this.instance.region.isConnected) this.instance = new NotificationCenter(); return this.instance; }
+    static channel() {
+      let current;
+      return { show(kind, text) { current?.close(); current = NotificationCenter.shared().show(kind, text); }, clear() { current?.close(); current = null; } };
+    }
     constructor() {
       this.region = UI.element('section', 'app-notifications');
       this.region.setAttribute('aria-label', 'Notificaciones');

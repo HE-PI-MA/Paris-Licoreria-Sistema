@@ -4,12 +4,12 @@
   const UI = window.ParisUI, Catalog = window.ParisProducts;
   class ProductsPage {
     constructor(element) {
-      this.api = new Catalog.ProductsApi(); this.notifications = new UI.NotificationCenter();
+      this.api = new Catalog.ProductsApi(); this.notifications = UI.NotificationCenter.shared();
       this.events = new AbortController(); this.operations = new Map(); this.dialogs = new Set();
       this.table = new UI.DataTable({ container: element, caption: 'Productos', mode: 'scroll', numbered: true, pageSize: 50, load: params => this.api.list(params), actionDisplay: 'menu',
         columns: [
-          { key: 'name', label: 'Producto', sortable: true }, { key: 'category', label: 'Categoría', sortable: true, priority: 2 },
-          { key: 'unit', label: 'Unidad base', priority: 2 },
+          { key: 'name', label: 'Producto', type: 'product', sortable: true }, { key: 'category', label: 'Categoría', sortable: true, priority: 2 },
+          { key: 'unit', label: 'Se cuenta en', priority: 2 },
           { key: 'stock', label: 'Disponible', type: 'quantity', sortable: true, priority: 1 },
           { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'inactive' } } }
         ], sort: { key: 'name', direction: 'asc' },
@@ -23,6 +23,11 @@
           emptyLabel: 'Todas las categorías', load: params => this.api.options('categories', params) }],
         onChange: query => this.table.setQuery(query)
       });
+      new UI.BarcodeField({ input: document.getElementById('module-search'), signal: this.events.signal, onRead: code => this.handle(async () => {
+        const result = await this.api.barcode(code, this.events.signal);
+        const input = document.getElementById('module-search');
+        if (result.found && input.value === code) { input.value = result.presentation.barcode; input.dispatchEvent(new Event('input', { bubbles: true })); }
+      }) });
       document.querySelector('[data-module-primary]').addEventListener('click', event => this.openProduct(null, event.currentTarget), { signal: this.events.signal });
       window.addEventListener('pagehide', () => this.destroy(), { once: true, signal: this.events.signal });
     }
@@ -77,8 +82,9 @@
     }
     detail(row, opener) {
       const details = new UI.RecordDetails({ record: row, fields: [
+        { key: 'photoHash', label: 'Foto', type: 'photo', wide: true },
         { key: 'name', label: 'Producto', wide: true }, { key: 'category', label: 'Categoría' },
-        { key: 'unit', label: 'Unidad base' }, { key: 'stock', label: 'Disponible', type: 'quantity' },
+        { key: 'unit', label: 'Se cuenta en' }, { key: 'stock', label: 'Disponible', type: 'quantity' },
         { key: 'physicalStock', label: 'Stock físico', type: 'quantity' },
         { key: 'minimum', label: 'Stock mínimo', type: 'quantity' },
         { key: 'presentations', label: 'Formas de venta', type: 'number' },
@@ -91,8 +97,8 @@
       modal.footer.append(close); this.dialogs.add(modal); modal.open(opener);
     }
     presentations(product, opener) {
-      const content = UI.element('div'), toolbar = UI.element('div', 'product-presentations-toolbar');
-      const help = UI.element('p', 'app-field-help', product.state === 'ACTIVO' ? 'Equivalencias en ' + product.unit + '. Los precios se expresan en bolivianos.' : 'Producto inactivo. Actívalo para agregar o activar presentaciones.');
+      const content = UI.element('div'), toolbar = UI.element('div', 'app-section-toolbar');
+      const help = UI.element('p', 'app-field-help', product.state === 'ACTIVO' ? 'Se cuenta en ' + product.unit + '. Cada botella o paquete tiene su propio precio de venta.' : 'Producto inactivo. Actívalo para agregar o activar presentaciones.');
       const add = UI.Button.create({ label: 'Nueva presentación', icon: 'plus', variant: 'primary', disabled: product.state !== 'ACTIVO' });
       toolbar.append(help, add); const host = UI.element('div'); content.append(toolbar, host);
       let table;
@@ -109,7 +115,7 @@
       };
       add.addEventListener('click', () => edit(null, add), { signal: modal.events.signal });
       table = new UI.DataTable({ container: host, caption: 'Presentaciones de ' + product.name, numbered: true, mode: 'scroll', fillHeight: false, pageSize: 50, load: params => this.api.presentations(product.id, params),
-        columns: [{ key: 'name', label: 'Presentación', sortable: true }, { key: 'factor', label: 'Equivalencia', type: 'quantity', sortable: true },
+        columns: [{ key: 'name', label: 'Presentación', sortable: true }, { key: 'factor', label: 'Cuánto trae', type: 'quantity', sortable: true },
           { key: 'barcode', label: 'Código de barras' }, { key: 'price', label: 'Precio (Bs)', type: 'price', sortable: true }, { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'inactive' } } }],
         sort: { key: 'name', direction: 'asc' }, actionDisplay: 'menu', actions: [{ id: 'edit', label: 'Editar', icon: 'edit', tone: 'edit' }, ...this.stateActions()],
         onAction: ({ action, record, button }) => this.handle(async () => {
