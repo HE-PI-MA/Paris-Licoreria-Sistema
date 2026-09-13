@@ -10,7 +10,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON paris_licoreria.sesion_web TO 'paris_app
 -- U012: catálogo. Ejecutar después de scripts/setup-products.js.
 GRANT SELECT, INSERT, UPDATE, DELETE ON paris_licoreria.producto TO 'paris_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON paris_licoreria.presentacion_producto TO 'paris_app'@'localhost';
-GRANT SELECT ON paris_licoreria.categoria TO 'paris_app'@'localhost';
+-- U029: las categorías nuevas se crean dentro de la transacción de la compra.
+GRANT SELECT, INSERT ON paris_licoreria.categoria TO 'paris_app'@'localhost';
 GRANT SELECT ON paris_licoreria.unidad_medida TO 'paris_app'@'localhost';
 GRANT SELECT, INSERT ON paris_licoreria.detalle_compra TO 'paris_app'@'localhost';
 GRANT SELECT ON paris_licoreria.detalle_venta TO 'paris_app'@'localhost';

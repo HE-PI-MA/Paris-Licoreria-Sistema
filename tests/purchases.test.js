@@ -4,6 +4,38 @@ const {PurchaseMemoryRepository,body}=require('./support/purchase-fixture');
 const Service=require('../src/services/PurchaseService'),Input=require('../src/domain/PurchaseInput'),Decimal=require('../public/js/components/decimal');
 const {server,password}=require('./support/application-fixture');
 const key=()=>crypto.randomUUID();
+test('Categorías: una compra anterior por ID mantiene el hash de reintento U028',()=>{
+ const data=body();data.lines[0].product.clientKey='12345678-1234-4234-8234-123456789abc';
+ assert.equal(crypto.createHash('sha256').update(JSON.stringify(['purchase:create',Input.purchase(data)])).digest('hex'),'89daea2d12649b7362344c2d1ce940be8f8f8b0a9514607f52791b675839d38b');
+});
+test('Categorías: nombres normalizados y contratos sin ambigüedad ni cambios de catálogo existentes',()=>{
+ const data=body(),product=data.lines[0].product;
+ delete product.categoryId;product.categoryName='  gaseosas   nuevas  ';
+ assert.equal(Input.purchase(data).lines[0].product.categoryName,'GASEOSAS NUEVAS');
+ for(const name of ['', ' ', 'a'.repeat(81), '\u0000BEBIDAS', null, 123]){
+  product.categoryName=name;assert.throws(()=>Input.purchase(data),e=>e.status===422);
+ }
+ product.categoryName='GASEOSAS';product.categoryId=1;assert.throws(()=>Input.purchase(data),e=>e.status===422);
+ data.lines[0].product={id:1,version:'a'.repeat(64),categoryName:'GASEOSAS'};assert.throws(()=>Input.purchase(data),e=>e.status===400);
+});
+test('Categorías: alta y reutilización entre productos y reintentos, sin reactivar inactivas',async()=>{
+ const repo=new PurchaseMemoryRepository(),service=new Service(repo),data=body(),operation=key();
+ delete data.lines[0].product.categoryId;data.lines[0].product.categoryName='gaseosas nuevas';
+ const second=structuredClone(data.lines[0]);second.product.clientKey=key();second.product.name='OTRA GASEOSA';second.presentation.barcode='OTRO-CODIGO';data.lines.push(second);
+ const [a,b]=await Promise.all([service.create(1,operation,data),service.create(1,operation,data)]);assert.deepEqual(a,b);
+ assert.equal(repo.pool.data.categories.length,2);assert.equal(repo.pool.data.products.length,2);
+ assert.ok(repo.pool.data.products.every(p=>p.categoryId===2));assert.equal((await repo.products.detail(1)).category,'GASEOSAS NUEVAS');
+ const more=body();more.supplier={id:1,version:(await repo.suppliers.get(1)).version};more.lines[0].product.name='TERCERA GASEOSA';delete more.lines[0].product.categoryId;more.lines[0].product.categoryName='GASEOSAS NUEVAS';more.lines[0].presentation.barcode='TERCER-CODIGO';
+ repo.pool.data.categories[1].state='INACTIVO';await assert.rejects(service.create(1,key(),more),e=>e.status===422&&/inactiva/.test(e.message));
+ assert.equal(repo.pool.data.categories[1].state,'INACTIVO');assert.equal(repo.pool.data.products.length,2);
+});
+test('Categorías: el fallo de una fila revierte el alta y permite reintentar con la misma clave',async()=>{
+ const repo=new PurchaseMemoryRepository(),service=new Service(repo),data=body(),operation=key();
+ delete data.lines[0].product.categoryId;data.lines[0].product.categoryName='CATEGORÍA NUEVA';
+ repo.failLine=true;await assert.rejects(service.create(1,operation,data));
+ assert.equal(repo.pool.data.categories.length,1);assert.equal(repo.pool.data.products.length,0);assert.equal(repo.pool.data.operations.size,0);
+ repo.failLine=false;await service.create(1,operation,data);assert.equal(repo.pool.data.categories.length,2);
+});
 test('Ubicaciones: conserva el contrato U025 y valida nombres nuevos sin destinos ambiguos',()=>{
  const payload=body(),previous=Input.purchase(payload);
  assert.equal(previous.locationId,1);assert.equal(Object.hasOwn(previous,'locationName'),false);

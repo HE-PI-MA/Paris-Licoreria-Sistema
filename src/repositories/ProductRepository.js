@@ -83,6 +83,13 @@ class ProductRepository {
     return sales.length > 0;
   }
   async category(c, id) { const [[row]] = await c.query('SELECT estado AS state FROM categoria WHERE id_categoria=? FOR SHARE', [id]); return row; }
+  /** Usa la misma conexión de la compra para que el alta se confirme o revierta con ella. */
+  async namedCategory(c, name) {
+    const [[row]] = await c.query('SELECT id_categoria AS id, estado AS state FROM categoria WHERE nombre=? FOR SHARE', [name]); return row;
+  }
+  async insertCategory(c, name) {
+    const [result] = await c.query("INSERT INTO categoria (nombre,estado) VALUES(?,'ACTIVO')", [name]); return result.insertId;
+  }
   async unit(c, id) { const [[row]] = await c.query('SELECT id_unidad_medida AS id FROM unidad_medida WHERE id_unidad_medida=? FOR SHARE', [id]); return row; }
   async insertProduct(c, v) {
     const [result] = await c.query('INSERT INTO producto (nombre,id_categoria,id_unidad_medida,descripcion,stock_minimo,estado) VALUES(?,?,?,?,?,?)', [v.name,v.categoryId,v.unitId,v.description || null,v.minimum,v.state]);

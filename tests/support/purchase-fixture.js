@@ -3,7 +3,7 @@ const Repository=require('../../src/repositories/PurchaseRepository');
 const Products=require('../../src/repositories/ProductRepository');
 const Suppliers=require('../../src/repositories/SupplierRepository');
 class PurchaseMemoryPool {
- constructor(){this.queue=Promise.resolve();this.data={locations:[{id:1,name:"ALMACÉN DE PRUEBA",state:"ACTIVO"}],suppliers:[],products:[],presentations:[],purchases:[],lines:[],operations:new Map()};}
+ constructor(){this.queue=Promise.resolve();this.data={categories:[{id:1,name:"BEBIDAS",state:"ACTIVO"}],locations:[{id:1,name:"ALMACÉN DE PRUEBA",state:"ACTIVO"}],suppliers:[],products:[],presentations:[],purchases:[],lines:[],operations:new Map()};}
  async getConnection(){const pool=this;let release;return {
   async beginTransaction(){const previous=pool.queue;pool.queue=new Promise(r=>{release=r;});await previous;this.data=structuredClone(pool.data);},
   async query(sql,args=[]){
@@ -20,12 +20,18 @@ class PurchaseMemoryProducts extends Products {
  rows(c,key){return (c?.data || this.pool.data)[key];}
  async getProduct(id,c){return this.decorate(this.rows(c,'products').find(r=>r.id===Number(id)));}
  async getPresentation(productId,id,c){return this.decorate(this.rows(c,'presentations').find(r=>r.id===Number(id)&&r.productId===Number(productId)),true);}
- async detail(id){const row=await this.getProduct(id);return row && {...row,category:'BEBIDAS',unit:'UNIDAD'};}
+ async detail(id){const row=await this.getProduct(id);return row && {...row,category:this.rows(null,'categories').find(c=>c.id===row.categoryId)?.name,unit:'UNIDAD'};}
  async presentationDetail(id,child){return this.getPresentation(id,child);}
  async list(input){const rows=this.rows(null,'products').filter(r=>(!input.state||r.state===input.state)&&r.name.includes(input.term.toUpperCase()));return {records:rows.slice((input.page-1)*input.pageSize,input.page*input.pageSize).map(r=>this.decorate(r)),total:rows.length};}
  async presentations(id,input){const rows=this.rows(null,'presentations').filter(r=>r.productId===Number(id)&&(!input.state||r.state===input.state)&&r.name.includes(input.term.toUpperCase()));return {records:rows.slice((input.page-1)*input.pageSize,input.page*input.pageSize).map(r=>this.decorate(r,true)),total:rows.length};}
- async options(kind){return {options:[{value:'1',label:kind==='categories'?'BEBIDAS':'UNIDAD'}],total:1};}
- async category(c,id){return Number(id)===1?{state:'ACTIVO'}:null;}
+ async options(kind,input){
+  if(kind!=='categories')return {options:[{value:'1',label:'UNIDAD'}],total:1};
+  const rows=this.rows(null,'categories').filter(r=>r.state==='ACTIVO'&&r.name.includes(input.term.toUpperCase()));
+  return {options:rows.slice((input.page-1)*input.pageSize,input.page*input.pageSize).map(r=>({value:String(r.id),label:r.name})),total:rows.length};
+ }
+ async category(c,id){return this.rows(c,'categories').find(r=>r.id===Number(id));}
+ async namedCategory(c,name){return this.rows(c,'categories').find(r=>r.name.toUpperCase()===name.toUpperCase());}
+ async insertCategory(c,name){const id=c.data.categories.length+1;c.data.categories.push({id,name,state:'ACTIVO'});return id;}
  async unit(c,id){return Number(id)===1?{id:1}:null;}
  async insertProduct(c,data){const id=c.data.products.length+1;c.data.products.push({...data,id,categoryId:Number(data.categoryId),unitId:Number(data.unitId)});return {id};}
  async insertPresentation(c,productId,data){if(data.barcode&&c.data.presentations.some(r=>r.barcode===data.barcode))throw Object.assign(new Error('duplicate'),{code:'ER_DUP_ENTRY'});const id=c.data.presentations.length+1;c.data.presentations.push({...data,id,productId});return {id};}

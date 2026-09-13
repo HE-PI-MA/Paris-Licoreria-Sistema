@@ -2,7 +2,7 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U028
+## Estado del desarrollo — U029
 
 **Funciona:** activación, inicio y cierre de sesión, sesiones persistentes, revalidación del usuario, perfil de consulta, permisos de páginas y sidebar adaptable. Los nueve módulos comparten cabecera, controles, contenido y mensajes. Iconos e Inter se distribuyen localmente en el espacio de trabajo.
 
@@ -22,6 +22,8 @@ Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servido
 
 **Estados U022:** etiquetas compartidas en `components/badges.css`. Activo conserva el verde e Inactivo utiliza fondo rojo suave, texto y borde rojizos en Productos, Presentaciones, detalles y demostración.
 
+**Compras U029:** una categoría nueva escrita al registrar un producto se conserva y se guarda con la compra. El modal explica cómo contar el producto, cómo comprarlo, cuánto trae cada paquete y los precios; los campos muestran ejemplos. Conserva las filas compactas, catálogos compartidos, borrador y avisos globales. Ver [Categorías y campos claros U029](docs/41_CATEGORIAS_Y_CAMPOS_CLAROS_U029.md).
+
 **Pendiente:** las operaciones de los otros módulos. Inicio conserva el saludo y las pantallas restantes conservan sus espacios de preparación.
 
 La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; Productos, Proveedores y Compras incorporan su API y formularios. Inventario, Ventas, Caja, Reportes y Usuarios todavía no tienen sus operaciones conectadas a la interfaz.
@@ -32,6 +34,7 @@ La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, moda
 
 | Documento | Qué explica |
 | --- | --- |
+| [Compras U029](docs/41_CATEGORIAS_Y_CAMPOS_CLAROS_U029.md) | Categorías nuevas al guardar, ejemplos, etiquetas claras, permisos e instalación. |
 | [Selector de estado U024](docs/36_SELECTOR_ESTADO_GLOBAL_U024.md) | Corrección compartida, teclado, validación e instalación sin migraciones. |
 | [Proveedores U023](docs/35_PROVEEDORES_U023.md) | Operaciones, clases compartidas, preparación del NIT, permisos, comprobaciones e instalación. |
 | [Estados compartidos U022](docs/34_ESTADOS_COMPARTIDOS_U022.md) | Clases CSS reutilizables para estados, comprobaciones e instalación. |

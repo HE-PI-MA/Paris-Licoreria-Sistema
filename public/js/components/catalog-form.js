@@ -12,7 +12,7 @@
         onClose: () => { this.controller?.destroy(); this.selectors.forEach(item => item.destroy()); this.modal.destroy(); }
       });
     }
-    field(name, labelText, { type = 'text', value = '', required = false, maxLength, min, max, step, help, wide = false, options, uppercase = ['name', 'description'].includes(name), pattern, inputMode } = {}) {
+    field(name, labelText, { type = 'text', value = '', required = false, maxLength, min, max, step, help, wide = false, options, uppercase = ['name', 'description'].includes(name), pattern, inputMode, placeholder } = {}) {
       const host = UI.element('div', 'app-field' + (wide ? ' app-field--wide' : ''));
       const label = UI.element('label', 'app-label', labelText + (required ? ' *' : ''));
       const input = UI.element(type === 'textarea' ? 'textarea' : type === 'select' ? 'select' : 'input', 'app-input');
@@ -20,7 +20,7 @@
       // El catálogo usa las sugerencias de SearchSelect, no el historial del navegador.
       input.autocomplete = 'off'; input.spellcheck = false;
       input.id = label.htmlFor = this.form.id + '-' + name; input.name = name; input.required = required;
-      for (const [key, item] of Object.entries({ maxLength, min, max, step, pattern, inputMode })) if (item !== undefined) input[key] = item;
+      for (const [key, item] of Object.entries({ maxLength, min, max, step, pattern, inputMode, placeholder })) if (item !== undefined) input[key] = item;
       if (type === 'textarea') input.rows = 3;
       for (const item of options || []) { const option = UI.element('option', '', item.label); option.value = item.value; input.append(option); }
       // Nombres y descripciones se guardan en mayúsculas al editarlos; los códigos se conservan exactos.
@@ -37,9 +37,9 @@
       this.selectors.push(new UI.SearchSelect({ select, searchable: false }));
       return select;
     }
-    selector(name, label, kind, selected, help, optionsApi = this.api) {
+    selector(name, label, kind, selected, help, optionsApi = this.api, placeholder) {
       const input = this.field(name, label, { type: 'select', required: true, help, options: [{ value: '', label: 'Seleccionar' }] });
-      const enhanced = new UI.SearchSelect({ select: input, load: params => optionsApi.options(kind, params) });
+      const enhanced = new UI.SearchSelect({ select: input, load: params => optionsApi.options(kind, params), placeholder });
       if (selected) enhanced.setValue(selected);
       this.selectors.push(enhanced); return input;
     }

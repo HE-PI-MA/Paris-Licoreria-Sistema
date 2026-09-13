@@ -10,7 +10,7 @@
   let sequence = 0;
   class SearchSelect {
     static controls = new WeakMap();
-    constructor({ select, load, pageSize = 20, debounce = 250, searchable = true, allowCustom = false } = {}) {
+    constructor({ select, load, pageSize = 20, debounce = 250, searchable = true, allowCustom = false, placeholder = 'Buscar y seleccionar…' } = {}) {
       if (!(select instanceof HTMLSelectElement) || select.multiple || SearchSelect.controls.has(select)) {
         throw new TypeError('Se necesita un select simple sin inicializar.');
       }
@@ -36,7 +36,7 @@
         if (select.hasAttribute(name)) this.input.setAttribute(name, select.getAttribute(name));
       }
       this.input.setAttribute('aria-required', String(select.required));
-      this.input.placeholder = 'Buscar y seleccionar…';
+      this.input.placeholder = placeholder;
       // El usuario edita o borra el texto para buscar; no hay botón X junto al campo.
       const control = UI.element('div', 'app-search-select-control'); control.append(this.input);
       this.panel = UI.element('div', 'app-search-select-panel'); this.panel.hidden = true;

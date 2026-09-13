@@ -10,30 +10,32 @@
       this.grid.remove();
       this.section('Proveedor e ingreso');
       this.grid.classList.add('app-form-grid--compact');
-      this.supplier=this.lookup('supplier','Nombre o empresa',p=>this.catalogOptions(this.suppliersApi,p));
-      this.phone=this.field('phone','Teléfono',{maxLength:30,uppercase:false});
+      this.supplier=this.lookup('supplier','Nombre o empresa',p=>this.catalogOptions(this.suppliersApi,p),'Ej.: Distribuidora Sol');
+      this.phone=this.field('phone','Teléfono',{maxLength:30,uppercase:false,placeholder:'Ej.: 70012345'});
       this.bindLookup(this.supplier,'supplier',id=>this.suppliersApi.detail(id),record=>{
         this.phone.value=record?.phone || '';this.phone.readOnly=Boolean(record);
       });
-      this.location=this.lookup('locationId','Ubicación *',p=>this.api.request('/ubicaciones'+this.api.query(p),{signal:p.signal}));
+      this.location=this.lookup('locationId','Ubicación *',p=>this.api.request('/ubicaciones'+this.api.query(p),{signal:p.signal}),'Ej.: Heladera');
       this.location.control.input.maxLength=80;this.location.control.input.required=true;
       this.bindLookup(this.location,'location',id=>({id}),()=>{});
-      this.observation=this.field('observation','Observación',{maxLength:250,uppercase:true});
+      this.observation=this.field('observation','Observación',{maxLength:250,uppercase:true,placeholder:'Ej.: Entrega hoy'});
       this.section('Producto de la compra');
-      this.product=this.lookup('product','Producto',p=>this.productOptions(p));
+      this.product=this.lookup('product','Producto',p=>this.productOptions(p),'Ej.: Coca-Cola 2 litros');
       this.bindLookup(this.product,'product',id=>this.productsApi.detail(id),record=>this.setProduct(record));
-      this.category=super.selector('categoryId','Categoría','categories',null,null,this.productsApi);this.category.required=false;
-      this.unit=super.selector('unitId','Unidad base','units',null,null,this.productsApi);this.unit.required=false;
-      this.presentation=this.lookup('presentation','Presentación',p=>this.presentationOptions(p));
+      this.categoryLookup=this.lookup('categoryId','Categoría *',p=>this.productsApi.options('categories',p),'Ej.: Gaseosas');
+      this.category=this.categoryLookup.select;this.categoryLookup.control.input.maxLength=80;
+      this.bindLookup(this.categoryLookup,'category',id=>({id}),()=>{});
+      this.unit=super.selector('unitId','¿Cómo lo cuentas?','units',null,'Unidad para botellas o latas; gramo para productos por peso.',this.productsApi,'Ej.: Unidad o gramo');this.unit.required=false;
+      this.presentation=this.lookup('presentation','¿Cómo lo compras?',p=>this.presentationOptions(p),'Ej.: Botella o paquete de 6');
       this.bindLookup(this.presentation,'presentation',id=>this.productsApi.presentation(this.selectedProduct.id,id),record=>this.setPresentation(record));
-      this.factor=this.field('factor','Equivalencia',{type:'number',min:'0.001',step:'0.001',value:'1',help:'Unidades base por presentación. Ejemplo: paquete de 6 = 6 unidades.'});
-      this.barcode=this.field('barcode','Código de barras',{maxLength:50,uppercase:false});
+      this.factor=this.field('factor','¿Cuánto trae?',{type:'number',min:'0.001',step:'0.001',value:'1',placeholder:'Ej.: 6',help:'Paquete de 6: escribe 6. Un kilo contado en gramos: 1000. Una botella: 1.'});
+      this.barcode=this.field('barcode','Código de barras',{maxLength:50,uppercase:false,placeholder:'Ej.: 7771234567890'});
       const productSection=this.grid.parentElement;
       this.grid=UI.element('div','app-form-grid app-form-grid--compact');productSection.append(this.grid);
-      this.quantity=this.field('quantity','Cantidad comprada',{type:'number',min:'0.001',step:'0.001',value:'1'});
-      this.cost=this.field('cost','Costo (Bs)',{type:'number',min:'0',step:'0.01',help:'Por presentación.'});
-      this.price=this.field('price','Precio venta (Bs)',{type:'number',min:'0',step:'0.01',help:'Por presentación.'});
-      this.lot=this.field('lotCode','Lote (opcional)',{maxLength:80,uppercase:false});
+      this.quantity=this.field('quantity','Cantidad comprada',{type:'number',min:'0.001',step:'0.001',value:'1',placeholder:'Ej.: 2',help:'Ej.: 2 paquetes de 6 ingresan 12 unidades.'});
+      this.cost=this.field('cost','Costo (Bs)',{type:'number',min:'0',step:'0.01',placeholder:'Ej.: 45.50',help:'Lo que pagas por un paquete o unidad.'});
+      this.price=this.field('price','Precio venta (Bs)',{type:'number',min:'0',step:'0.01',placeholder:'Ej.: 60.00',help:'Lo que cobras al vender ese mismo paquete o unidad.'});
+      this.lot=this.field('lotCode','Lote (opcional)',{maxLength:80,uppercase:false,placeholder:'Ej.: L-2026-08'});
       this.expiry=this.field('expiresOn','Vencimiento',{type:'date',help:'Opcional.'});
       const toolbar=UI.element('div','app-form-toolbar');
       this.add=UI.Button.create({label:'Agregar producto',icon:'plus',variant:'primary'});
@@ -61,9 +63,8 @@
       const section=UI.element('section','app-form-section'),heading=UI.element('h3','app-form-section-title',title);
       this.grid=UI.element('div','app-form-grid');section.append(heading,this.grid);this.form.append(section);
     }
-    lookup(name,label,load){
-      const select=this.field(name,label,{type:'select',options:[{value:'',label:''}]}),control=new UI.SearchSelect({select,load,allowCustom:true});
-      control.input.placeholder='Buscar o escribir nuevo…';
+    lookup(name,label,load,placeholder){
+      const select=this.field(name,label,{type:'select',options:[{value:'',label:''}]}),control=new UI.SearchSelect({select,load,allowCustom:true,placeholder});
       const status=UI.element('span','app-field-help');status.setAttribute('role','status');select.closest('.app-field').append(status);
       this.selectors.push(control);return {select,control,status};
     }
@@ -119,9 +120,16 @@
       this.selectedProduct=record;this.presentationRecord=null;this.generation.presentation=(this.generation.presentation || 0)+1;this.pending.delete('presentation');
       if(this.presentation){this.presentation.control.setValue(null);this.presentation.status.textContent='';this.setPresentation(null);}
       if(!this.category)return;
+      this.setClassification(record,Boolean(record));
+    }
+    /** Restaura la categoría escrita al reutilizar o editar un producto todavía no guardado. */
+    setClassification(record,disabled){
       for(const [input,key,label] of [[this.category,'categoryId','category'],[this.unit,'unitId','unit']]){
-        UI.SearchSelect.controls.get(input).setValue(record?{value:record[key],label:record[label]}:null);input.disabled=Boolean(record);
+        const control=UI.SearchSelect.controls.get(input);
+        control.setValue(record?.[key]?{value:record[key],label:record[label]}:null);input.disabled=disabled;
       }
+      if(record?.categoryName)this.categoryLookup.control.input.value=record.categoryName;
+      this.categoryLookup.status.textContent=record?.categoryName?'Nueva en esta compra':record?.categoryId?'Existente':'';
     }
     setPresentation(record){
       this.selectedPresentation=record;
@@ -148,16 +156,18 @@
       try{
         if(this.pending.size)throw new UI.CatalogApiError('Espera a que termine la selección.');
         const name=this.product.control.input.value.trim(),presentationName=this.presentation.control.input.value.trim();
-        if(!name || !presentationName)throw new UI.CatalogApiError('Escribe o selecciona el producto y su presentación.');
-        if(!this.category.value || !this.unit.value)throw new UI.CatalogApiError('Selecciona la categoría y la unidad base.');
+        if(!name || !presentationName)throw new UI.CatalogApiError('Indica el producto y cómo lo compras: por ejemplo, botella o paquete de 6.');
+        const categoryName=this.categoryLookup.control.input.value.trim();
+        if(!categoryName || !this.unit.value)throw new UI.CatalogApiError('Indica la categoría y selecciona cómo cuentas el producto: por unidad, gramo u otra medida de la lista.');
         const product=this.selectedProduct?.id?this.ref(this.selectedProduct):{
-          clientKey:this.selectedProduct?.clientKey || crypto.randomUUID(),name:this.selectedProduct?.name || name,categoryId:this.category.value,unitId:this.unit.value};
+          clientKey:this.selectedProduct?.clientKey || crypto.randomUUID(),name:this.selectedProduct?.name || name,
+          ...(this.category.value?{categoryId:this.category.value}:{categoryName}),unitId:this.unit.value};
         const presentation=this.selectedPresentation?.id?this.ref(this.selectedPresentation):{name:this.selectedPresentation?.name || presentationName,
-          factor:P.PurchaseDraft.decimal(this.factor.value,3,'la equivalencia',true),barcode:this.barcode.value.trim(),price:P.PurchaseDraft.decimal(this.price.value,2,'el precio de venta')};
+          factor:P.PurchaseDraft.decimal(this.factor.value,3,'la cantidad que trae',true),barcode:this.barcode.value.trim(),price:P.PurchaseDraft.decimal(this.price.value,2,'el precio de venta')};
         const quantity=P.PurchaseDraft.decimal(this.quantity.value,3,'la cantidad',true),cost=P.PurchaseDraft.decimal(this.cost.value,2,'el costo');
         const factor=this.selectedPresentation?.factor || presentation.factor;
         const baseQuantity=UI.Decimal.multiply(quantity,factor,3);
-        if(UI.Decimal.units(baseQuantity,3)<=0n || UI.Decimal.units(baseQuantity,3)>999999999999999n)throw new UI.CatalogApiError('Revisa la cantidad y su equivalencia en unidades base.');
+        if(UI.Decimal.units(baseQuantity,3)<=0n || UI.Decimal.units(baseQuantity,3)>999999999999999n)throw new UI.CatalogApiError('Revisa cuántos paquetes o unidades compras y cuánto trae cada uno.');
         const display={product:this.selectedProduct?.name || name,presentation:this.selectedPresentation?.name || presentationName,
           categoryId:this.category.value,unitId:this.unit.value,category:UI.SearchSelect.controls.get(this.category).input.value,unit:UI.SearchSelect.controls.get(this.unit).input.value,
           factor,baseQuantity,price:this.price.value,barcode:this.barcode.value,lotCode:this.lot.value,expiresOn:this.expiry.value};
@@ -184,9 +194,7 @@
       const line=record.line;
       this.selectedProduct={...line.product,name:record.product};
       this.product.control.setValue({value:line.product.id || 'draft:'+line.product.clientKey,label:record.product});this.product.status.textContent=line.product.id?'Existente':'Nuevo en esta compra';
-      for(const [input,key,label] of [[this.category,'categoryId','category'],[this.unit,'unitId','unit']]){
-        UI.SearchSelect.controls.get(input).setValue({value:record[key],label:record[label]});input.disabled=true;
-      }
+      this.setClassification({...record,...line.product},true);
       this.selectedPresentation=line.presentation.id?{...line.presentation,name:record.presentation,factor:record.factor}:null;
       if(line.presentation.id)this.presentation.control.setValue({value:line.presentation.id,label:record.presentation});else this.presentation.control.input.value=record.presentation;this.presentation.status.textContent=line.presentation.id?'Existente':'Nuevo';
       for(const [input,value] of [[this.factor,record.factor],[this.price,record.price],[this.barcode,record.barcode],[this.quantity,line.quantity],[this.cost,line.cost],[this.lot,line.lotCode],[this.expiry,line.expiresOn]])input.value=value || '';

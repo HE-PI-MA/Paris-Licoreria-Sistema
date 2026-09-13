@@ -12,7 +12,11 @@ class ProductInput extends RecordInput {
   }
   static product(body, update = false) {
     this.body(body, ['name', 'categoryId', 'unitId', 'description', 'minimum', 'state', ...(update ? ['version'] : [])]);
-    return { name: this.text(body.name, 120, 'name'), categoryId: this.id(body.categoryId, 'categoryId'), unitId: this.id(body.unitId, 'unitId'),
+    return this.productFields(body, { categoryId: this.id(body.categoryId, 'categoryId') });
+  }
+  /** Comparte las reglas del producto con Compras, que también admite una categoría nueva validada. */
+  static productFields(body, category) {
+    return { name: this.text(body.name, 120, 'name'), ...category, unitId: this.id(body.unitId, 'unitId'),
       description: this.text(body.description, 255, 'description', true), minimum: this.decimal(body.minimum, 3, 'minimum'), state: this.state(body.state) };
   }
   static presentation(body, update = false) {

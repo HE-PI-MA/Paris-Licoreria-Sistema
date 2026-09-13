@@ -4,7 +4,7 @@
   const UI=window.ParisUI;
   class PurchaseView {
     static columns(){return [
-      {key:'product',label:'Producto'}, {key:'presentation',label:'Presentación',priority:1},
+      {key:'product',label:'Producto'}, {key:'presentation',label:'Comprado por',priority:1},
       {key:'quantity',label:'Cantidad',type:'quantity'}, {key:'cost',label:'Costo (Bs)',type:'price',priority:1},
       {key:'subtotal',label:'Subtotal (Bs)',type:'price'}];}
     static dialog(title,content,opener,destroy=()=>{}){
@@ -13,9 +13,9 @@
     }
     static line(record,opener){
       const details=new UI.RecordDetails({record,fields:[
-        {key:'product',label:'Producto',wide:true},{key:'presentation',label:'Presentación'},{key:'unit',label:'Unidad base'},
-        {key:'quantity',label:'Cantidad comprada',type:'quantity'},{key:'factor',label:'Unidades base por presentación',type:'quantity'},
-        {key:'baseQuantity',label:'Ingreso en unidades base',type:'quantity'},{key:'cost',label:'Costo por presentación',type:'price'},
+        {key:'product',label:'Producto',wide:true},{key:'presentation',label:'Comprado por'},{key:'unit',label:'Se cuenta en'},
+        {key:'quantity',label:'Cantidad comprada',type:'quantity'},{key:'factor',label:'Cantidad que trae cada uno',type:'quantity'},
+        {key:'baseQuantity',label:'Cantidad que ingresa',type:'quantity'},{key:'cost',label:'Costo de cada paquete o unidad',type:'price'},
         {key:'subtotal',label:'Subtotal',type:'price'},{key:'lotCode',label:'Lote',empty:'Sin especificar'},
         {key:'expiresOn',label:'Vencimiento',empty:'Sin especificar'}]});return this.dialog('Detalle del producto comprado',details.element,opener);
     }
