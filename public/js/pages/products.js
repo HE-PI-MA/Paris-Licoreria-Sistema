@@ -23,11 +23,6 @@
           emptyLabel: 'Todas las categorías', load: params => this.api.options('categories', params) }],
         onChange: query => this.table.setQuery(query)
       });
-      new UI.BarcodeField({ input: document.getElementById('module-search'), signal: this.events.signal, onRead: code => this.handle(async () => {
-        const result = await this.api.barcode(code, this.events.signal);
-        const input = document.getElementById('module-search');
-        if (result.found && input.value === code) { input.value = result.presentation.barcode; input.dispatchEvent(new Event('input', { bubbles: true })); }
-      }) });
       document.querySelector('[data-module-primary]').addEventListener('click', event => this.openProduct(null, event.currentTarget), { signal: this.events.signal });
       window.addEventListener('pagehide', () => this.destroy(), { once: true, signal: this.events.signal });
     }
@@ -50,7 +45,8 @@
       if (table !== this.table) await this.table.refresh();
     }
     openProduct(record, opener) {
-      const form = new Catalog.ProductForm({ api: this.api, record, opener, onSaved: () => this.saved(record ? 'Producto actualizado correctamente.' : 'Producto guardado. Ya puedes agregar sus presentaciones.') });
+      const form = new Catalog.ProductForm({ api: this.api, record, opener, onExisting: row => this.openProduct(row, opener),
+        onSaved: result => this.saved(record ? 'Producto actualizado correctamente.' : result.presentationId ? 'Producto y forma de venta guardados.' : 'Producto guardado. Ya puedes agregar sus presentaciones.') });
       const onClose = form.modal.onClose;
       form.modal.onClose = value => { onClose(value); this.dialogs.delete(form.modal); };
       this.dialogs.add(form.modal);

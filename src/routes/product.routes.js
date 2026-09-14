@@ -10,6 +10,7 @@ class ProductRoutes {
     for (const kind of ['categories','units']) this.router.get('/opciones/' + kind, (req, res, next) => { req.params.kind = kind; return controller.handle('options')(req, res, next); });
     this.router.post('/', controller.handle('create', { write: true, created: true }));
     this.router.get('/codigo/:code', controller.handle('barcode'));
+    this.router.get('/sugerencia/:code', controller.handle('suggest'));
     this.router.get('/:id/imagen', controller.handle('photo'));
     this.router.get('/:id', controller.handle('detail'));
     this.router.post('/:id/editar', controller.handle('update', { write: true }));

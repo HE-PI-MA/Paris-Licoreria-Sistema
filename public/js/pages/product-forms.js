@@ -7,6 +7,8 @@
     constructor(options) {
       super({ ...options, icon: options.record ? 'edit' : 'plus', title: options.record ? 'Editar producto' : 'Nuevo producto' });
       const row = this.record;
+      if (row) { this.photo = new UI.PhotoField({ container: this.grid, form: this.form, modal: this.modal }); this.photo.reset(row); }
+      else { this.capture = new Catalog.ProductCapture(this, options.onExisting); this.photo = this.capture.photo; }
       this.field('name', 'Nombre del producto', { value: row?.name, required: true, maxLength: 120, wide: true, placeholder: 'Ej.: Coca-Cola 2 litros' });
       this.selector('categoryId', 'Categoría', 'categories', row && { value: row.categoryId, label: row.category }, undefined, this.api, 'Ej.: Gaseosas');
       const unit = this.selector('unitId', '¿Cómo lo cuentas?', 'units', row && { value: row.unitId, label: row.unit }, undefined, this.api, 'Ej.: Unidad o gramo');
@@ -17,10 +19,10 @@
       this.field('minimum', 'Stock mínimo', { type: 'number', value: row?.minimum ?? '0', min: '0', max: '999999999999.999', step: '0.001', required: true });
       this.state(row?.state);
       this.field('description', 'Descripción', { type: 'textarea', value: row?.description, maxLength: 255, wide: true });
-      this.photo = new UI.PhotoField({ container: this.grid, form: this.form, modal: this.modal }); this.photo.reset(row);
-      this.start(row ? '/' + row.id + '/editar' : '', ({ photoState, ...values }) => ({ ...values, ...this.photo.payload(),
+      this.capture?.fields();
+      this.start(row ? '/' + row.id + '/editar' : '', ({ photoState, ...values }) => ({ ...(this.capture ? this.capture.payload(values) : values), ...this.photo.payload(),
         ...(row ? { unitId: unit.disabled ? String(row.unitId) : values.unitId, version: row.version } : {})
-      }));
+      }), this.capture?.scan);
     }
   }
   class PresentationForm extends CatalogForm {

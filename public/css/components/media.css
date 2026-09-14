@@ -13,5 +13,16 @@
 .app-photo-controls { min-width: 0; flex: 1; }
 .app-photo-controls .app-section-toolbar { justify-content: flex-start; }
 .app-scanner-video { display: block; width: 100%; max-height: 45vh; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; background: var(--app-black-soft); }
-.app-scanner-video[hidden], .app-photo-controls [hidden] { display: none; }
-@media (max-width: 30rem) { .app-photo-field { align-items: flex-start; gap: 10px; } .app-product-cell { gap: 8px; } .app-product-photo { flex-basis: 32px; width: 32px; height: 32px; } .app-product-photo--large { width: 112px; height: 112px; } }
+.app-capture-notice { display: grid; gap: 6px; }
+.app-capture-notice a { color: var(--app-text); text-decoration: underline; }
+@media (max-width: 30rem) {
+  .app-product-cell { gap: 8px; }
+  .app-product-photo { flex-basis: 32px; width: 32px; height: 32px; }
+  .app-product-photo--large { width: 112px; height: 112px; }
+  .app-photo-field { display: grid; grid-template-columns: 80px minmax(0, 1fr); align-items: center; gap: 10px; }
+  .app-photo-preview, .app-photo-preview .app-product-photo--large { width: 80px; height: 80px; }
+  .app-photo-controls { display: contents; }
+  .app-photo-controls > .app-field-help { grid-column: 2; grid-row: 1; }
+  .app-photo-controls .app-section-toolbar { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.app-photo-field [hidden], .app-scanner [hidden] { display: none; }

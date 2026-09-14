@@ -2,7 +2,9 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U033
+## Estado del desarrollo — U034
+
+**Captura U034:** Nuevo producto empieza con escáner y foto. Los códigos existentes permiten abrir el producto registrado; los nuevos se conservan y ofrecen una consulta explícita de nombre/categoría en Open Food Facts. Producto, foto opcional y primera presentación se guardan en una transacción, sin aumentar stock. Cámara mediante fotografía en HTTP y preparación de HTTPS local con mkcert para lectura en vivo. Ver [Escaneo y celular U034](docs/47_ESCANEO_PRODUCTO_Y_CELULAR_U034.md).
 
 **Login U033:** usuario y contraseña muestran su escritura exacta, incluso al pulsar el ojo. Se desactivan la autocapitalización y la autocorrección solicitadas al teclado móvil. Conserva la validación de credenciales y las protecciones existentes. Incluye el menú compacto U032. Ver [Login y actualización U033](docs/46_LOGIN_Y_ACTUALIZACION_U033.md).
 

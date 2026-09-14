@@ -42,12 +42,14 @@
     }
   }
   class PhotoField {
-    constructor({ container, form, modal }) {
+    constructor({ container, form, modal, firstAction, onChoose, label = 'Foto del producto (opcional)' }) {
       this.events = new AbortController(); this.generation = 0;
+      this.onChoose = onChoose;
       this.host = UI.element('div', 'app-field app-field--wide');
-      this.host.append(UI.element('span', 'app-label', 'Foto del producto (opcional)'));
+      this.host.append(UI.element('span', 'app-label', label));
       const body = UI.element('div', 'app-photo-field'); this.preview = UI.element('div', 'app-photo-preview');
       const controls = UI.element('div', 'app-photo-controls'); this.actions = UI.element('div', 'app-section-toolbar');
+      if (firstAction) { firstAction.classList.add('app-field--wide'); this.actions.append(firstAction); }
       this.state = UI.element('input'); this.state.type = 'hidden'; this.state.name = 'photoState'; this.state.value = '';
       this.help = UI.element('p', 'app-field-help'); this.help.setAttribute('role', 'status');
       this.inputs = [];
@@ -74,7 +76,8 @@
       else this.preview.append(ProductPhoto.element(null, true));
       this.actions.hidden = this.readOnly;
       this.remove.disabled = !src || this.busy;
-      this.help.textContent = this.busy ? 'Preparando foto…' : this.readOnly ? 'Foto del producto seleccionado. Puedes cambiarla en Productos.' : 'Se guarda al confirmar. Puedes elegir una foto o tomarla con el celular.';
+      this.remove.hidden = !src;
+      this.help.textContent = this.busy ? 'Preparando foto…' : this.readOnly ? 'Puedes cambiar esta foto en Productos.' : 'Foto opcional. Se guarda al confirmar.';
       this.state.value = this.busy ? 'processing' : this.value === undefined ? '' : this.value === null ? 'remove' : this.value;
       this.state.dispatchEvent(new Event('input', { bubbles: true }));
     }
@@ -85,6 +88,7 @@
         const photo = await ImageFile.photo(file);
         if (this.destroyed || generation !== this.generation) return;
         this.value = photo;
+        await this.onChoose?.(file, () => !this.destroyed && generation === this.generation);
       } catch (error) {
         if (!this.destroyed && generation === this.generation) UI.NotificationCenter.shared().show('error', error.message || 'No se pudo leer la foto.');
       } finally { if (!this.destroyed && generation === this.generation) { this.busy = false; this.render(); } }

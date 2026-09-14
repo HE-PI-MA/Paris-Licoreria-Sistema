@@ -17,6 +17,11 @@ class ProductService {
     return { found: true, ...found };
   }
   async options(kind, query) { return this.repository.options(kind, Input.page(query)); }
+  async suggest(code) {
+    // La consulta pública es explícita y separada del lector local usado por Compras.
+    this.lookup ||= new (require('./ProductLookupService'))();
+    return this.lookup.find(Input.text(code, 50, 'barcode'));
+  }
   async detail(id) { return this.required(await this.repository.detail(Input.id(id))); }
   async presentations(id, query) { id = Input.id(id); this.required(await this.repository.getProduct(id)); return this.repository.presentations(id, Input.page(query, ['name','price','factor','state'])); }
   async presentation(id, presentationId) {
@@ -51,7 +56,12 @@ class ProductService {
     const data = Input.product(body);
     return this.perform(actor, key, 'product:create', data, async c => {
       await this.referenceChecks(c, data);
-      return this.repository.insertProduct(c, data);
+      const product = await this.repository.insertProduct(c, data);
+      if (data.initialPresentation) {
+        const presentation = await this.repository.insertPresentation(c, product.id, data.initialPresentation);
+        return { ...product, presentationId: presentation.id };
+      }
+      return product;
     });
   }
   update(actor, key, id, body) {

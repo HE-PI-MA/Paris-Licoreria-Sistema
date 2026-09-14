@@ -30,6 +30,8 @@ test('U031: fotos y lectores en Chromium con MySQL', { skip: process.env.PARIS_U
       await form.locator('[name=barcode]').fill(code.code); await form.locator('[name=barcode]').press('Enter'); await page.waitForFunction(() => document.querySelector('[name=factor]').value === '6.000');
       assert.equal(await form.getByRole('combobox', { name: 'Producto', exact: true }).inputValue(), 'CERVEZA FICTICIA'); assert.equal(await form.locator('[name=price]').inputValue(), '60.00'); assert.equal(await form.locator('[name=barcode]').inputValue(), code.code);
       assert.equal((await service.list({})).total, 1); assert.equal(await form.locator('.app-photo-controls .app-section-toolbar').isHidden(), true);
+      await page.setViewportSize({ width: 360, height: 800 }); assert.equal(await form.locator('.app-photo-controls .app-section-toolbar').isHidden(), true, 'el grid móvil también conserva oculta la edición de fotos existentes en Compras');
+      await page.setViewportSize({ width: 1440, height: 1000 });
       await form.getByRole('button', { name: 'Limpiar producto', exact: true }).click(); await form.getByRole('button', { name: 'Cancelar', exact: true }).click();
     });
     await check('foto de producto nuevo se conserva en dos filas y se guarda una vez al confirmar', async () => {
@@ -47,18 +49,18 @@ test('U031: fotos y lectores en Chromium con MySQL', { skip: process.env.PARIS_U
       const saved = (await repo.products.list({ term: 'PRODUCTO CON', sort: 'name', page: 1, pageSize: 50 })).records[0]; assert.equal(saved.stock, '4.000');
     });
     await check('decodifica una foto EAN-13 con la biblioteca local, sin BarcodeDetector nativo', async () => {
-      await page.goto(app.base + '/productos'); await page.getByRole('button', { name: 'Leer código', exact: true }).click();
-      await modal('Leer código de barras').locator('input[type=file]').setInputFiles({ name: 'barras.jpg', mimeType: 'image/jpeg', buffer: code.bytes });
-      await modal('Leer código de barras').waitFor({ state: 'detached' }); assert.equal(await page.locator('#module-search').inputValue(), code.code); await page.waitForFunction(() => document.querySelectorAll('#products-table tr[data-row-index]').length === 1);
+      await page.goto(app.base + '/productos'); await page.locator('[data-module-primary]').click(); await modal('Nuevo producto').getByRole('button', { name: 'Escanear código', exact: true }).click();
+      await modal('Leer código de barras').locator('input[type=file][capture]').setInputFiles({ name: 'barras.jpg', mimeType: 'image/jpeg', buffer: code.bytes });
+      await modal('Leer código de barras').waitFor({ state: 'detached' }); assert.equal(await modal('Nuevo producto').locator('[name=barcode]').inputValue(), code.code); await modal('Producto ya registrado').getByRole('button', { name: 'Cancelar', exact: true }).click();
     });
     await check('cámara: una lectura detiene las pistas; cerrar antes del permiso descarta el resultado tardío', async () => {
       await page.evaluate(bars => {
         const make = () => { const canvas = document.createElement('canvas'); canvas.width = (bars.length + 24) * 4; canvas.height = 180; const c = canvas.getContext('2d'); c.fillStyle = 'white'; c.fillRect(0, 0, canvas.width, canvas.height); c.fillStyle = 'black'; [...bars].forEach((b, i) => { if (b === '1') c.fillRect((i + 12) * 4, 15, 4, 150); }); const stream = canvas.captureStream(5); window.testCameraStreams.push(stream); return stream; };
         window.testCameraStreams = []; window.testCameraMode = 'live'; Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { configurable: true, value: () => window.testCameraMode === 'pending' ? new Promise(resolve => { window.resolveTestCamera = () => resolve(make()); }) : Promise.resolve(make()) });
       }, code.bars);
-      await page.getByRole('button', { name: 'Leer código', exact: true }).click(); await modal('Leer código de barras').getByRole('button', { name: 'Encender cámara', exact: true }).click(); await modal('Leer código de barras').waitFor({ state: 'detached' });
-      assert.equal(await page.evaluate(() => window.testCameraStreams.every(s => s.getTracks().every(t => t.readyState === 'ended'))), true);
-      await page.evaluate(() => { window.testCameraMode = 'pending'; }); await page.getByRole('button', { name: 'Leer código', exact: true }).click(); await modal('Leer código de barras').getByRole('button', { name: 'Encender cámara', exact: true }).click(); await page.waitForFunction(() => Boolean(window.resolveTestCamera));
+      await modal('Nuevo producto').getByRole('button', { name: 'Escanear código', exact: true }).click(); await modal('Leer código de barras').getByRole('button', { name: 'Encender cámara', exact: true }).click(); await modal('Leer código de barras').waitFor({ state: 'detached' });
+      assert.equal(await page.evaluate(() => window.testCameraStreams.every(s => s.getTracks().every(t => t.readyState === 'ended'))), true); await modal('Producto ya registrado').getByRole('button', { name: 'Cancelar', exact: true }).click();
+      await page.evaluate(() => { window.testCameraMode = 'pending'; }); await modal('Nuevo producto').getByRole('button', { name: 'Escanear código', exact: true }).click(); await modal('Leer código de barras').getByRole('button', { name: 'Encender cámara', exact: true }).click(); await page.waitForFunction(() => Boolean(window.resolveTestCamera));
       await modal('Leer código de barras').getByRole('button', { name: 'Cerrar', exact: true }).click(); await page.evaluate(() => window.resolveTestCamera()); await page.waitForFunction(() => window.testCameraStreams.every(s => s.getTracks().every(t => t.readyState === 'ended')));
     });
     await check('componentes compartidos en móvil, avisos temporales y formulario sin desbordarse', async () => {

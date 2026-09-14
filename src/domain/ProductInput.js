@@ -11,8 +11,18 @@ class ProductInput extends RecordInput {
     return whole.replace(/^0+(?=\d)/, '') + '.' + fraction.padEnd(scale, '0');
   }
   static product(body, update = false) {
-    this.body(body, ['name', 'categoryId', 'unitId', 'description', 'minimum', 'state', 'photo', ...(update ? ['version'] : [])]);
-    return { ...this.productFields(body, { categoryId: this.id(body.categoryId, 'categoryId') }), ...require('./ProductPhoto').optional(body) };
+    this.body(body, ['name', 'categoryId', 'unitId', 'description', 'minimum', 'state', 'photo', ...(update ? ['version'] : ['initialPresentation'])]);
+    const data = { ...this.productFields(body, { categoryId: this.id(body.categoryId, 'categoryId') }), ...require('./ProductPhoto').optional(body) };
+    if (!update && body.initialPresentation !== undefined) {
+      try {
+        this.body(body.initialPresentation, ['name', 'factor', 'barcode', 'price']);
+        data.initialPresentation = this.presentation({ ...body.initialPresentation, state: data.state });
+      } catch (error) {
+        if (!(error instanceof ProductError)) throw error;
+        throw new ProductError(error.status, error.message, Object.fromEntries(Object.entries(error.fieldErrors).map(([key, message]) => [key === 'name' ? 'presentationName' : key, message])));
+      }
+    }
+    return data;
   }
   /** Comparte las reglas del producto con Compras, que también admite una categoría nueva validada. */
   static productFields(body, category) {

@@ -7,7 +7,7 @@ class ProductController extends CatalogController {
     const { id, presentationId } = req.params;
     switch (method) {
       case 'options': return [req.params.kind, req.query];
-      case 'barcode': return [req.params.code];
+      case 'barcode': case 'suggest': return [req.params.code];
       case 'presentations': return [id, req.query];
       case 'presentation': return [id, presentationId];
       case 'savePresentation': return [...args, id, presentationId || null, req.body];
