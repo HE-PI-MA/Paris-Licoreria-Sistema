@@ -8,7 +8,8 @@
       this.events = new AbortController(); this.operations = new Map(); this.dialogs = new Set();
       this.table = new UI.DataTable({ container: element, caption: 'Productos', mode: 'scroll', numbered: true, pageSize: 50, load: params => this.api.list(params), actionDisplay: 'menu',
         columns: [
-          { key: 'name', label: 'Producto', type: 'product', sortable: true }, { key: 'category', label: 'Categoría', sortable: true, priority: 2 },
+          { key: 'photoHash', label: 'Foto', type: 'photo' },
+          { key: 'name', label: 'Producto', sortable: true }, { key: 'category', label: 'Categoría', sortable: true, priority: 2 },
           { key: 'unit', label: 'Se cuenta en', priority: 2 },
           { key: 'stock', label: 'Disponible', type: 'quantity', sortable: true, priority: 1 },
           { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'inactive' } } }

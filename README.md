@@ -2,7 +2,9 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U036
+## Estado del desarrollo — U037
+
+**Columna de foto U037:** Productos muestra Foto y Producto en columnas separadas de la tabla global. En móvil la foto permanece visible y Ver más acompaña al nombre. Se elimina el contenedor anterior que juntaba ambos. Las fotos mantienen el guardado JPEG reducido en `producto_imagen`; no se convierten a WebP. Ver [Columna de foto y formato U037](docs/50_COLUMNA_FOTO_Y_FORMATO_U037.md).
 
 **Categorías U036:** Nuevo producto conserva una categoría escrita, como AGUAS. Al guardar, reutiliza la categoría activa existente o crea la nueva junto con el producto. Cancelar no registra nada y un error revierte ambas altas. Productos y Compras comparten la validación y resolución de categorías; se mantienen el selector y los estilos globales. Ver [Categoría nueva en Productos U036](docs/49_CATEGORIA_NUEVA_PRODUCTO_U036.md).
 

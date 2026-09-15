@@ -29,6 +29,8 @@
 /* Las prioridades se calculan con el ancho disponible de esta tabla, incluso al contraer el sidebar. */
 .app-table-sequence { width: 3rem; text-align: center; font-family: inherit; font-variant-numeric: normal; color: #70634e; white-space: nowrap; }
 .app-table-primary { font-weight: 500; }
+.app-table-photo { width: 1%; text-align: center; white-space: nowrap; }
+.app-table-photo > .app-product-photo { margin-inline: auto; }
 .app-table-details-toggle { display: block; margin-top: 5px; padding: 3px 0; border: 0; background: transparent; color: #684b17; font: inherit; font-size: .8125rem; text-decoration: underline; text-underline-offset: 3px; }
 .app-table-details-toggle:focus-visible { outline: 2px solid #986c21; outline-offset: 2px; }
 .app-table-details dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 16px 24px; margin: 4px 0; padding: 12px 16px; border-left: 3px solid #b78a38; background: #f2e9d7; border-radius: 0 8px 8px 0; }

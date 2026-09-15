@@ -5,6 +5,7 @@ const { body } = require('./support/purchase-fixture'), { image, barcode } = req
 test('U031: fotos y lectores en Chromium con MySQL', { skip: process.env.PARIS_UI_BROWSER_TESTS !== '1' || !process.env.TEST_DB_USER, timeout: 120000 }, async t => {
   const db = await database(), repo = new (require('../src/repositories/PurchaseRepository'))(db.pool), service = new (require('../src/services/PurchaseService'))(repo);
   const data = body(), code = barcode(); data.lines[0].presentation.barcode = code.code; data.lines[0].product.photo = 'data:image/jpeg;base64,' + image().toString('base64'); await service.create(1, crypto.randomUUID(), data);
+  await new (require('../src/services/ProductService'))(repo.products).create(1, crypto.randomUUID(), { name: 'PRODUCTO SIN FOTO', categoryId: 1, unitId: 1, minimum: '0', description: '', state: 'ACTIVO' });
   const app = await server({ purchaseRepository: repo, productRepository: repo.products, supplierRepository: repo.suppliers });
   const { chromium } = require(process.env.PARIS_PLAYWRIGHT_PATH || 'playwright'), browser = await chromium.launch({ headless: true, executablePath: process.env.PARIS_BROWSER_EXECUTABLE || undefined, args: JSON.parse(process.env.PARIS_BROWSER_ARGS || '[]') });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } }); page.setDefaultTimeout(8000); const errors = []; page.on('pageerror', error => errors.push(error.message));
@@ -24,6 +25,30 @@ test('U031: fotos y lectores en Chromium con MySQL', { skip: process.env.PARIS_U
       await menu('Editar'); await modal('Editar producto').locator('input[type=file]').first().setInputFiles({ name: 'foto.jpg', mimeType: 'image/jpeg', buffer: image(60) }); await page.waitForFunction(() => document.querySelector('[name=photoState]').value.startsWith('data:image/jpeg'));
       await modal('Editar producto').getByRole('button', { name: 'Guardar', exact: true }).click(); await modal('Editar producto').waitFor({ state: 'detached' }); assert.notEqual((await repo.products.detail(1)).photoHash, before);
       await shot('u031-productos-foto');
+    });
+    await check('U037: foto en su propia columna, JPEG guardado y Ver más junto al nombre en móvil', async () => {
+      const table = page.locator('#products-table'), row = table.locator('tr[data-row-index]').first();
+      assert.deepEqual(await table.locator('thead th').allTextContents(), ['N.º', 'Foto', 'Producto', 'Categoría', 'Se cuenta en', 'Disponible', 'Estado', 'Acciones']);
+      assert.equal(await row.locator('[data-column-key=name] img').count(), 0);
+      const photo = row.locator('[data-column-key=photoHash] img'); await photo.waitFor();
+      const response = await page.request.get(new URL(await photo.getAttribute('src'), app.base).href);
+      assert.equal(response.status(), 200); assert.match(response.headers()['content-type'], /^image\/jpeg/);
+      assert.equal((await response.body()).subarray(0, 3).toString('hex'), 'ffd8ff');
+      assert.equal((await repo.products.photos.read(1)).bytes.subarray(0, 3).toString('hex'), 'ffd8ff');
+      await table.locator('tr[data-row-index]').nth(1).getByRole('img', { name: 'Sin foto', exact: true }).waitFor();
+      await shot('u037-foto-columna-escritorio');
+      for (const width of [768, 390, 320]) {
+        await page.setViewportSize({ width, height: 844 });
+        const toggle = row.locator('[data-column-key=name] [data-table-details]'); await toggle.waitFor({ state: 'visible' });
+        assert.equal(await row.locator('[data-column-key=photoHash] [data-table-details]').count(), 0);
+        assert.ok(await photo.isVisible());
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+        assert.ok(await table.locator('.app-table-scroll').evaluate(el => el.scrollWidth <= el.clientWidth));
+        await toggle.click(); await table.locator('[data-details-index="0"] [data-detail-column=category]').waitFor({ state: 'visible' });
+        assert.equal(await table.locator('[data-details-index="0"] td').getAttribute('colspan'), String(await row.locator('td:visible').count()));
+        await toggle.click(); if (width === 390) await shot('u037-foto-columna-movil');
+      }
+      await page.setViewportSize({ width: 1440, height: 1000 });
     });
     await check('el lector de teclado selecciona el paquete exacto y Enter no guarda la compra', async () => {
       await page.goto(app.base + '/compras'); await page.locator('[data-module-primary]').click(); const form = modal('Nueva compra');

@@ -22,7 +22,7 @@
         throw new TypeError('Registros o tamaños de página no válidos.');
       }
       for (const column of columns) {
-        if (typeof column.key !== 'string' || !column.key || !column.label || !['text', 'number', 'quantity', 'price', 'state', 'date', 'product'].includes(column.type || 'text')) {
+        if (typeof column.key !== 'string' || !column.key || !column.label || !['text', 'number', 'quantity', 'price', 'state', 'date', 'photo'].includes(column.type || 'text')) {
           throw new TypeError('Columna no válida.');
         }
       }
@@ -37,6 +37,8 @@
         throw new TypeError('La primera columna debe ser principal; las prioridades van de 0 a 3.');
       }
       Object.assign(this, { container, columns, load, actions, onAction, getRowId, pageSize, pageSizes, locale, currency, actionDisplay, mode, numbered });
+      // Ver más acompaña al texto principal, aunque haya una foto antes del nombre.
+      this.primaryColumn = columns.find(column => column.type !== 'photo' && (column.priority ?? 0) === 0) || columns[0];
       this.visibleKeys = new Set(columns.map(column => column.key));
       this.expanded = new Set();
       this.sort = this.validateSort(sort);
@@ -81,7 +83,7 @@
       const head = UI.element('thead'), row = UI.element('tr');
       if (this.numbered) { const cell = UI.element('th', 'app-table-sequence', 'N.º'); cell.scope = 'col'; row.append(cell); }
       for (const column of this.columns) {
-        const cell = UI.element('th', ['number', 'quantity', 'price'].includes(column.type) ? 'app-table-number' : '', column.label);
+        const cell = UI.element('th', this.cellClass(column), column.label);
         cell.scope = 'col'; cell.dataset.columnKey = column.key;
         // El encabezado solo identifica la columna. El módulo decide el orden de consulta.
         if (column.sortable) cell.dataset.sortColumn = column.key;
@@ -296,6 +298,10 @@
       return this.refresh();
     }
 
+    cellClass(column) {
+      return column.type === 'photo' ? 'app-table-photo' : ['number', 'quantity', 'price'].includes(column.type) ? 'app-table-number' : '';
+    }
+
     format(value, column, record) {
       if (typeof column.format === 'function') return String(column.format(value, record) ?? '');
       if (value === null || value === undefined || value === '') return '—';
@@ -321,10 +327,10 @@
         row.dataset.rowIndex = String(index);
         if (this.numbered) row.append(UI.element('td', 'app-table-sequence', this.rowNumber(index)));
         for (const column of this.columns) {
-          const cell = UI.element('td', ['number', 'quantity', 'price'].includes(column.type) ? 'app-table-number' : '');
+          const cell = UI.element('td', this.cellClass(column));
           cell.dataset.columnKey = column.key;
           this.fillCell(cell, column, record);
-          if (column === this.columns[0] && this.columns.some(item => (item.priority ?? 0) > 0)) {
+          if (column === this.primaryColumn && this.columns.some(item => (item.priority ?? 0) > 0)) {
             cell.classList.add('app-table-primary');
             const toggle = UI.element('button', 'app-table-details-toggle', 'Ver más'); toggle.type = 'button';
             toggle.dataset.tableDetails = String(index); toggle.setAttribute('aria-expanded', 'false');
@@ -377,8 +383,9 @@
     /** Un único formateador sirve para celdas y detalles; ningún valor del usuario se interpreta como HTML. */
     fillCell(cell, column, record) {
       const value = record[column.key];
-      if (column.type === 'product' && UI.ProductPhoto) {
-        const item = UI.element('span', 'app-product-cell'); item.append(UI.ProductPhoto.element(record), UI.element('span', '', this.format(value, column, record))); cell.append(item);
+      if (column.type === 'photo') {
+        if (UI.ProductPhoto) cell.append(UI.ProductPhoto.element(record));
+        else cell.textContent = 'Sin foto';
       } else if (column.type === 'state') {
         const state = column.states && Object.hasOwn(column.states, value) ? column.states[value] : null;
         const tone = state && ['success', 'inactive', 'warning', 'error', 'info', 'neutral'].includes(state.tone) ? state.tone : 'neutral';

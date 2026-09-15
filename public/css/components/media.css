@@ -2,7 +2,6 @@
 .app-input-action { display: flex; align-items: center; gap: 8px; min-width: 0; width: 100%; }
 .app-input-action > .app-input { flex: 1; min-width: 0; }
 .app-input-action > .app-button { flex: 0 0 auto; }
-.app-product-cell { display: flex; align-items: center; gap: 12px; }
 .app-product-photo { position: relative; display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; overflow: hidden; border-radius: 9px; background: #eee4d2; color: #876323; }
 .app-product-photo > .paris-icon { width: 24px; height: 24px; }
 .app-product-photo > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #fffaf1; }
@@ -16,7 +15,6 @@
 .app-capture-notice { display: grid; gap: 6px; }
 .app-capture-notice a { color: var(--app-text); text-decoration: underline; }
 @media (max-width: 30rem) {
-  .app-product-cell { gap: 8px; }
   .app-product-photo { flex-basis: 32px; width: 32px; height: 32px; }
   .app-product-photo--large { width: 112px; height: 112px; }
   .app-photo-field { display: grid; grid-template-columns: 80px minmax(0, 1fr); align-items: center; gap: 10px; }
