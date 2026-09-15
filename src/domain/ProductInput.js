@@ -11,8 +11,9 @@ class ProductInput extends RecordInput {
     return whole.replace(/^0+(?=\d)/, '') + '.' + fraction.padEnd(scale, '0');
   }
   static product(body, update = false) {
-    this.body(body, ['name', 'categoryId', 'unitId', 'description', 'minimum', 'state', 'photo', ...(update ? ['version'] : ['initialPresentation'])]);
-    const data = { ...this.productFields(body, { categoryId: this.id(body.categoryId, 'categoryId') }), ...require('./ProductPhoto').optional(body) };
+    this.body(body, ['name', 'categoryId', 'unitId', 'description', 'minimum', 'state', 'photo', ...(update ? ['version'] : ['initialPresentation', 'categoryName'])]);
+    const category = update ? { categoryId: this.id(body.categoryId, 'categoryId') } : this.categoryFields(body);
+    const data = { ...this.productFields(body, category), ...require('./ProductPhoto').optional(body) };
     if (!update && body.initialPresentation !== undefined) {
       try {
         this.body(body.initialPresentation, ['name', 'factor', 'barcode', 'price']);
@@ -23,6 +24,13 @@ class ProductInput extends RecordInput {
       }
     }
     return data;
+  }
+  /** Una categoría existente por ID o un nombre nuevo; misma regla en Productos y Compras. */
+  static categoryFields(body) {
+    if (body.categoryName === undefined) return { categoryId: this.id(body.categoryId, 'categoryId') };
+    if (body.categoryId !== undefined) throw new ProductError(422, 'Selecciona una categoría o escribe su nombre, no ambos.', { categoryIdText: 'Indica una sola categoría.' });
+    const name = this.text(body.categoryName, 80, 'categoryIdText').replace(/\s+/g, ' ').toLocaleUpperCase('es');
+    return { categoryName: this.text(name, 80, 'categoryIdText') };
   }
   /** Comparte las reglas del producto con Compras, que también admite una categoría nueva validada. */
   static productFields(body, category) {

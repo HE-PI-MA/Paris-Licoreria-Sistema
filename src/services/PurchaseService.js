@@ -26,14 +26,6 @@ class PurchaseService {
     if(row || data.locationId)throw new RecordError(422,'La ubicación no está disponible.',{locationIdText:'Elige una ubicación activa o escribe otro nombre.'});
     return this.repository.insertLocation(c,data.locationName);
   }
-  /** Reutiliza la coincidencia activa sin cambiar su nombre ni reactivar categorías inactivas. */
-  async category(c,data) {
-    if(data.categoryId)return data.categoryId;
-    const row=await this.repository.products.namedCategory(c,data.categoryName);
-    if(row?.state==='ACTIVO')return row.id;
-    if(row)throw new RecordError(422,'La categoría '+data.categoryName+' está inactiva. Selecciona una categoría activa o escribe otro nombre.');
-    return this.repository.products.insertCategory(c,data.categoryName);
-  }
   async product(c,data,cache) {
     if(data.id)return this.current(await this.repository.products.getProduct(data.id,c,true),data,'El producto');
     const previous=cache.get(data.clientKey);
@@ -42,7 +34,7 @@ class PurchaseService {
       return previous.row;
     }
     if(await this.repository.namedProduct(c,data.name))throw new RecordError(409,'El producto '+data.name+' ya está registrado. Selecciónalo en las sugerencias.');
-    const resolved={...data,categoryId:await this.category(c,data)};
+    const resolved={...data,categoryId:await this.products.category(c,data)};
     await this.products.referenceChecks(c,resolved);
     const row={...resolved,...await this.repository.products.insertProduct(c,resolved)};
     cache.set(data.clientKey,{fingerprint:JSON.stringify(data),row}); return row;

@@ -5,17 +5,10 @@ class PurchaseInput extends ProductInput {
   static reference(value) { return { id: this.id(value.id), version: this.version(value.version) }; }
   /** Solo los productos nuevos admiten categoría por nombre; el ID conserva el contrato anterior. */
   static newProduct(body, photos) {
-    let category;
-    if (body.categoryName === undefined) category = { categoryId: this.id(body.categoryId, 'categoryId') };
-    else {
-      if (body.categoryId !== undefined) throw new RecordError(422, 'Selecciona una categoría o escribe su nombre, no ambos.');
-      const name = this.text(body.categoryName, 80, 'categoryName').replace(/\s+/g, ' ').toLocaleUpperCase('es');
-      category = { categoryName: this.text(name, 80, 'categoryName') };
-    }
     return { clientKey: this.key(body.clientKey), ...this.productFields({
       name: this.text(body.name, 120, 'name').toLocaleUpperCase('es'), unitId: body.unitId,
       minimum: '0', description: '', state: 'ACTIVO'
-    }, category), ...require('./ProductPhoto').optional(body, photos) };
+    }, this.categoryFields(body)), ...require('./ProductPhoto').optional(body, photos) };
   }
   /** Conserva el contrato anterior por ID; un nombre nuevo se valida antes de iniciar la transacción. */
   static location(body) {

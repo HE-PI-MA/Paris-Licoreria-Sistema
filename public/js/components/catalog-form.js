@@ -37,9 +37,11 @@
       this.selectors.push(new UI.SearchSelect({ select, searchable: false }));
       return select;
     }
-    selector(name, label, kind, selected, help, optionsApi = this.api, placeholder) {
+    selector(name, label, kind, selected, help, optionsApi = this.api, placeholder, { allowCustom = false, maxLength } = {}) {
       const input = this.field(name, label, { type: 'select', required: true, help, options: [{ value: '', label: 'Seleccionar' }] });
-      const enhanced = new UI.SearchSelect({ select: input, load: params => optionsApi.options(kind, params), placeholder });
+      const enhanced = new UI.SearchSelect({ select: input, load: params => optionsApi.options(kind, params), placeholder, allowCustom });
+      if (allowCustom) { input.required = false; enhanced.input.required = true; enhanced.syncDisabled(); }
+      if (maxLength !== undefined) enhanced.input.maxLength = maxLength;
       if (selected) enhanced.setValue(selected);
       this.selectors.push(enhanced); return input;
     }

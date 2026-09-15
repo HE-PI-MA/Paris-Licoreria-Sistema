@@ -36,6 +36,14 @@ class ProductService {
     }
     if (!await this.repository.unit(c, data.unitId)) throw new ProductError(422, 'Revisa la unidad base.', { unitId: 'Selecciona una unidad registrada.' });
   }
+  /** Resuelve la categoría dentro de la transacción que guarda el producto o la compra. */
+  async category(c, data) {
+    if (data.categoryId) return data.categoryId;
+    const row = await this.repository.namedCategory(c, data.categoryName);
+    if (row?.state === 'ACTIVO') return row.id;
+    if (row) throw new ProductError(422, 'La categoría ' + data.categoryName + ' está inactiva. Selecciona una categoría activa o escribe otro nombre.', { categoryIdText: 'Esta categoría está inactiva.' });
+    return this.repository.insertCategory(c, data.categoryName);
+  }
   async perform(actor, key, command, payload, operation) {
     const metadata = { userId: Input.id(actor), key: Input.key(key), hash: crypto.createHash('sha256').update(JSON.stringify([command, payload])).digest('hex') };
     try { return await this.repository.write(metadata, operation); }
@@ -55,8 +63,9 @@ class ProductService {
   create(actor, key, body) {
     const data = Input.product(body);
     return this.perform(actor, key, 'product:create', data, async c => {
-      await this.referenceChecks(c, data);
-      const product = await this.repository.insertProduct(c, data);
+      const resolved = { ...data, categoryId: await this.category(c, data) };
+      await this.referenceChecks(c, resolved);
+      const product = await this.repository.insertProduct(c, resolved);
       if (data.initialPresentation) {
         const presentation = await this.repository.insertPresentation(c, product.id, data.initialPresentation);
         return { ...product, presentationId: presentation.id };

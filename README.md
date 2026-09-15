@@ -2,7 +2,9 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U035
+## Estado del desarrollo — U036
+
+**Categorías U036:** Nuevo producto conserva una categoría escrita, como AGUAS. Al guardar, reutiliza la categoría activa existente o crea la nueva junto con el producto. Cancelar no registra nada y un error revierte ambas altas. Productos y Compras comparten la validación y resolución de categorías; se mantienen el selector y los estilos globales. Ver [Categoría nueva en Productos U036](docs/49_CATEGORIA_NUEVA_PRODUCTO_U036.md).
 
 **Lector y autocompletado U035:** lectura ampliada de códigos girados en cámara y fotografías. Al leer o terminar de escribir un código, Nuevo producto consulta primero el catálogo local y después Open Food Facts para completar los datos disponibles, sin un segundo botón. Conserva lo escrito, evita duplicados y solo guarda al confirmar. Reutiliza las clases y estilos existentes. Ver [Lector y autocompletado U035](docs/48_LECTOR_Y_AUTOCOMPLETADO_U035.md). Esta versión sustituye la búsqueda manual descrita en U034.
 

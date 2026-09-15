@@ -10,7 +10,7 @@
       if (row) { this.photo = new UI.PhotoField({ container: this.grid, form: this.form, modal: this.modal }); this.photo.reset(row); }
       else { this.capture = new Catalog.ProductCapture(this, options.onExisting); this.photo = this.capture.photo; }
       this.field('name', 'Nombre del producto', { value: row?.name, required: true, maxLength: 120, wide: true, placeholder: 'Ej.: Coca-Cola 2 litros' });
-      this.selector('categoryId', 'Categoría', 'categories', row && { value: row.categoryId, label: row.category }, undefined, this.api, 'Ej.: Gaseosas');
+      this.selector('categoryId', 'Categoría', 'categories', row && { value: row.categoryId, label: row.category }, undefined, this.api, 'Ej.: Aguas o gaseosas', { allowCustom: !row, maxLength: 80 });
       const unit = this.selector('unitId', '¿Cómo lo cuentas?', 'units', row && { value: row.unitId, label: row.unit }, undefined, this.api, 'Ej.: Unidad o gramo');
       if (row?.presentations > 0) {
         unit.disabled = true;
@@ -20,7 +20,8 @@
       this.state(row?.state);
       this.field('description', 'Descripción', { type: 'textarea', value: row?.description, maxLength: 255, wide: true });
       this.capture?.fields();
-      this.start(row ? '/' + row.id + '/editar' : '', ({ photoState, ...values }) => ({ ...(this.capture ? this.capture.payload(values) : values), ...this.photo.payload(),
+      this.start(row ? '/' + row.id + '/editar' : '', ({ photoState, categoryIdText, categoryId, ...values }) => ({
+        ...(this.capture ? this.capture.payload({ ...values, ...(categoryId ? { categoryId } : { categoryName: categoryIdText }) }) : { ...values, categoryId }), ...this.photo.payload(),
         ...(row ? { unitId: unit.disabled ? String(row.unitId) : values.unitId, version: row.version } : {})
       }), this.capture?.scan);
     }

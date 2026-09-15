@@ -101,7 +101,7 @@
     }
     syncDisabled() {
       this.input.disabled = this.select.disabled;
-      this.input.setAttribute('aria-required', String(this.select.required));
+      this.input.setAttribute('aria-required', String(this.input.required || this.select.required));
       this.input.setAttribute('aria-busy', this.select.getAttribute('aria-busy') || 'false');
       if (this.select.disabled) this.close();
     }
