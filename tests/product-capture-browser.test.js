@@ -1,4 +1,4 @@
-/** U034: cámara/foto primero y guardado real en MySQL temporal. El catálogo público se simula. */
+/** U034: cámara/foto primero y guardado real en MySQL temporal. U035: autocompletado automático. El catálogo público se simula. */
 const { test } = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
 const { database } = require('./support/inventory-mysql-fixture'), { server, password } = require('./support/application-fixture'), { image, barcode } = require('./support/media-fixture');
 test('U034: captura al inicio, sugerencias revisables y creación completa', { skip: process.env.PARIS_UI_BROWSER_TESTS !== '1' || !process.env.TEST_DB_USER, timeout: 120000 }, async t => {
@@ -13,17 +13,15 @@ test('U034: captura al inicio, sugerencias revisables y creación completa', { s
   try {
     await page.route('**/api/productos/sugerencia/**', async route => { calls++; await route.fulfill({ json: { found: true, name: 'BEBIDA FICTICIA', category: 'BEBIDAS ALCOHÓLICAS' } }); });
     await page.goto(app.base + '/login'); await page.locator('[name=nombre_usuario]').fill('audit_user'); await page.locator('[name=contrasena]').fill(password); await page.locator('[data-login-submit]').click(); await page.waitForURL('**/inicio'); await page.goto(app.base + '/productos');
-    await check('escáner primero; foto de barras real y consulta pública solo al pulsar su botón', async () => {
+    await check('escáner primero; foto de barras real y consulta pública automática', async () => {
       assert.equal(await page.locator('[data-module-region=controls] .app-input-action').count(), 0);
       await page.locator('[data-module-primary]').click(); const form = modal('Nuevo producto');
       assert.equal(await form.getByRole('button', { name: 'Escanear código', exact: true }).evaluate(el => el === document.activeElement), true);
       const photoBox = await form.locator('.app-photo-field').boundingBox(), nameBox = await form.locator('[name=name]').boundingBox(); assert.ok(photoBox.y < nameBox.y);
       await form.getByRole('button', { name: 'Escanear código', exact: true }).click();
       await modal('Leer código de barras').locator('input[type=file]:not([capture])').setInputFiles({ name: 'barras.jpg', mimeType: 'image/jpeg', buffer: bars.bytes });
-      await modal('Leer código de barras').waitFor({ state: 'detached' }); await form.getByText('Código nuevo.', { exact: false }).waitFor();
-      assert.equal(await form.locator('[name=barcode]').inputValue(), bars.code); assert.equal(calls, 0); assert.equal(await form.locator('[name=name]').inputValue(), '');
-      await form.getByRole('button', { name: 'Buscar nombre y categoría', exact: true }).click();
-      await form.getByText('Revisa las sugerencias.', { exact: false }).waitFor(); assert.equal(calls, 1);
+      await modal('Leer código de barras').waitFor({ state: 'detached' }); await form.getByText('Revisa las sugerencias.', { exact: false }).waitFor();
+      assert.equal(await form.locator('[name=barcode]').inputValue(), bars.code); assert.equal(calls, 1);
       assert.equal(await form.locator('[name=name]').inputValue(), 'BEBIDA FICTICIA'); assert.equal(await form.locator('select[name=categoryId]').inputValue(), '1');
       await shot('u034-nuevo-producto');
     });
@@ -38,7 +36,7 @@ test('U034: captura al inicio, sugerencias revisables y creación completa', { s
     });
     await check('un código existente abre el producto registrado, sin duplicarlo', async () => {
       await page.locator('[data-module-primary]').click(); const form = modal('Nuevo producto'); await form.locator('[name=barcode]').fill(bars.code); await form.locator('[name=barcode]').press('Enter');
-      await modal('Producto ya registrado').getByRole('button', { name: 'Abrir producto', exact: true }).click(); await modal('Editar producto').waitFor(); assert.equal(await modal('Editar producto').locator('[name=name]').inputValue(), 'BEBIDA FICTICIA');
+      await modal('Editar producto').waitFor(); assert.equal(await modal('Editar producto').locator('[name=name]').inputValue(), 'BEBIDA FICTICIA');
       assert.equal((await repo.list({ sort: 'name', page: 1, pageSize: 50 })).total, 1); await modal('Editar producto').getByRole('button', { name: 'Cancelar', exact: true }).click();
     });
     await check('móvil HTTP: cámara mediante foto; controles globales, sin desborde y sin falso botón en vivo', async () => {
@@ -50,19 +48,20 @@ test('U034: captura al inicio, sugerencias revisables y creación completa', { s
       assert.equal(await scanner.locator('input[capture=environment]').count(), 1); assert.equal(await scanner.getByRole('button', { name: 'Tomar foto del código', exact: true }).isVisible(), true);
       assert.equal(await scanner.locator('.app-modal-body').evaluate(el => el.scrollWidth <= el.clientWidth), true); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true); await shot('u034-lector-movil-http');
       await scanner.locator('input[capture=environment]').setInputFiles({ name: 'foto-celular.jpg', mimeType: 'image/jpeg', buffer: bars.bytes });
-      await scanner.waitFor({ state: 'detached' }); assert.equal(await form.locator('[name=barcode]').inputValue(), bars.code);
-      await modal('Producto ya registrado').getByRole('button', { name: 'Cancelar', exact: true }).click(); await cancel();
+      await scanner.waitFor({ state: 'detached' }); await modal('Editar producto').waitFor();
+      assert.equal(await modal('Editar producto').locator('[name=name]').inputValue(), 'BEBIDA FICTICIA');
+      await modal('Editar producto').getByRole('button', { name: 'Cancelar', exact: true }).click();
     });
     await check('una respuesta tardía no pisa cambios ni borra el borrador; error usa aviso global temporal', async () => {
       await page.locator('[data-module-primary]').click(); const form = modal('Nuevo producto'); const code = form.locator('[name=barcode]');
       await code.fill('0036000291452'); let release; const gate = new Promise(r => { release = r; });
       await page.route('**/api/productos/sugerencia/0036000291452', async route => { await gate; await route.fulfill({ json: { found: true, name: 'NOMBRE TARDÍO', category: 'GASEOSAS' } }).catch(() => {}); });
-      const requested = page.waitForRequest('**/api/productos/sugerencia/0036000291452'); await form.getByRole('button', { name: 'Buscar nombre y categoría', exact: true }).click(); await requested;
+      const requested = page.waitForRequest('**/api/productos/sugerencia/0036000291452'); await code.press('Enter'); await requested;
       await form.locator('[name=name]').fill('NOMBRE ESCRITO'); await code.fill('MANUAL-01'); release();
       await page.waitForFunction(() => !document.querySelector('[name=barcode]')?.disabled); assert.equal(await form.locator('[name=name]').inputValue(), 'NOMBRE ESCRITO');
       await page.unroute('**/api/productos/sugerencia/**');
       await page.route('**/api/productos/sugerencia/**', route => route.fulfill({ status: 503, json: { error: 'Catálogo no disponible. Completa los datos.' } }));
-      await code.fill('0012345678906'); await form.getByRole('button', { name: 'Buscar nombre y categoría', exact: true }).click();
+      await code.fill('0012345678906'); await code.press('Enter');
       await form.locator('.app-toast[data-kind=error]').waitFor(); assert.equal(await form.locator('.app-modal-body .app-alert:visible').count(), 0); await page.mouse.move(0, 0); await form.locator('.app-toast[data-kind=error]').waitFor({ state: 'detached' });
       assert.equal(await form.locator('[name=name]').inputValue(), 'NOMBRE ESCRITO'); await cancel(); assert.deepEqual(errors, []);
     });

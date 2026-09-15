@@ -32,7 +32,10 @@
     static liveAvailable() { return window.isSecureContext && Boolean(navigator.mediaDevices?.getUserMedia); }
     static decoder() {
       if (!window.ZXingBrowser) throw new Error('No se pudo cargar el lector. Recarga la página.');
-      const ZX = window.ZXingBrowser, reader = new ZX.BrowserMultiFormatReader(new Map(), { delayBetweenScanAttempts: 200, delayBetweenScanSuccess: 500, tryPlayVideoTimeout: 3000 });
+      // DecodeHintType.TRY_HARDER = 3 en ZXing 0.1.5: revisa más filas y también gira la imagen.
+      // El paquete del navegador no exporta DecodeHintType; se mantiene su clave documentada aquí.
+      const TRY_HARDER = 3;
+      const ZX = window.ZXingBrowser, reader = new ZX.BrowserMultiFormatReader(new Map([[TRY_HARDER, true]]), { delayBetweenScanAttempts: 200, delayBetweenScanSuccess: 500, tryPlayVideoTimeout: 3000 });
       // EAN-13 conserva el cero que un lector UPC-A puede omitir; la API resuelve ambas representaciones.
       reader.possibleFormats = ['EAN_13', 'EAN_8', 'UPC_E', 'CODE_128', 'CODE_39', 'CODE_93', 'ITF', 'CODABAR'].map(name => ZX.BarcodeFormat[name]);
       return reader;

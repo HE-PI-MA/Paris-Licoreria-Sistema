@@ -18,7 +18,7 @@ class ProductService {
   }
   async options(kind, query) { return this.repository.options(kind, Input.page(query)); }
   async suggest(code) {
-    // La consulta pública es explícita y separada del lector local usado por Compras.
+    // Nuevo producto consulta aquí después de buscar localmente; Compras conserva su búsqueda local.
     this.lookup ||= new (require('./ProductLookupService'))();
     return this.lookup.find(Input.text(code, 50, 'barcode'));
   }

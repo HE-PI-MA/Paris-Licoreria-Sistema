@@ -49,7 +49,10 @@ test('U031: fotos y lectores en Chromium con MySQL', { skip: process.env.PARIS_U
       const saved = (await repo.products.list({ term: 'PRODUCTO CON', sort: 'name', page: 1, pageSize: 50 })).records[0]; assert.equal(saved.stock, '4.000');
     });
     await check('decodifica una foto EAN-13 con la biblioteca local, sin BarcodeDetector nativo', async () => {
-      await page.goto(app.base + '/productos'); await page.locator('[data-module-primary]').click(); await modal('Nuevo producto').getByRole('button', { name: 'Escanear código', exact: true }).click();
+      await page.goto(app.base + '/productos'); await page.locator('[data-module-primary]').click();
+      // Un borrador escrito conserva la confirmación antes de abrir otro producto; el vacío se completa directamente.
+      await modal('Nuevo producto').locator('[name=name]').fill('BORRADOR DEL LECTOR');
+      await modal('Nuevo producto').getByRole('button', { name: 'Escanear código', exact: true }).click();
       await modal('Leer código de barras').locator('input[type=file][capture]').setInputFiles({ name: 'barras.jpg', mimeType: 'image/jpeg', buffer: code.bytes });
       await modal('Leer código de barras').waitFor({ state: 'detached' }); assert.equal(await modal('Nuevo producto').locator('[name=barcode]').inputValue(), code.code); await modal('Producto ya registrado').getByRole('button', { name: 'Cancelar', exact: true }).click();
     });
