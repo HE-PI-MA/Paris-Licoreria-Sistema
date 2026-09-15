@@ -2,7 +2,9 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U037
+## Estado del desarrollo — U038
+
+**Fotos WebP U038:** las fotos nuevas o reemplazadas desde Productos y Compras se convierten a WebP antes de guardarse. La clase compartida `ImageCodec` valida, elimina metadatos y limita el peso. Las JPEG existentes siguen visibles. Requiere instalar el conversor incluido en las dependencias, sin migrar la base de datos. Ver [Fotos WebP U038](docs/51_FOTOS_WEBP_U038.md).
 
 **Columna de foto U037:** Productos muestra Foto y Producto en columnas separadas de la tabla global. En móvil la foto permanece visible y Ver más acompaña al nombre. Se elimina el contenedor anterior que juntaba ambos. Las fotos mantienen el guardado JPEG reducido en `producto_imagen`; no se convierten a WebP. Ver [Columna de foto y formato U037](docs/50_COLUMNA_FOTO_Y_FORMATO_U037.md).
 

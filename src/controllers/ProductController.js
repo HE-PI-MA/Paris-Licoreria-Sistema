@@ -1,4 +1,4 @@
-/** Productos declara solo sus argumentos y la respuesta JPEG; comparte HTTP y errores con los demás módulos. */
+/** Productos declara argumentos y el formato real de la imagen; comparte HTTP y errores con los demás módulos. */
 const CatalogController = require('./CatalogController');
 class ProductController extends CatalogController {
   constructor(service) { super(service, { label: 'Productos', event: 'PRODUCT_REQUEST_FAILED' }); }
@@ -16,7 +16,7 @@ class ProductController extends CatalogController {
     }
   }
   respond(res, result, options) {
-    return options.method === 'photo' ? res.type('image/jpeg').send(result.bytes) : super.respond(res, result, options);
+    return options.method === 'photo' ? res.type(result.contentType).send(result.bytes) : super.respond(res, result, options);
   }
 }
 module.exports = ProductController;

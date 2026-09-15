@@ -18,7 +18,7 @@ test('U031: fotos transaccionales, códigos exactos y migración reanudable en M
       const data = body(); data.lines[0].product.photo = image; data.lines[0].presentation.barcode = '0012345678905'; const operation = key();
       const [a, b] = await Promise.all([purchases.create(1, operation, data), purchases.create(1, operation, data)]); assert.deepEqual(a, b); saved = a;
       product = (await products.list({})).records[0]; assert.match(product.photoHash, /^[a-f0-9]{64}$/);
-      assert.equal((await products.photo(product.id)).bytes.length > 100, true);
+      assert.equal((await products.photo(product.id)).contentType, 'image/webp');
       assert.equal((await products.detail(product.id)).stock, '12.000');
       const [[count]] = await db.owner.query('SELECT COUNT(*) AS n FROM producto_imagen'); assert.equal(count.n, 1);
       const match = await products.barcode('0012345678905'); assert.equal(match.product.id, product.id); assert.equal(match.presentation.factor, '6.000');

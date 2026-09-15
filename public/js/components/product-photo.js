@@ -18,8 +18,10 @@
     }
     static async photo(file) {
       const canvas = await this.canvas(file);
-      for (const quality of [.8, .65, .5, .35]) {
-        const data = canvas.toDataURL('image/jpeg', quality);
+      for (const quality of [.85, .75, .65, .5]) {
+        let data = canvas.toDataURL('image/webp', quality);
+        // Algunos navegadores no codifican WebP: el servidor completa la conversión al guardar.
+        if (!data.startsWith('data:image/webp;')) data = canvas.toDataURL('image/jpeg', quality);
         if (data.length < 270000) return data;
       }
       throw new Error('No se pudo reducir esta foto. Prueba con otra imagen.');

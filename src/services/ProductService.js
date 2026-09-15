@@ -8,7 +8,12 @@ class ProductService {
     if (row.version !== Input.version(token)) throw new ProductError(409, 'Otra operación modificó este registro. Cierra y vuelve a abrir el formulario para revisar los datos actuales.');
   }
   async list(query) { return this.repository.list(Input.page(query, ['name','category','stock','minimum','state'])); }
-  async photo(id) { return this.required(await this.repository.photos.read(Input.id(id))); }
+  async photo(id) {
+    const row = this.required(await this.repository.photos.read(Input.id(id)));
+    const contentType = require('../domain/ImageCodec').mime(row.bytes);
+    if (!contentType) throw new Error('Formato de imagen almacenada no reconocido.');
+    return { ...row, contentType };
+  }
   async barcode(value) {
     const code = Input.text(value, 50, 'barcode');
     const found = await this.repository.barcode(code);

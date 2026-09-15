@@ -28,7 +28,7 @@ test('U034: captura al inicio, sugerencias revisables y creación completa', { s
     await check('foto, nombre, categoría, código y primera venta se guardan juntos; stock queda en cero', async () => {
       const form = modal('Nuevo producto');
       await form.locator('.app-photo-field input[type=file]:not([capture])').setInputFiles({ name: 'producto.jpg', mimeType: 'image/jpeg', buffer: image(70) });
-      await page.waitForFunction(() => document.querySelector('[name=photoState]')?.value.startsWith('data:image/jpeg'));
+      await page.waitForFunction(() => document.querySelector('[name=photoState]')?.value.startsWith('data:image/webp'));
       await form.getByRole('combobox', { name: '¿Cómo lo cuentas? *', exact: true }).fill('UNI'); await page.locator('[role=option]:visible').first().click();
       await form.locator('[name=presentationName]').fill('PAQUETE DE 6'); await form.locator('[name=factor]').fill('6'); await form.locator('[name=price]').fill('25');
       await form.getByRole('button', { name: 'Guardar', exact: true }).click(); await form.waitFor({ state: 'detached' }); await page.mouse.move(0, 0); await page.locator('.app-toast[data-kind=success]').waitFor({ state: 'detached' });

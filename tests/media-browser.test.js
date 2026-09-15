@@ -20,21 +20,21 @@ test('U031: fotos y lectores en Chromium con MySQL', { skip: process.env.PARIS_U
       await page.goto(app.base + '/productos'); await page.locator('.app-product-photo img').waitFor(); await page.waitForFunction(() => document.querySelector('.app-product-photo img')?.naturalWidth > 0);
       const before = (await repo.products.detail(1)).photoHash;
       await menu('Editar'); await modal('Editar producto').locator('input[type=file]').first().setInputFiles({ name: 'foto.jpg', mimeType: 'image/jpeg', buffer: image(60) });
-      await page.waitForFunction(() => document.querySelector('[name=photoState]').value.startsWith('data:image/jpeg'));
+      await page.waitForFunction(() => document.querySelector('[name=photoState]').value.startsWith('data:image/webp'));
       await modal('Editar producto').getByRole('button', { name: 'Cancelar', exact: true }).click(); await modal('Descartar cambios').getByRole('button', { name: 'Descartar cambios', exact: true }).click(); assert.equal((await repo.products.detail(1)).photoHash, before);
-      await menu('Editar'); await modal('Editar producto').locator('input[type=file]').first().setInputFiles({ name: 'foto.jpg', mimeType: 'image/jpeg', buffer: image(60) }); await page.waitForFunction(() => document.querySelector('[name=photoState]').value.startsWith('data:image/jpeg'));
+      await menu('Editar'); await modal('Editar producto').locator('input[type=file]').first().setInputFiles({ name: 'foto.jpg', mimeType: 'image/jpeg', buffer: image(60) }); await page.waitForFunction(() => document.querySelector('[name=photoState]').value.startsWith('data:image/webp'));
       await modal('Editar producto').getByRole('button', { name: 'Guardar', exact: true }).click(); await modal('Editar producto').waitFor({ state: 'detached' }); assert.notEqual((await repo.products.detail(1)).photoHash, before);
       await shot('u031-productos-foto');
     });
-    await check('U037: foto en su propia columna, JPEG guardado y Ver más junto al nombre en móvil', async () => {
+    await check('U037: foto en su propia columna, WebP guardado y Ver más junto al nombre en móvil', async () => {
       const table = page.locator('#products-table'), row = table.locator('tr[data-row-index]').first();
       assert.deepEqual(await table.locator('thead th').allTextContents(), ['N.º', 'Foto', 'Producto', 'Categoría', 'Se cuenta en', 'Disponible', 'Estado', 'Acciones']);
       assert.equal(await row.locator('[data-column-key=name] img').count(), 0);
       const photo = row.locator('[data-column-key=photoHash] img'); await photo.waitFor();
       const response = await page.request.get(new URL(await photo.getAttribute('src'), app.base).href);
-      assert.equal(response.status(), 200); assert.match(response.headers()['content-type'], /^image\/jpeg/);
-      assert.equal((await response.body()).subarray(0, 3).toString('hex'), 'ffd8ff');
-      assert.equal((await repo.products.photos.read(1)).bytes.subarray(0, 3).toString('hex'), 'ffd8ff');
+      assert.equal(response.status(), 200); assert.match(response.headers()['content-type'], /^image\/webp/);
+      assert.equal(require('../src/domain/ImageCodec').mime(await response.body()), 'image/webp');
+      assert.equal(require('../src/domain/ImageCodec').mime((await repo.products.photos.read(1)).bytes), 'image/webp');
       await table.locator('tr[data-row-index]').nth(1).getByRole('img', { name: 'Sin foto', exact: true }).waitFor();
       await shot('u037-foto-columna-escritorio');
       for (const width of [768, 390, 320]) {
@@ -64,9 +64,9 @@ test('U031: fotos y lectores en Chromium con MySQL', { skip: process.env.PARIS_U
       await choose(title, 'Nombre o empresa', 'DISTR'); await choose(title, 'Ubicación *', 'ALM');
       await form.getByRole('combobox', { name: 'Producto', exact: true }).fill('PRODUCTO CON FOTO'); await choose(title, 'Categoría *', 'BEB'); await choose(title, '¿Cómo lo cuentas? *', 'UNI');
       await form.getByRole('combobox', { name: '¿Cómo lo compras?', exact: true }).fill('CAJA DE 3'); await form.locator('[name=factor]').fill('3'); await form.locator('[name=price]').fill('20'); await form.locator('[name=cost]').fill('12');
-      await form.locator('input[type=file]').first().setInputFiles({ name: 'producto.jpg', mimeType: 'image/jpeg', buffer: image(210) }); await page.waitForFunction(() => document.querySelector('[name=photoState]').value.startsWith('data:image/jpeg'));
+      await form.locator('input[type=file]').first().setInputFiles({ name: 'producto.jpg', mimeType: 'image/jpeg', buffer: image(210) }); await page.waitForFunction(() => document.querySelector('[name=photoState]').value.startsWith('data:image/webp'));
       await shot('u031-compra-foto'); await form.getByRole('button', { name: 'Agregar producto', exact: true }).click();
-      await choose(title, 'Producto', 'PRODUCTO CON'); await page.waitForFunction(() => document.querySelector('[name=photoState]').value.startsWith('data:image/jpeg')); assert.equal(await form.locator('.app-photo-controls .app-section-toolbar').isHidden(), true);
+      await choose(title, 'Producto', 'PRODUCTO CON'); await page.waitForFunction(() => document.querySelector('[name=photoState]').value.startsWith('data:image/webp')); assert.equal(await form.locator('.app-photo-controls .app-section-toolbar').isHidden(), true);
       await form.getByRole('combobox', { name: '¿Cómo lo compras?', exact: true }).fill('UNIDAD'); await form.locator('[name=price]').fill('8'); await form.locator('[name=cost]').fill('4'); await form.getByRole('button', { name: 'Agregar producto', exact: true }).click();
       assert.equal((await repo.products.list({ term: 'PRODUCTO CON', sort: 'name', page: 1, pageSize: 50 })).total, 0);
       await form.getByRole('button', { name: 'Guardar compra', exact: true }).click(); await form.waitFor({ state: 'detached' });
