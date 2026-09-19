@@ -46,7 +46,7 @@ Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servido
 
 **Operación U039:** los nueve módulos del panel tienen contenido funcional. Inicio, Ventas, Caja, Reportes y Usuarios quedaron conectados al backend y a MySQL; Productos, Proveedores, Compras e Inventario conservan sus implementaciones previas.
 
-La base existente se actualiza con `npm run db:core`; una instalación nueva usa `npm run db:install`. U039 es aditiva y conserva el historial.
+La base existente se actualiza con `pnpm run db:core`; una instalación nueva usa `pnpm run db:install`. U039 es aditiva y conserva el historial.
 
 La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, modales, confirmaciones, tablas, filtros, selectores, fechas y menús de acciones. Login y activación comparten AuthForm. CSS conserva su organización por componentes; la auditoría U011 corrige interacciones y optimiza la compilación de EJS sin cambiar el diseño.
 
@@ -99,7 +99,7 @@ U030 requiere `node scripts/setup-inventory.js` una vez, con servidor detenido y
 U031 requiere una vez `node scripts/setup-media.js` con permisos de instalación y acceso de la cuenta de ejecución a `producto_imagen`. Ver la guía U031. Las imágenes no se guardan en una carpeta pública.
 
 ```powershell
-npm test
+pnpm test
 node scripts/setup-products.js --comprobar
 node scripts/setup-suppliers.js --comprobar
 node scripts/setup-inventory.js --comprobar

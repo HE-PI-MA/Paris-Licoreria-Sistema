@@ -23,7 +23,7 @@ U039 corrige los hallazgos operativos de la auditoría sin rehacer la instalaci�
 3. Desde la raíz del proyecto ejecutar:
 
 ```powershell
-npm run db:core
+pnpm run db:core
 ```
 
 4. Aplicar o revalidar los permisos de `database/permisos_minimos.sql` para la cuenta cotidiana de la aplicación.
@@ -42,8 +42,8 @@ Si al instalar existe una única sesión antigua todavía ABIERTA y sin caja fí
 Solo para una base MySQL 8 completamente vacía:
 
 ```powershell
-npm run db:install
-npm run admin:create
+pnpm run db:install
+pnpm run admin:create
 ```
 
 `db:install` usa:
@@ -108,7 +108,7 @@ Reportes acepta un rango de fechas válido y muestra ventas vigentes/anuladas, c
 No se borra `catalogo_operacion` automáticamente. Cuando corresponda mantenimiento se puede ejecutar explícitamente:
 
 ```powershell
-npm run db:cleanup-operations -- --dias 30
+pnpm run db:cleanup-operations -- --dias 30
 ```
 
 Solo elimina registros **ya confirmados** (`resultado IS NOT NULL`) anteriores al período indicado. El mínimo aceptado es 7 días. No elimina ventas, compras ni movimientos de inventario.
@@ -121,7 +121,7 @@ En una máquina de desarrollo con dependencias instaladas:
 
 ```powershell
 node --test tests/core-u039.test.js
-npm test
+pnpm test
 ```
 
 Las pruebas que requieran MySQL deben ejecutarse contra una base desechable configurada específicamente para pruebas; nunca contra producción.

@@ -24,7 +24,7 @@ Parche preparado sobre la carpeta auditada. Conserva los módulos existentes y c
 
 1. Respaldar MySQL y detener el servidor.
 2. Copiar/reemplazar los archivos del proyecto por esta versión.
-3. Con una cuenta MySQL de instalación ejecutar `npm run db:core`.
+3. Con una cuenta MySQL de instalación ejecutar `pnpm run db:core`.
 4. Aplicar/revalidar `database/permisos_minimos.sql` para la cuenta de ejecución.
 5. Iniciar el sistema y revisar Caja → Ventas → cierre de Caja.
 
