@@ -27,6 +27,22 @@ const SupplierRepository = require('./repositories/SupplierRepository');
 const SupplierService = require('./services/SupplierService');
 const SupplierController = require('./controllers/SupplierController');
 const SupplierRoutes = require('./routes/supplier.routes');
+const CashRepository = require('./repositories/CashRepository');
+const CashService = require('./services/CashService');
+const SaleRepository = require('./repositories/SaleRepository');
+const SaleService = require('./services/SaleService');
+const UserRepository = require('./repositories/UserRepository');
+const UserService = require('./services/UserService');
+const ReportRepository = require('./repositories/ReportRepository');
+const ReportService = require('./services/ReportService');
+const DashboardRepository = require('./repositories/DashboardRepository');
+const DashboardService = require('./services/DashboardService');
+const BusinessController = require('./controllers/BusinessController');
+const CashRoutes = require('./routes/cash.routes');
+const SaleRoutes = require('./routes/sale.routes');
+const UserRoutes = require('./routes/user.routes');
+const ReportRoutes = require('./routes/report.routes');
+const DashboardRoutes = require('./routes/dashboard.routes');
 
 const SystemRepository = require('./repositories/SystemRepository');
 const SystemService = require('./services/SystemService');
@@ -87,7 +103,7 @@ class App {
     this.app.get('/api/licencia/estado', this.limits.status);
     // Las fotos se procesan en sus rutas protegidas. Login y activación mantienen su límite reducido.
     const smallJson = express.json({ limit: '16kb' });
-    this.app.use((req, res, next) => /^\/api\/(productos|compras)(\/|$)/.test(req.path) ? next() : smallJson(req, res, next));
+    this.app.use((req, res, next) => /^\/api\/(productos|compras|ventas)(\/|$)/.test(req.path) ? next() : smallJson(req, res, next));
     this.sessionStore = this.options.sessionStore || new MySqlSessionStore(database.getPool());
     this.app.use(session({
       name: 'paris.sid', secret: this.config.sessionSecret,
@@ -145,6 +161,11 @@ class App {
     this.purchaseController = new CatalogController(new PurchaseService(this.options.purchaseRepository || new PurchaseRepository(database.getPool())), { label: 'Compras', event: 'PURCHASE_REQUEST_FAILED' });
     this.productController = new ProductController(new ProductService(this.options.productRepository || new ProductRepository(database.getPool())));
     this.supplierController = new SupplierController(new SupplierService(this.options.supplierRepository || new SupplierRepository(database.getPool())));
+    this.cashController = new BusinessController(new CashService(this.options.cashRepository || new CashRepository(database.getPool())), { label: 'Caja', event: 'CASH_REQUEST_FAILED' });
+    this.saleController = new BusinessController(new SaleService(this.options.saleRepository || new SaleRepository(database.getPool())), { label: 'Ventas', event: 'SALE_REQUEST_FAILED' });
+    this.userController = new BusinessController(new UserService(this.options.userRepository || new UserRepository(database.getPool())), { label: 'Usuarios', event: 'USER_REQUEST_FAILED' });
+    this.reportController = new BusinessController(new ReportService(this.options.reportRepository || new ReportRepository(database.getPool())), { label: 'Reportes', event: 'REPORT_REQUEST_FAILED' });
+    this.dashboardController = new BusinessController(new DashboardService(this.options.dashboardRepository || new DashboardRepository(database.getPool())), { label: 'Inicio', event: 'DASHBOARD_REQUEST_FAILED' });
   }
 
   configureRoutes() {
@@ -167,6 +188,11 @@ class App {
     this.app.use('/api/inventario', new InventoryRoutes(this.inventoryController, this.licenseMiddleware, this.authMiddleware).getRouter());
     this.app.use('/api/compras', new PurchaseRoutes(this.purchaseController, this.licenseMiddleware, this.authMiddleware).getRouter());
     this.app.use('/api/proveedores', new SupplierRoutes(this.supplierController, this.licenseMiddleware, this.authMiddleware).getRouter());
+    this.app.use('/api/caja', new CashRoutes(this.cashController, this.licenseMiddleware, this.authMiddleware).getRouter());
+    this.app.use('/api/ventas', new SaleRoutes(this.saleController, this.licenseMiddleware, this.authMiddleware).getRouter());
+    this.app.use('/api/usuarios', new UserRoutes(this.userController, this.licenseMiddleware, this.authMiddleware).getRouter());
+    this.app.use('/api/reportes', new ReportRoutes(this.reportController, this.licenseMiddleware, this.authMiddleware).getRouter());
+    this.app.use('/api/inicio', new DashboardRoutes(this.dashboardController, this.licenseMiddleware, this.authMiddleware).getRouter());
   }
 
   configureErrors() {

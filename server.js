@@ -40,7 +40,7 @@ async function start({ Application = App } = {}) {
 }
 if (require.main === module) start().catch(async error => {
   safeLog('STARTUP_FAILED', error);
-  console.error('No se pudo iniciar. Comprueba la configuracion, MySQL y la migracion U004.');
+  console.error('No se pudo iniciar. Comprueba la configuracion, MySQL y las migraciones requeridas hasta U039.');
   // Los errores de configuración son textos controlados; no imprimir mensajes del controlador de MySQL.
   if (error.name === 'ConfigurationError') console.error(error.message);
   await database.getPool().end();

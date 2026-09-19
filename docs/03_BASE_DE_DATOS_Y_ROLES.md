@@ -1,48 +1,78 @@
 # Base de datos y roles
 
-## Esquema
+Estado vigente: **U039**. MySQL 8 es obligatorio. La conexión de ejecución usa `mysql2/promise` y la base indicada por `DB_NAME`.
 
-MySQL 8; la conexión se realiza con `mysql2/promise` a la base indicada por `DB_NAME`. La instalación de pruebas del usuario utiliza `paris_licoreria`.
+> Las guías de versiones anteriores son históricas. Para el núcleo actual prevalece U039.
 
-V2 define 21 tablas de negocio. U004 agrega `sesion_web` y `app_migration`: 23 tablas del esquema esperado. Este inventario procede del SQL versionado; no sustituye una consulta de la base instalada.
+## Esquema vigente
 
-| Área | Tablas principales |
+V2 parte de 21 tablas de negocio. U004 añadió `sesion_web` y `app_migration`; U012 añadió `catalogo_operacion`; las preparaciones posteriores añadieron estructuras de proveedores, inventario y fotos. U039 agrega las estructuras operativas de caja/devoluciones sin borrar datos existentes.
+
+Entre los objetos relevantes de U039 están:
+
+| Objeto | Finalidad |
 | --- | --- |
-| Identidad | `rol`, `usuario` |
-| Catálogo | `categoria`, `unidad_medida`, `producto`, `presentacion_producto` |
-| Abastecimiento | `proveedor`, `compra`, `detalle_compra` |
-| Existencias | `lote_producto`, `ubicacion`, `lote_ubicacion`, `ajuste_inventario` |
-| Operación de caja | `sesion_caja`, `venta`, `detalle_venta`, `detalle_venta_lote`, `pago` |
-| Arqueo | `denominacion`, `arqueo_caja`, `detalle_arqueo` |
-| Infraestructura | `sesion_web`, `app_migration` |
+| `caja` | Identifica Caja 1 y Caja 2. |
+| `sesion_caja.id_caja` | Relaciona un turno nuevo con su caja física. |
+| `venta.operacion_clave` / `solicitud_hash` | Idempotencia de ventas. |
+| `venta.fecha_hora_anulacion` / `id_usuario_anulacion` | Auditoría de la anulación. |
+| `devolucion_pago` | Historial inmutable de devoluciones de EFECTIVO/QR. |
+| `vw_ventas_totales` | Venta, caja, responsable, total y auditoría de anulación. |
+| `vw_efectivo_esperado_sesion` | Efectivo que debería existir en el turno. |
+| `vw_diferencias_caja` | Esperado, contado y diferencia. |
+| `vw_reembolsos_venta` | Devoluciones registradas al anular. |
 
-## Permisos actuales de páginas
+Los turnos históricos cerrados previos a U039 conservan su información original; si no tenían caja física registrada se muestran como **Caja histórica**.
 
-| Rol | Acceso |
+## Procedimientos operativos
+
+| Procedimiento | Regla principal |
 | --- | --- |
-| `ADMINISTRADOR` | Los nueve módulos y Mi perfil. |
-| `ENCARGADO_VENTA` | Inicio, Ventas, Caja y Mi perfil. |
+| `sp_registrar_compra` | Registra compra y entrada de lotes. |
+| `sp_registrar_venta` | Exige turno propio abierto, pago exacto, idempotencia y consume lotes por FEFO. |
+| `sp_anular_venta` | Solo administrador activo; restaura lotes, audita usuario/fecha y registra devolución de pagos. |
+| `sp_registrar_ajuste_inventario` | Registra retiros justificados de inventario. |
+| `sp_cerrar_sesion_caja` | Solo responsable del turno; arquea denominaciones y exige observación si existe diferencia. |
+| `sp_limpiar_catalogo_operacion` | Elimina en lotes solo claves idempotentes ya confirmadas y más antiguas que la retención indicada. |
 
-La fuente de estos permisos es `src/config/navigation.js`. Las rutas de módulos comprueban licencia y usuario activo; las administrativas devuelven 403 al encargado de venta. Las operaciones futuras necesitarán sus propios controles de servidor: por ejemplo, qué caja puede cerrar un usuario y quién puede anular una venta.
+U039 protege además las ventas, sesiones, cajas y devoluciones mediante triggers de historial. La aplicación de ejecución no necesita privilegios DDL.
 
-Los usuarios reales dependen de cada instalación; la documentación no mantiene una lista de cuentas supuestamente vigente. `usuario.nombre_usuario` es único y el estado permitido es ACTIVO o INACTIVO.
+## Reglas de Caja
+
+Existen **Caja 1** y **Caja 2**, pero operativamente solo puede haber **un turno abierto a la vez**. Cada apertura nueva indica una caja física y un usuario responsable. Solo ese responsable puede cerrar el turno.
+
+Al cerrar se registra el conteo por denominación. `efectivo_esperado = monto_inicial + pagos EFECTIVO de ventas VIGENTES`. Una diferencia entre esperado y contado requiere observación.
+
+## FEFO
+
+La salida automática de una venta prioriza lotes vendibles así:
+
+1. lote con vencimiento válido más próximo;
+2. siguiente vencimiento;
+3. lotes sin vencimiento;
+4. para empates, fecha de compra e identificadores.
+
+Los lotes vencidos no se consumen.
+
+## Roles y API
+
+| Rol | Acceso operativo |
+| --- | --- |
+| `ADMINISTRADOR` | Inicio, Ventas, Caja, Productos, Inventario, Compras, Proveedores, Reportes, Usuarios y Mi perfil. Puede anular ventas. |
+| `ENCARGADO_VENTA` | Inicio, Ventas, Caja y Mi perfil. Registra ventas únicamente en su turno abierto y consulta sus registros autorizados. |
+
+La fuente de navegación es `src/config/navigation.js`, pero las API también comprueban roles mediante middleware. El menú por sí solo no concede permisos.
 
 ## Contraseñas y sesiones
 
-bcrypt verifica la contraseña. Tras el login se regenera la sesión y se guarda en MySQL. En cada solicitud protegida se vuelve a consultar el usuario y su rol. La respuesta no incluye el hash de contraseña.
+Las contraseñas se almacenan con bcrypt y nunca se devuelven desde la API de Usuarios. Después del login se regenera la sesión. Las sesiones web se guardan en MySQL y cada solicitud protegida revalida usuario/rol.
 
-Los marcadores de demostración no permiten iniciar sesión. `scripts/create-admin.js` sirve para configurar el administrador inicial y no sustituye cuentas reales existentes. No se modifican automáticamente contraseñas ni se documentan valores privados.
+El sistema impide desactivar la propia cuenta administrativa desde Usuarios y evita dejar la instalación sin al menos un administrador activo.
 
-## Operaciones SQL disponibles para conectar después
+## Instalación
 
-| Procedimiento | Finalidad |
-| --- | --- |
-| `sp_registrar_compra` | Compra, detalle y entrada de lotes. |
-| `sp_registrar_venta` | Venta, pagos y consumo de existencias. |
-| `sp_anular_venta` | Anulación según las restricciones de caja e historial. |
-| `sp_registrar_ajuste_inventario` | Salida por daño, pérdida, vencimiento u otro motivo. |
-| `sp_cerrar_sesion_caja` | Cierre y arqueo con denominaciones. |
+- **Base existente:** ejecutar U039 mediante `npm run db:core`; no reconstruir la base.
+- **Base nueva vacía:** `npm run db:install` usa el bootstrap oficial de `database/bootstrap/` y aplica las preparaciones hasta U039.
+- Después de preparar la base, aplicar `database/permisos_minimos.sql` a la cuenta de ejecución correspondiente.
 
-La migración contiene vistas de stock físico/disponible/vencido, stock bajo, vencimientos, compras, ventas, productos vendidos y diferencias de caja. Estas definiciones existen en SQL; la interfaz aún no las consulta.
-
-Las rutinas controlan sus transacciones. Consultar `09_PARCHE_U004.md` antes de modificar SQL o conceder permisos. U007 conserva el archivo de migración y no ejecuta SQL. Los fixtures de `tests/` son para laboratorio y no son una restauración de producción.
+La preparación requiere una cuenta MySQL con permisos de instalación; la cuenta cotidiana de la aplicación debe conservar privilegios mínimos. Ver `docs/52_NUCLEO_OPERATIVO_U039.md`.

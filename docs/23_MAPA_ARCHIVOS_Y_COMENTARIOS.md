@@ -1,6 +1,28 @@
-# Mapa de archivos y comentarios — actualizado en U023
+# Mapa de archivos y comentarios — actualizado en U039
 
 Este mapa describe el código propio del proyecto. Las dependencias instaladas, las claves privadas y los datos de ejecución no forman parte del parche. Las guías U009 y U010 contienen los contratos completos de la base visual.
+
+
+> Este mapa conserva secciones históricas de componentes anteriores. Para el núcleo operativo vigente consultar primero `README.md`, `01_ARQUITECTURA_DEL_SISTEMA.md` y `52_NUCLEO_OPERATIVO_U039.md`.
+
+## Núcleo agregado en U039
+
+| Archivo | Responsabilidad |
+| --- | --- |
+| `src/domain/OperationInput.js` | Validación de Caja, Ventas, Usuarios y Reportes. |
+| `src/controllers/BusinessController.js` | Adaptador HTTP común de los módulos operativos. |
+| `src/repositories/CashRepository.js` / `src/services/CashService.js` | Caja física, turnos y arqueo. |
+| `src/repositories/SaleRepository.js` / `src/services/SaleService.js` | Ventas FEFO, idempotencia, detalle y anulación. |
+| `src/repositories/UserRepository.js` / `src/services/UserService.js` | Administración de usuarios y protección del último administrador. |
+| `src/repositories/ReportRepository.js` / `src/services/ReportService.js` | Reportes reales por período. |
+| `src/repositories/DashboardRepository.js` / `src/services/DashboardService.js` | Resumen operativo de Inicio. |
+| `src/routes/{cash,sale,user,report,dashboard}.routes.js` | API autorizada de los módulos U039. |
+| `public/js/pages/{cash,sales,users,reports,dashboard}.js` | Interfaz funcional de los cinco módulos. |
+| `database/migrations/U039.sql` | Caja 1/Caja 2, FEFO, devoluciones, auditoría e idempotencia. |
+| `database/bootstrap/` | Instalación V2 oficial nueva, fuera de `tests/`. |
+| `scripts/setup-core.js` | Actualización reanudable de una base existente a U039. |
+| `scripts/setup-database.js` | Instalación desde cero, solo sobre base vacía. |
+| `scripts/cleanup-operations.js` | Limpieza manual y segura de operaciones idempotentes confirmadas. |
 
 ## JavaScript por responsabilidad
 
@@ -111,7 +133,7 @@ Este mapa describe el código propio del proyecto. Las dependencias instaladas, 
 | --- | --- |
 | `views/auth/activation.ejs` | Activación del equipo: muestra la licencia y permite enviar el código cuando corresponde. |
 | `views/auth/login.ejs` | Acceso al sistema: formulario protegido por CSRF y estilos propios de autenticación. |
-| `views/caja/content.ejs` | Cuerpo de caja: reutiliza el estado de preparación hasta conectar sus operaciones. |
+| `views/caja/content.ejs` | Estado de turno, apertura/cierre e historial de Caja U039. |
 | `views/components/icon.ejs` | Catálogo de iconos SVG locales; solo acepta identificadores definidos por el proyecto. |
 | `views/components/module/controls.ejs` | Buscador y filtros compartidos; se habilitan únicamente para páginas implementadas. |
 | `views/components/module/header.ejs` | Cabecera compartida: título del módulo y su acción principal. |
@@ -121,15 +143,15 @@ Este mapa describe el código propio del proyecto. Las dependencias instaladas, 
 | `views/components/sidebar.ejs` | Compone marca, navegación autorizada y perfil del menú lateral adaptable. |
 | `views/components/ui-icons.ejs` | Plantillas para JavaScript; las formas proceden del mismo catálogo local usado por el sidebar. |
 | `views/compras/content.ejs` | Punto de montaje de la tabla de Compras. |
-| `views/dashboard/content.ejs` | Saludo inicial del espacio de trabajo; el resumen operativo sigue pendiente. |
+| `views/dashboard/content.ejs` | Resumen operativo real del día según el rol. |
 | `views/demo/components.ejs` | Demostración aislada: la clase de página mantiene los registros ficticios en memoria. |
-| `views/inventario/content.ejs` | Cuerpo de inventario: reutiliza el estado de preparación hasta conectar sus operaciones. |
+| `views/inventario/content.ejs` | Punto de montaje del Inventario operativo U030. |
 | `views/layouts/workspace.ejs` | Marco autenticado: sidebar, componentes comunes y cuerpo específico de cada módulo. |
 | `views/productos/content.ejs` | Contenedor del listado real; ProductsPage construye la tabla compartida. |
 | `views/proveedores/content.ejs` | Contenedor del listado real; SuppliersPage construye la tabla compartida. |
-| `views/reportes/content.ejs` | Cuerpo de reportes: reutiliza el estado de preparación hasta conectar sus operaciones. |
-| `views/usuarios/content.ejs` | Cuerpo de usuarios: reutiliza el estado de preparación hasta conectar sus operaciones. |
-| `views/ventas/content.ejs` | Cuerpo de ventas: reutiliza el estado de preparación hasta conectar sus operaciones. |
+| `views/reportes/content.ejs` | Rango y resultados reales de Reportes U039. |
+| `views/usuarios/content.ejs` | Punto de montaje de Usuarios U039. |
+| `views/ventas/content.ejs` | Punto de montaje de Ventas U039. |
 
 ## Datos, recursos y pruebas
 
@@ -137,7 +159,8 @@ Este mapa describe el código propio del proyecto. Las dependencias instaladas, 
 - `database/migrations/U012.sql`: tabla de reintentos compartida; no alterar su huella para añadir módulos.
 - `database/migrations/U023.sql`: campo NIT opcional e índice único en proveedor, mediante una sentencia ALTER.
 - `database/permisos_minimos.sql`: guía del usuario MySQL de ejecución y sus permisos actuales.
-- `tests/fixtures/v2/`: base y datos ficticios para integración desechable; no son scripts para reiniciar la instalación.
+- `database/bootstrap/`: base V2 oficial para una instalación nueva.
+- `tests/fixtures/v2/`: copia de laboratorio para pruebas desechables; no se usa como instalador de producción.
 - `tests/support/application-fixture.js`: servidor con sesión y licencia simuladas, sin conexión a la base del negocio.
 - `tests/support/supplier-fixture.js`: repositorio y conexiones en memoria para probar Proveedores con OperationStore real.
 - `tests/suppliers.test.js`, `suppliers-setup.test.js` y `suppliers-browser.test.js`: reglas, estructura simulada y flujos de navegador del módulo U023.

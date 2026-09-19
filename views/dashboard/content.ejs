@@ -1,6 +1,2 @@
-<%# Saludo inicial del espacio de trabajo; el resumen operativo sigue pendiente. %>
-<div class="module-welcome">
-  <span class="module-placeholder-icon"><%- include('../components/icon', { name: 'home' }) %></span>
-  <h2>Hola, <%= usuario.nombre || usuario.nombreUsuario %>.</h2>
-  <p>Selecciona una opción del menú para continuar.</p>
-</div>
+<%# Inicio U039: resumen real según el rol autenticado. %>
+<div class="ops-dashboard" id="dashboard-summary" aria-live="polite" aria-busy="true"><p>Cargando resumen del día…</p></div>

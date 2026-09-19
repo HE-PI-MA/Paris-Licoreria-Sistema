@@ -27,24 +27,112 @@ test('U006: shared module structure, authenticated navigation, profile and local
     assert.ok(!response.text.includes('sidebar-preference.js'));
     assert.match(response.text, /<div class="sidebar-brand" role="img"/);
     assert.ok(response.text.includes('name="csrf-token"'));
+    // U039: Inicio, Caja y Reportes no necesitan barra de búsqueda/filtros.
+    const noControls = ['inicio', 'caja', 'reportes'].includes(item.id);
+
     let previousRegion = -1;
-    for (const region of ['header', 'controls', 'content', 'messages']) {
+    const regions = noControls
+      ? ['header', 'content', 'messages']
+      : ['header', 'controls', 'content', 'messages'];
+
+    for (const region of regions) {
       const position = response.text.indexOf(`data-module-region="${region}"`);
-      assert.ok(position > previousRegion, `${item.id}: falta la sección ${region} o está fuera de orden`);
+      assert.ok(
+        position > previousRegion,
+        `${item.id}: falta la sección ${region} o está fuera de orden`
+      );
       previousRegion = position;
     }
-    if (['productos','proveedores','compras','inventario'].includes(item.id)) {
-      assert.doesNotMatch(response.text, /data-module-primary[^>]*disabled/);
-      assert.ok(response.text.includes('id="' + (item.id === 'inventario' ? 'inventory' : item.id === 'productos' ? 'products' : item.id === 'compras' ? 'purchases' : 'suppliers') + '-table"'));
-      const script = '/js/pages/' + (item.id === 'inventario' ? 'inventory' : item.id === 'productos' ? 'products' : item.id === 'compras' ? 'purchases' : 'suppliers') + '.js';
-      assert.ok(response.text.indexOf('/js/components/catalog-api.js') < response.text.indexOf(script));
-      assert.ok(response.text.indexOf('/js/components/catalog-form.js') < response.text.indexOf(script));
-    } else {
-      assert.match(response.text, /class="module-primary-action app-button app-button--primary"[^>]*\bdisabled/);
-      assert.match(response.text, /id="module-search"[^>]+disabled/);
+
+    // Desde U039 todos los módulos del menú son operativos.
+    assert.doesNotMatch(
+      response.text,
+      /data-module-primary[^>]*disabled/
+    );
+
+    if (!noControls) {
+      assert.doesNotMatch(
+        response.text,
+        /id="module-search"[^>]+disabled/
+      );
     }
+
+    const liveModule = {
+      inicio: {
+        contentId: 'dashboard-summary',
+        script: '/js/pages/dashboard.js'
+      },
+      ventas: {
+        contentId: 'sales-table',
+        script: '/js/pages/sales.js'
+      },
+      caja: {
+        contentId: 'cash-module',
+        script: '/js/pages/cash.js'
+      },
+      productos: {
+        contentId: 'products-table',
+        script: '/js/pages/products.js'
+      },
+      inventario: {
+        contentId: 'inventory-table',
+        script: '/js/pages/inventory.js'
+      },
+      compras: {
+        contentId: 'purchases-table',
+        script: '/js/pages/purchases.js'
+      },
+      proveedores: {
+        contentId: 'suppliers-table',
+        script: '/js/pages/suppliers.js'
+      },
+      reportes: {
+        contentId: 'reports-module',
+        script: '/js/pages/reports.js'
+      },
+      usuarios: {
+        contentId: 'users-table',
+        script: '/js/pages/users.js'
+      }
+    }[item.id];
+
+    assert.ok(
+      liveModule,
+      `${item.id}: no tiene contrato operativo definido en la prueba`
+    );
+
+    assert.ok(
+      response.text.includes(`id="${liveModule.contentId}"`),
+      `${item.id}: falta su contenido operativo`
+    );
+
+    assert.ok(
+      response.text.includes(liveModule.script),
+      `${item.id}: falta su script de página`
+    );
+
+    // Todos los módulos U039 comparten el acceso común a API.
+    assert.ok(
+      response.text.indexOf('/js/components/catalog-api.js') <
+        response.text.indexOf(liveModule.script),
+      `${item.id}: catalog-api debe cargarse antes del script del módulo`
+    );
+
+    // Los cuatro módulos de catálogo mantienen además sus formularios comunes.
+    if (['productos', 'proveedores', 'compras', 'inventario'].includes(item.id)) {
+      assert.ok(
+        response.text.indexOf('/js/components/catalog-form.js') <
+          response.text.indexOf(liveModule.script),
+        `${item.id}: catalog-form debe cargarse antes del script del módulo`
+      );
+    }
+
     assert.ok(response.text.includes('data-module-error'));
-    if(!['inicio','productos','proveedores','compras','inventario'].includes(item.id))assert.ok(response.text.includes('Módulo en preparación'));
+
+    assert.ok(
+      !response.text.includes('Módulo en preparación'),
+      `${item.id}: todavía aparece como módulo en preparación`
+    );
   }
   s.setUser({...user,nombre:'<script>alert(1)</script>',apellido:'& Usuario'});
   const profile=await s.request('/perfil',{headers});

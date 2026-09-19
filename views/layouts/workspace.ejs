@@ -29,8 +29,10 @@
     <script src="/js/components/product-photo.js" defer></script>
     <script src="/js/components/barcode-reader.js" defer></script>
   <% } %>
-  <% if (['productos', 'proveedores', 'compras', 'inventario'].includes(page.id)) { %>
+  <% if (['productos', 'proveedores', 'compras', 'inventario', 'ventas', 'caja', 'usuarios', 'reportes', 'inicio'].includes(page.id)) { %>
     <script src="/js/components/catalog-api.js" defer></script>
+  <% } %>
+  <% if (['productos', 'proveedores', 'compras', 'inventario'].includes(page.id)) { %>
     <script src="/js/components/catalog-form.js" defer></script>
   <% } %>
   <% if (page.id === 'productos') { %>
@@ -58,12 +60,20 @@
     <script src="/js/pages/inventory-form.js" defer></script>
     <script src="/js/pages/inventory.js" defer></script>
   <% } %>
+  <% if (page.id === 'ventas') { %>
+    <script src="/js/components/decimal.js" defer></script>
+    <script src="/js/pages/sales.js" defer></script>
+  <% } %>
+  <% if (page.id === 'caja') { %><script src="/js/pages/cash.js" defer></script><% } %>
+  <% if (page.id === 'usuarios') { %><script src="/js/pages/users.js" defer></script><% } %>
+  <% if (page.id === 'reportes') { %><script src="/js/pages/reports.js" defer></script><% } %>
+  <% if (page.id === 'inicio') { %><script src="/js/pages/dashboard.js" defer></script><% } %>
   <% if (page.id === 'demo-componentes') { %>
     <link rel="stylesheet" href="/css/pages/components-demo.css">
     <script src="/js/pages/components-demo.js" defer></script>
   <% } %>
 </head>
-<body class="paris-app<%= moduleUi && moduleUi.contentVariant === 'listing' ? ' paris-app--listing' : '' %>">
+<body class="paris-app<%= moduleUi && moduleUi.contentVariant === 'listing' ? ' paris-app--listing' : '' %>" data-user-role="<%= usuario.rol %>">
   <%- include('../components/ui-icons') %>
   <a class="paris-skip-link" href="#module-content">Ir al contenido</a>
   <%- include('../components/sidebar') %>
@@ -73,7 +83,7 @@
         <%# El marco se comparte; contentView viene de module-layouts.js. %>
         <div class="module-layout<%= moduleUi.contentVariant === 'listing' ? ' module-layout--listing' : '' %>" data-module-layout="<%= page.id %>">
           <%- include('../components/module/header') %>
-          <%- include('../components/module/controls') %>
+          <% if (!moduleUi.hideControls) { %><%- include('../components/module/controls') %><% } %>
           <section class="module-content-panel" data-module-region="content" aria-label="<%= title %>" aria-busy="false">
             <% if (moduleUi.contentVariant !== 'listing') { %><header class="module-panel-heading"><h2 id="module-content-title">Contenido</h2></header><% } %>
             <div class="module-content-area"><%- include('../' + moduleUi.contentView) %></div>

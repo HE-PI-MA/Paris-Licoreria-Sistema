@@ -1,2 +1,5 @@
-<%# Cuerpo de caja: reutiliza el estado de preparación hasta conectar sus operaciones. %>
-<%- include('../components/module/placeholder') %>
+<%# Caja U039: estado actual y turnos históricos. %>
+<div class="ops-stack" id="cash-module">
+  <section class="ops-status-card" id="cash-status" aria-live="polite" aria-busy="true"><p>Cargando estado de caja…</p></section>
+  <section class="ops-section" aria-labelledby="cash-history-title"><div class="ops-section-heading"><h3 id="cash-history-title">Historial de turnos</h3></div><div id="cash-history"></div></section>
+</div>

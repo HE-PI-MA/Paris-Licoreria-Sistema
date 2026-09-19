@@ -1,0 +1,1 @@
+const Input=require('../domain/OperationInput');class ReportService{constructor(repository){this.repository=repository;}summary(query){return this.repository.summary(Input.report(query));}}module.exports=ReportService;

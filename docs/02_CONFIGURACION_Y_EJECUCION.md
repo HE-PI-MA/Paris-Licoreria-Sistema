@@ -1,13 +1,67 @@
 # Configuración y ejecución
 
-Requisitos: Windows, Node.js 20 o superior, MySQL 8 y PNPM o NPM. Las dependencias están definidas en `package.json` y el lockfile existente. U004 no agrega dependencias de terceros.
+Estado vigente: **U039**.
 
-Instalar dependencias en una instalación nueva mediante `pnpm install --frozen-lockfile`. Una instalación existente conserva su `node_modules` y `.env`.
+## Requisitos
 
-La actualización se aplica siguiendo `09_PARCHE_U004.md`: respaldo, servidor detenido, migración U004, comprobación y arranque. La migración necesita una cuenta administrativa SQL. Después se utiliza una cuenta dedicada de permisos mínimos para la aplicación.
+- Windows para la instalación operativa vinculada al equipo.
+- Node.js 20 o superior.
+- MySQL 8.
+- PNPM o NPM.
 
-Variables: NODE_ENV, HOST, PORT, DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD y SESSION_SECRET. Para producción se agregan PUBLIC_ORIGIN y TRUST_PROXY, o TLS_CERT_PATH y TLS_KEY_PATH para TLS directo. Revisar `.env.example`.
+Las dependencias se definen en `package.json` y el lockfile del proyecto. Una instalación existente puede conservar su `node_modules`; una instalación nueva debe instalar dependencias desde el lockfile.
 
-`node server.js` verifica la conexión y la marca de migración U004 antes de atender peticiones. `node scripts/db-check.js` revisa datos sin modificarlos.
+## Variables de entorno
 
-Las contraseñas y claves no se guardan en la documentación ni en Git.
+La aplicación utiliza `NODE_ENV`, `HOST`, `PORT`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` y `SESSION_SECRET`. En despliegues con proxy/TLS pueden intervenir `PUBLIC_ORIGIN`, `TRUST_PROXY`, `TLS_CERT_PATH` y `TLS_KEY_PATH`. Consultar `.env.example` para el formato.
+
+La actualización U039 **no modifica `.env`**.
+
+## Base existente
+
+Antes de actualizar: respaldo de MySQL y servidor detenido. Ejecutar U039 con una cuenta MySQL de instalación:
+
+```powershell
+npm run db:core
+```
+
+Después revalidar/aplicar `database/permisos_minimos.sql` a la cuenta de ejecución y arrancar normalmente:
+
+```powershell
+node server.js
+```
+
+`server.js` comprueba conexión y esquema requerido hasta U039 antes de aceptar peticiones.
+
+## Base nueva
+
+Solo para una base MySQL 8 completamente vacía:
+
+```powershell
+npm run db:install
+npm run admin:create
+node server.js
+```
+
+`db:install` usa el bootstrap oficial `database/bootstrap/` y aplica las preparaciones versionadas hasta U039. Si detecta tablas existentes aborta; no reconstruye una base de producción.
+
+## Comprobaciones
+
+```powershell
+node --test tests/core-u039.test.js
+npm test
+```
+
+Las pruebas de integración MySQL deben apuntar a una base desechable preparada para pruebas, nunca a producción.
+
+## Mantenimiento opcional
+
+Las claves idempotentes confirmadas pueden limpiarse manualmente después de un período de retención:
+
+```powershell
+npm run db:cleanup-operations -- --dias 30
+```
+
+El mantenimiento no se ejecuta al iniciar el servidor y no elimina ventas, compras ni movimientos.
+
+Ver `52_NUCLEO_OPERATIVO_U039.md` para el detalle de actualización, historial, Caja, FEFO y devoluciones.

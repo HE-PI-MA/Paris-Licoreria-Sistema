@@ -1,5 +1,8 @@
 # Auditoría, fotos y lectura de códigos — U031
 
+> **Documento histórico U031.** La afirmación de módulos pendientes describe ese momento del proyecto. Desde U039, Inicio, Ventas, Caja, Reportes y Usuarios están conectados; consultar `52_NUCLEO_OPERATIVO_U039.md`.
+
+
 Revisión del 13 de septiembre de 2026. Base: ZIP recibido y commit `6f7b324212f3ff4b264b27b8c8fbb37317830bdd` de `HE-PI-MA/Paris-Licoreria-Sistema`. Los 251 archivos del proyecto coincidían con esa versión de GitHub. Se excluyeron de la copia de trabajo las dependencias instaladas, la configuración privada y los metadatos de Git. No se leyó la configuración privada ni se conectó una base de negocio.
 
 ## Resultado y correcciones

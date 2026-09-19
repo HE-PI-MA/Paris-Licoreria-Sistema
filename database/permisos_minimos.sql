@@ -38,3 +38,22 @@ GRANT SELECT ON paris_licoreria.sesion_caja TO 'paris_app'@'localhost';
 
 -- U031: después de scripts/setup-media.js. Una foto opcional por producto.
 GRANT SELECT, INSERT, UPDATE, DELETE ON paris_licoreria.producto_imagen TO 'paris_app'@'localhost';
+
+-- U039: Caja física, Ventas FEFO, devoluciones auditadas, Usuarios y Reportes.
+GRANT SELECT ON paris_licoreria.caja TO 'paris_app'@'localhost';
+GRANT SELECT, INSERT ON paris_licoreria.sesion_caja TO 'paris_app'@'localhost';
+GRANT SELECT ON paris_licoreria.denominacion TO 'paris_app'@'localhost';
+GRANT SELECT ON paris_licoreria.pago TO 'paris_app'@'localhost';
+GRANT SELECT ON paris_licoreria.devolucion_pago TO 'paris_app'@'localhost';
+GRANT SELECT ON paris_licoreria.vw_ventas_totales TO 'paris_app'@'localhost';
+GRANT SELECT ON paris_licoreria.vw_efectivo_esperado_sesion TO 'paris_app'@'localhost';
+GRANT SELECT ON paris_licoreria.vw_efectivo_contado_arqueo TO 'paris_app'@'localhost';
+GRANT SELECT ON paris_licoreria.vw_diferencias_caja TO 'paris_app'@'localhost';
+GRANT SELECT ON paris_licoreria.vw_reembolsos_venta TO 'paris_app'@'localhost';
+GRANT INSERT, UPDATE ON paris_licoreria.usuario TO 'paris_app'@'localhost';
+GRANT EXECUTE ON PROCEDURE paris_licoreria.sp_registrar_venta TO 'paris_app'@'localhost';
+GRANT EXECUTE ON PROCEDURE paris_licoreria.sp_anular_venta TO 'paris_app'@'localhost';
+GRANT EXECUTE ON PROCEDURE paris_licoreria.sp_cerrar_sesion_caja TO 'paris_app'@'localhost';
+GRANT EXECUTE ON PROCEDURE paris_licoreria.sp_limpiar_catalogo_operacion TO 'paris_app'@'localhost';
+-- La aplicación sigue sin necesitar CREATE, ALTER, DROP, TRIGGER ni DELETE sobre historial operativo.
+GRANT SELECT ON paris_licoreria.vw_lotes_proximos_vencer TO 'paris_app'@'localhost';

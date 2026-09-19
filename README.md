@@ -2,7 +2,9 @@
 
 Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servidor de la instalación utiliza Windows para verificar el equipo y proteger la activación con DPAPI.
 
-## Estado del desarrollo — U038
+## Estado del desarrollo — U039
+
+**Núcleo operativo U039:** Caja 1/Caja 2, un turno abierto global, ventas FEFO con pago EFECTIVO/QR, idempotencia contra doble registro, anulación administrativa con devolución auditada, Usuarios, Reportes e Inicio conectados a MySQL. También incorpora comprobación completa de esquema y un bootstrap V2 oficial para instalaciones nuevas. Ver [Núcleo operativo U039](docs/52_NUCLEO_OPERATIVO_U039.md).
 
 **Fotos WebP U038:** las fotos nuevas o reemplazadas desde Productos y Compras se convierten a WebP antes de guardarse. La clase compartida `ImageCodec` valida, elimina metadatos y limita el peso. Las JPEG existentes siguen visibles. Requiere instalar el conversor incluido en las dependencias, sin migrar la base de datos. Ver [Fotos WebP U038](docs/51_FOTOS_WEBP_U038.md).
 
@@ -42,9 +44,9 @@ Sistema web para una licorería, con Node.js, Express, EJS y MySQL 8. El servido
 
 **Auditoría y fotos U031:** fotos opcionales por producto, guardado atómico desde Compras, lectura de barras con cámara/fotografía/teclado y clases compartidas. Se corrigieron notificaciones, orden del historial y códigos UPC/EAN equivalentes. Requiere preparar la tabla de imágenes: [Auditoría y guía U031](docs/43_AUDITORIA_FOTOS_CODIGOS_U031.md).
 
-**Pendiente:** las operaciones de los otros módulos. Inicio conserva el saludo y las pantallas restantes conservan sus espacios de preparación.
+**Operación U039:** los nueve módulos del panel tienen contenido funcional. Inicio, Ventas, Caja, Reportes y Usuarios quedaron conectados al backend y a MySQL; Productos, Proveedores, Compras e Inventario conservan sus implementaciones previas.
 
-La base V2 y la migración U004 contienen procedimientos y vistas para parte del negocio; Productos, Proveedores, Compras e Inventario incorporan su API y formularios. Ventas, Caja, Reportes y Usuarios todavía no tienen sus operaciones conectadas a la interfaz.
+La base existente se actualiza con `npm run db:core`; una instalación nueva usa `npm run db:install`. U039 es aditiva y conserva el historial.
 
 La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, modales, confirmaciones, tablas, filtros, selectores, fechas y menús de acciones. Login y activación comparten AuthForm. CSS conserva su organización por componentes; la auditoría U011 corrige interacciones y optimiza la compilación de EJS sin cambiar el diseño.
 
@@ -52,6 +54,7 @@ La interfaz utiliza clases compartidas para formularios, sidebar, mensajes, moda
 
 | Documento | Qué explica |
 | --- | --- |
+| [Núcleo operativo U039](docs/52_NUCLEO_OPERATIVO_U039.md) | Caja física, FEFO, ventas, devoluciones, usuarios, reportes, instalación y comprobaciones. |
 | [Auditoría, fotos y códigos U031](docs/43_AUDITORIA_FOTOS_CODIGOS_U031.md) | Correcciones, CSS, fotos, lector, pruebas, límites e instalación. |
 | [Componentes externos U031](docs/44_COMPONENTES_EXTERNOS_U031.md) | Versiones fijas, procedencia, integridad y licencias locales. |
 | [Inventario U030](docs/42_INVENTARIO_U030.md) | Existencias, traslados, conteos, retiros, historial, preparación y permisos. |
