@@ -14,7 +14,7 @@
     }
     field(name, labelText, { type = 'text', value = '', required = false, maxLength, min, max, step, help, wide = false, options, uppercase = ['name', 'description'].includes(name), pattern, inputMode, placeholder } = {}) {
       const host = UI.element('div', 'app-field' + (wide ? ' app-field--wide' : ''));
-      const label = UI.element('label', 'app-label', labelText + (required ? ' *' : ''));
+      const label = UI.element('label', 'app-label', labelText);
       const input = UI.element(type === 'textarea' ? 'textarea' : type === 'select' ? 'select' : 'input', 'app-input');
       if (input instanceof HTMLInputElement) input.type = type;
       // El catálogo usa las sugerencias de SearchSelect, no el historial del navegador.
@@ -30,12 +30,22 @@
       if (help) { const text = UI.element('p', 'app-field-help', help); text.id = input.id + '-help'; input.setAttribute('aria-describedby', text.id); host.append(text); }
       this.grid.append(host); return input;
     }
-    /** Estado utiliza el selector global sin búsqueda; el select original conserva validación y FormData. */
-    state(value = 'ACTIVO') {
-      const select = this.field('state', 'Estado', { type: 'select', value, required: true,
-        options: [{ value: 'ACTIVO', label: 'Activo' }, { value: 'INACTIVO', label: 'Inactivo' }] });
+    /** Selector fijo global: conserva el select real y usa SearchSelect para el estilo e interacción compartidos. */
+    choice(name, label, { value = '', required = false, options = [], help, wide = false } = {}) {
+      const select = this.field(name, label, { type: 'select', value, required, options, help, wide });
       this.selectors.push(new UI.SearchSelect({ select, searchable: false }));
       return select;
+    }
+    /** Selector global con escritura y sugerencias locales filtradas. */
+    suggestChoice(name, label, { value = '', required = false, options = [], help, wide = false, placeholder = 'Escribe para buscar…' } = {}) {
+      const select = this.field(name, label, { type: 'select', value, required, options, help, wide });
+      this.selectors.push(new UI.SearchSelect({ select, searchable: true, placeholder }));
+      return select;
+    }
+    /** Estado reutiliza el selector fijo global. */
+    state(value = 'ACTIVO') {
+      return this.choice('state', 'Estado', { value, required: true,
+        options: [{ value: 'ACTIVO', label: 'Activo' }, { value: 'INACTIVO', label: 'Inactivo' }] });
     }
     selector(name, label, kind, selected, help, optionsApi = this.api, placeholder, { allowCustom = false, maxLength } = {}) {
       const input = this.field(name, label, { type: 'select', required: true, help, options: [{ value: '', label: 'Seleccionar' }] });

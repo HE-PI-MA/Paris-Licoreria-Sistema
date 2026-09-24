@@ -21,7 +21,7 @@ function forPage(page) {
   return {
     ...definitions[page.id],
     id: page.id,
-    searchPlaceholder: page.id === 'inventario' ? 'Ej.: Coca-Cola o maní…' : page.id === 'compras' ? 'Proveedor o número de compra…' : page.id === 'productos' ? 'Nombre del producto o código de barras…' : page.id === 'proveedores' ? 'Nombre, contacto, teléfono o NIT…' : `Buscar en ${page.label.toLocaleLowerCase('es')}…`,
+    searchPlaceholder: page.id === 'inventario' ? 'Ej.: Coca-Cola o maní…' : page.id === 'compras' ? 'Producto o número de compra…' : page.id === 'productos' ? 'Nombre del producto o código de barras…' : page.id === 'proveedores' ? 'Nombre, contacto, teléfono o NIT…' : `Buscar en ${page.label.toLocaleLowerCase('es')}…`,
     controlsHelp: page.id === 'productos' ? 'El stock se consulta aquí; los movimientos se registran en Compras e Inventario.' : 'Filtra los registros ficticios de esta demostración.',
     message: page.id === 'demo-componentes'
       ? 'Demostración: los cambios usan datos ficticios y se pierden al recargar.'

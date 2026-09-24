@@ -89,28 +89,28 @@ test('U014: DataTable continua y adaptable', { skip: process.env.PARIS_UI_BROWSE
       });
       assert.deepEqual(result, { latest: true, actions: 1, aborted: true, empty: true });
     });
-    await t.test('prioridades conservan cada valor en Ver más y numeración cambia con el orden, sin usar el ID', async () => {
+    await t.test('prioridades ocultan columnas sin Ver más y N.º responde al ancho', async () => {
       await page.evaluate(async () => {
-        const UI = window.ParisUI, host = document.querySelector('#scroll-test'); host.style.width = '300px';
-        const table = window.scrollTable = new UI.DataTable({ container: host, mode: 'scroll', numbered: true,
-          columns: [{ key: 'name', label: 'Producto', sortable: true }, { key: 'stock', label: 'Stock', priority: 1, type: 'quantity' },
-            { key: 'category', label: 'Categoría', priority: 2 }, { key: 'unit', label: 'Unidad', priority: 3 }],
-          records: [{ id: 900, name: 'B', stock: 8, category: '<img src=x onerror=alert(1)>', unit: 'Unidad' }, { id: 10, name: 'A', stock: 6, category: 'Otros', unit: 'Gramo' }]
-        }); await table.ready;
+        const UI=window.ParisUI,host=document.querySelector('#scroll-test');host.style.width='300px';
+        const table=window.scrollTable=new UI.DataTable({container:host,mode:'scroll',numbered:true,
+          columns:[{key:'name',label:'Producto',sortable:true},{key:'stock',label:'Stock',priority:1,type:'quantity'},{key:'category',label:'Categoría',priority:2},{key:'unit',label:'Unidad',priority:3}],
+          records:[{id:900,name:'B',stock:8,category:'<img src=x onerror=alert(1)>',unit:'Unidad'},{id:10,name:'A',stock:6,category:'Otros',unit:'Gramo'}],
+          actions:[{id:'detail',label:'Ver detalle',icon:'info'}]
+        });await table.ready;
       });
-      const button = page.locator('#scroll-test [data-table-details="0"]'); await button.waitFor(); await button.focus(); await button.press('Enter');
-      const detail = page.locator('#scroll-test tr[data-details-index="0"]');
-      assert.equal(await detail.isVisible(), true); assert.ok((await detail.textContent()).includes('<img src=x onerror=alert(1)>')); assert.equal(await detail.locator('img').count(), 0);
-      assert.equal(await page.locator('#scroll-test th[data-column-key=stock]').isVisible(), false);
-      await page.evaluate(() => { document.querySelector('#scroll-test').style.width = '1200px'; });
-      await page.waitForFunction(() => !scrollTable.table.querySelector('th[data-column-key="unit"]').hidden);
-      assert.equal(await detail.isVisible(), false);
-      assert.equal(await page.locator('#scroll-test [data-table-details="0"]').isVisible(), false);
-      await page.evaluate(async () => { await scrollTable.setSort({ key: 'name', direction: 'asc' }); });
-      assert.equal(await page.locator('#scroll-test tbody tr[data-row-index="0"] [data-column-key=name]').textContent(), 'AVer más');
-      assert.equal(await page.locator('#scroll-test tbody tr[data-row-index="0"] .app-table-sequence').textContent(), '1');
-      assert.equal(await page.evaluate(() => scrollTable.rows[0].id), 10);
-      await page.evaluate(() => { scrollTable.destroy(); document.querySelector('#scroll-test').remove(); });
+      assert.equal(await page.locator('#scroll-test [data-table-details]').count(),0);
+      assert.equal(await page.locator('#scroll-test tr[data-details-index]').count(),0);
+      assert.equal(await page.locator('#scroll-test .app-table-sequence').first().isVisible(),false);
+      assert.equal(await page.locator('#scroll-test th[data-column-key=stock]').isVisible(),false);
+      assert.equal(await page.locator('#scroll-test img').count(),0);
+      assert.equal(await page.getByRole('button',{name:'Ver detalle',exact:true}).first().isVisible(),true);
+      await page.evaluate(()=>{document.querySelector('#scroll-test').style.width='1200px';});
+      await page.waitForFunction(()=>!scrollTable.table.querySelector('th[data-column-key="unit"]').hidden && !scrollTable.table.querySelector('.app-table-sequence').hidden);
+      await page.evaluate(async()=>{await scrollTable.setSort({key:'name',direction:'asc'});});
+      assert.equal(await page.locator('#scroll-test tbody tr[data-row-index="0"] [data-column-key=name]').textContent(),'A');
+      assert.equal(await page.locator('#scroll-test tbody tr[data-row-index="0"] .app-table-sequence').textContent(),'1');
+      assert.equal(await page.evaluate(()=>scrollTable.rows[0].id),10);
+      await page.evaluate(()=>{scrollTable.destroy();document.querySelector('#scroll-test').remove();});
     });
     await t.test('Productos contiene el scroll, carga hasta el final y devuelve el foco al agotar la lista', async () => {
       const queries = [];

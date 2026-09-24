@@ -1,10 +1,13 @@
-/** Consultas y ejecución de los procedimientos transaccionales de Ventas U039. */
+/** Consultas y ejecución de los procedimientos transaccionales de Ventas U039/U040. */
+const Barcode=require('../domain/Barcode');
 class SaleRepository {
   constructor(pool){this.pool=pool;}
   escape(value){return String(value).replace(/[!%_]/g,'!$&');}
   async openSession(userId){const [[row]]=await this.pool.query("SELECT id_sesion_caja AS id FROM sesion_caja WHERE id_usuario=? AND estado='ABIERTA' ORDER BY fecha_hora_apertura DESC LIMIT 1",[userId]);return row||null;}
   async products(term=''){
     const like='%'+this.escape(term)+'%';
+    const codes=Barcode.alternatives(term);
+    const marks=codes.map(()=>'?').join(',');
     const [rows]=await this.pool.query(`SELECT pp.id_presentacion AS id,p.nombre AS product,pp.nombre_presentacion AS presentation,pp.codigo_barras AS barcode,
       pp.factor_conversion AS factor,pp.precio_venta AS price,um.abreviatura AS unit,s.stock_disponible AS stockBase,
       TRUNCATE(s.stock_disponible/pp.factor_conversion,3) AS available
@@ -12,8 +15,8 @@ class SaleRepository {
       JOIN vw_stock_producto s ON s.id_producto=p.id_producto
       WHERE pp.estado='ACTIVO' AND p.estado='ACTIVO' AND s.stock_disponible>0
         AND TRUNCATE(s.stock_disponible/pp.factor_conversion,3)>0
-        AND (?='' OR p.nombre LIKE ? ESCAPE '!' OR pp.nombre_presentacion LIKE ? ESCAPE '!' OR pp.codigo_barras=?)
-      ORDER BY p.nombre,pp.nombre_presentacion LIMIT 500`,[term,like,like,term]);return rows;
+        AND (?='' OR p.nombre LIKE ? ESCAPE '!' OR pp.nombre_presentacion LIKE ? ESCAPE '!' OR pp.codigo_barras IN (${marks}))
+      ORDER BY p.nombre,pp.nombre_presentacion LIMIT 500`,[term,like,like,...codes]);return rows;
   }
   async create(userId,sessionId,key,hash,data){
     const c=await this.pool.getConnection();try{

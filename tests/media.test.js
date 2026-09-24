@@ -14,11 +14,11 @@ test('U031: JPEG real, límites y eliminación de metadatos; sin foto mantiene e
   assert.equal(ProductInput.product({ ...product(), photo: input }).photo, clean);
   for (const value of ['', '<svg onload=alert(1)>', 'data:image/png;base64,AAAA', 'data:image/jpeg;base64,AAAA', input + '!', 'data:image/jpeg;base64,' + 'A'.repeat(350000), photo(769, 10), 42, {}]) assert.throws(() => Photo.optional({ photo: value }), error => error.status === 422);
 });
-test('U031: compras aceptan foto solo para productos nuevos y conservan la foto al reutilizar el producto', () => {
-  const data = body(); data.lines[0].product.photo = photo(); data.lines.push(structuredClone(data.lines[0]));
-  const clean = PurchaseInput.purchase(data); assert.equal(clean.lines[0].product.photo, clean.lines[1].product.photo);
-  data.lines[0].product = { id: 1, version: 'a'.repeat(64), photo: null };
+test('U044/U049: Compras no recibe fotos ni datos completos del formulario de Producto', () => {
+  const data = body(); data.lines[0].photo = photo();
   assert.throws(() => PurchaseInput.purchase(data), error => error.status === 400);
+  const nested = body(); nested.lines[0].product.photo = photo();
+  assert.throws(() => PurchaseInput.purchase(nested), error => error.status === 400);
 });
 test('U031: foto y búsqueda exacta exigen sesión/rol; CSRF antes de archivos grandes y límites acotados', async () => {
   const bytes = Buffer.from(Photo.optional({ photo: photo() }).photo.slice(23), 'base64');

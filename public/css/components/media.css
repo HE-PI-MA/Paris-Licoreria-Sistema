@@ -11,7 +11,42 @@
 .app-photo-preview > img { width: 100%; height: 100%; object-fit: contain; }
 .app-photo-controls { min-width: 0; flex: 1; }
 .app-photo-controls .app-section-toolbar { justify-content: flex-start; }
-.app-scanner-video { display: block; width: 100%; max-height: 45vh; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; background: var(--app-black-soft); }
+.app-scanner-preview {
+  position: relative;
+  width: 100%;
+  max-height: 52vh;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--app-black-soft);
+  isolation: isolate;
+}
+.app-scanner-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 52vh;
+  object-fit: contain;
+  background: var(--app-black-soft);
+}
+.app-scanner-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.app-scanner-guide {
+  position: absolute;
+  z-index: 1;
+  top: 28%; right: 10%; bottom: 28%; left: 10%;
+  border: 1px solid var(--app-gold-muted);
+  border-radius: 12px;
+  box-shadow: 0 0 0 999px rgba(7, 7, 6, .18);
+  pointer-events: none;
+  transition: border-color .14s ease, opacity .14s ease;
+}
+.app-scanner-preview.is-detected .app-scanner-guide { border-color: var(--app-gold-300); opacity: .38; }
 .app-capture-notice { display: grid; gap: 6px; }
 .app-capture-notice a { color: var(--app-text); text-decoration: underline; }
 @media (max-width: 30rem) {
@@ -22,5 +57,8 @@
   .app-photo-controls { display: contents; }
   .app-photo-controls > .app-field-help { grid-column: 2; grid-row: 1; }
   .app-photo-controls .app-section-toolbar { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app-scanner-preview, .app-scanner-video { max-height: min(56dvh, 30rem); }
+  .app-scanner .app-section-toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 0; }
+  .app-scanner .app-section-toolbar > .app-button { width: 100%; min-width: 0; }
 }
 .app-photo-field [hidden], .app-scanner [hidden] { display: none; }

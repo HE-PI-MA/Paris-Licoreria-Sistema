@@ -17,13 +17,12 @@ BEFORE UPDATE ON producto
 FOR EACH ROW
 BEGIN
     IF NEW.id_unidad_medida <> OLD.id_unidad_medida
-       AND EXISTS (
-           SELECT 1
-           FROM presentacion_producto pp
-           WHERE pp.id_producto = OLD.id_producto
+       AND (
+         EXISTS (SELECT 1 FROM presentacion_producto pp WHERE pp.id_producto=OLD.id_producto)
+         OR EXISTS (SELECT 1 FROM detalle_compra dc WHERE dc.id_producto=OLD.id_producto)
        ) THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'No se puede cambiar la unidad base de un producto con presentaciones';
+            SET MESSAGE_TEXT = 'No se puede cambiar la unidad base de un producto con historial o presentaciones';
     END IF;
 END//
 
@@ -31,20 +30,31 @@ CREATE TRIGGER trg_presentacion_bu_conversion
 BEFORE UPDATE ON presentacion_producto
 FOR EACH ROW
 BEGIN
-    IF (NEW.id_producto <> OLD.id_producto
-        OR NEW.factor_conversion <> OLD.factor_conversion)
-       AND (
-           EXISTS (
-               SELECT 1 FROM detalle_compra dc
-               WHERE dc.id_presentacion = OLD.id_presentacion
-           )
-           OR EXISTS (
-               SELECT 1 FROM detalle_venta dv
-               WHERE dv.id_presentacion = OLD.id_presentacion
-           )
-       ) THEN
+    IF (NEW.id_producto <> OLD.id_producto OR NEW.factor_conversion <> OLD.factor_conversion)
+       AND EXISTS (SELECT 1 FROM detalle_venta dv WHERE dv.id_presentacion=OLD.id_presentacion) THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Producto y factor no pueden cambiar después de usar la presentación';
+            SET MESSAGE_TEXT = 'Producto y factor no pueden cambiar después de usar la presentación en una venta';
+    END IF;
+END//
+
+CREATE TRIGGER trg_detalle_compra_bi_u044
+BEFORE INSERT ON detalle_compra
+FOR EACH ROW
+BEGIN
+    DECLARE v_producto INT UNSIGNED;
+    DECLARE v_forma VARCHAR(80);
+    DECLARE v_factor DECIMAL(15,3);
+    IF NEW.id_producto IS NULL AND NEW.id_presentacion IS NOT NULL THEN
+        SELECT pp.id_producto,pp.nombre_presentacion,pp.factor_conversion
+          INTO v_producto,v_forma,v_factor FROM presentacion_producto pp
+         WHERE pp.id_presentacion=NEW.id_presentacion;
+        SET NEW.id_producto=v_producto;
+        SET NEW.forma_ingreso=COALESCE(NEW.forma_ingreso,v_forma);
+        SET NEW.factor_ingreso=COALESCE(NEW.factor_ingreso,v_factor);
+    END IF;
+    IF NEW.id_producto IS NULL OR NEW.forma_ingreso IS NULL OR TRIM(NEW.forma_ingreso)=''
+       OR NEW.factor_ingreso IS NULL OR NEW.factor_ingreso<=0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La compra requiere producto, forma de ingreso y factor de entrada';
     END IF;
 END//
 
@@ -52,13 +62,10 @@ CREATE TRIGGER trg_detalle_compra_bu_lotes
 BEFORE UPDATE ON detalle_compra
 FOR EACH ROW
 BEGIN
-    IF (NEW.id_presentacion <> OLD.id_presentacion OR NEW.cantidad <> OLD.cantidad)
-       AND EXISTS (
-           SELECT 1 FROM lote_producto lp
-           WHERE lp.id_detalle_compra = OLD.id_detalle_compra
-       ) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'No se puede cambiar cantidad o presentación de una compra con lotes';
+    IF (NEW.id_producto<>OLD.id_producto OR NEW.cantidad<>OLD.cantidad
+        OR NEW.factor_ingreso<>OLD.factor_ingreso OR NEW.forma_ingreso<>OLD.forma_ingreso)
+       AND EXISTS (SELECT 1 FROM lote_producto lp WHERE lp.id_detalle_compra=OLD.id_detalle_compra) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se puede cambiar producto, cantidad o forma de ingreso de una compra con lotes';
     END IF;
 END//
 
@@ -68,22 +75,12 @@ FOR EACH ROW
 BEGIN
     DECLARE v_maximo DECIMAL(18,3);
     DECLARE v_registrado DECIMAL(18,3);
-
-    SELECT ROUND(dc.cantidad * pp.factor_conversion, 3)
-      INTO v_maximo
-      FROM detalle_compra dc
-      INNER JOIN presentacion_producto pp
-        ON pp.id_presentacion = dc.id_presentacion
-     WHERE dc.id_detalle_compra = NEW.id_detalle_compra;
-
-    SELECT COALESCE(SUM(lp.cantidad_inicial), 0)
-      INTO v_registrado
-      FROM lote_producto lp
-     WHERE lp.id_detalle_compra = NEW.id_detalle_compra;
-
-    IF ROUND(v_registrado + NEW.cantidad_inicial, 3) > v_maximo THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Los lotes superan cantidad comprada por factor_conversion';
+    SELECT ROUND(dc.cantidad*dc.factor_ingreso,3) INTO v_maximo
+      FROM detalle_compra dc WHERE dc.id_detalle_compra=NEW.id_detalle_compra;
+    SELECT COALESCE(SUM(lp.cantidad_inicial),0) INTO v_registrado
+      FROM lote_producto lp WHERE lp.id_detalle_compra=NEW.id_detalle_compra;
+    IF ROUND(v_registrado+NEW.cantidad_inicial,3)>v_maximo THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Los lotes superan la cantidad comprada por factor de ingreso';
     END IF;
 END//
 
@@ -93,28 +90,15 @@ FOR EACH ROW
 BEGIN
     DECLARE v_maximo DECIMAL(18,3);
     DECLARE v_registrado DECIMAL(18,3);
-
-    IF NEW.id_detalle_compra <> OLD.id_detalle_compra THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'No se puede cambiar el detalle de compra de un lote';
+    IF NEW.id_detalle_compra<>OLD.id_detalle_compra THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se puede cambiar el detalle de compra de un lote';
     END IF;
-
-    SELECT ROUND(dc.cantidad * pp.factor_conversion, 3)
-      INTO v_maximo
-      FROM detalle_compra dc
-      INNER JOIN presentacion_producto pp
-        ON pp.id_presentacion = dc.id_presentacion
-     WHERE dc.id_detalle_compra = NEW.id_detalle_compra;
-
-    SELECT COALESCE(SUM(lp.cantidad_inicial), 0)
-      INTO v_registrado
-      FROM lote_producto lp
-     WHERE lp.id_detalle_compra = NEW.id_detalle_compra
-       AND lp.id_lote <> OLD.id_lote;
-
-    IF ROUND(v_registrado + NEW.cantidad_inicial, 3) > v_maximo THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Los lotes superan cantidad comprada por factor_conversion';
+    SELECT ROUND(dc.cantidad*dc.factor_ingreso,3) INTO v_maximo
+      FROM detalle_compra dc WHERE dc.id_detalle_compra=NEW.id_detalle_compra;
+    SELECT COALESCE(SUM(lp.cantidad_inicial),0) INTO v_registrado
+      FROM lote_producto lp WHERE lp.id_detalle_compra=NEW.id_detalle_compra AND lp.id_lote<>OLD.id_lote;
+    IF ROUND(v_registrado+NEW.cantidad_inicial,3)>v_maximo THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Los lotes superan la cantidad comprada por factor de ingreso';
     END IF;
 END//
 
@@ -235,15 +219,13 @@ BEGIN
         ON sc.id_sesion_caja = v.id_sesion_caja
      WHERE dv.id_detalle_venta = NEW.id_detalle_venta;
 
-    SELECT pp.id_producto, lu.cantidad_actual, lp.fecha_vencimiento
+    SELECT dc.id_producto, lu.cantidad_actual, lp.fecha_vencimiento
       INTO v_producto_lote, v_disponible, v_vencimiento
       FROM lote_ubicacion lu
       INNER JOIN lote_producto lp
         ON lp.id_lote = lu.id_lote
       INNER JOIN detalle_compra dc
         ON dc.id_detalle_compra = lp.id_detalle_compra
-      INNER JOIN presentacion_producto pp
-        ON pp.id_presentacion = dc.id_presentacion
      WHERE lu.id_lote_ubicacion = NEW.id_lote_ubicacion;
 
     IF v_estado_venta <> 'VIGENTE' OR v_estado_sesion <> 'ABIERTA' THEN
@@ -786,11 +768,9 @@ BEGIN
                   INNER JOIN lote_producto lp ON lp.id_lote = lu.id_lote
                   INNER JOIN detalle_compra dc
                     ON dc.id_detalle_compra = lp.id_detalle_compra
-                  INNER JOIN presentacion_producto pp_lote
-                    ON pp_lote.id_presentacion = dc.id_presentacion
                   INNER JOIN compra c ON c.id_compra = dc.id_compra
                   INNER JOIN ubicacion u ON u.id_ubicacion = lu.id_ubicacion
-                 WHERE pp_lote.id_producto = v_id_producto
+                 WHERE dc.id_producto = v_id_producto
                    AND lu.cantidad_actual > 0
                    AND (lp.fecha_vencimiento IS NULL
                         OR lp.fecha_vencimiento > CURRENT_DATE)

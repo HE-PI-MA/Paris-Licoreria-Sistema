@@ -1,11 +1,44 @@
-/* Detalle en un contenedor: etiquetas y valores alineados; las cantidades de la tabla conservan su centrado. */
-.app-record-details { display: grid; gap: 12px; margin: 0; padding: 16px; background: #fffcf6; border: 1px solid #ddcfb7; border-radius: 10px; }
-.app-record-detail { display: grid; grid-template-columns: minmax(8rem, .8fr) minmax(0, 1.4fr); align-items: baseline; gap: 16px; min-width: 0; }
+/* Detalle global: etiquetas y valores alineados en escritorio y lectura vertical clara en móvil. */
+.app-record-details {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 16px;
+  background: #fffcf6;
+  border: 1px solid #ddcfb7;
+  border-radius: 10px;
+}
+
+.app-record-detail {
+  display: grid;
+  grid-template-columns: minmax(8rem, .8fr) minmax(0, 1.4fr);
+  align-items: baseline;
+  gap: 16px;
+  min-width: 0;
+}
+
 .app-record-detail--wide { grid-column: 1 / -1; }
 .app-record-detail dt { margin: 0; color: #76603e; font-size: .75rem; font-weight: 650; letter-spacing: .035em; }
 .app-record-detail dd { margin: 0; color: #262219; font-size: .9375rem; font-weight: 500; overflow-wrap: anywhere; white-space: pre-wrap; }
 .app-record-detail .app-record-detail-number { font-family: inherit; font-variant-numeric: normal; }
-@media (max-width: 25rem) {
-  .app-record-details { gap: 16px; padding: 12px; }
-  .app-record-detail { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+
+@media (max-width: 40rem) {
+  .app-record-details {
+    gap: 0;
+    padding: 4px 12px;
+    border-radius: 10px;
+  }
+
+  .app-record-detail,
+  .app-record-detail--wide {
+    grid-column: auto;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e8dfcf;
+  }
+
+  .app-record-detail:last-child { border-bottom: 0; }
+  .app-record-detail dt { font-size: .72rem; }
+  .app-record-detail dd { font-size: .9rem; }
 }

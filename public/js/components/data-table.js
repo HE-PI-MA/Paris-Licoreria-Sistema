@@ -1,6 +1,6 @@
 /**
  * Tabla compartida con paginación o scroll continuo, numeración y prioridades de columnas.
- * Carga el servidor por bloques; las columnas secundarias se consultan en el detalle de la fila.
+ * Carga el servidor por bloques; las columnas secundarias se ocultan por prioridad y se consultan mediante la acción de detalle del módulo.
  * Presenta valores como texto. Las acciones se delegan a la clase del módulo mediante onAction.
  */
 (() => {
@@ -37,10 +37,9 @@
         throw new TypeError('La primera columna debe ser principal; las prioridades van de 0 a 3.');
       }
       Object.assign(this, { container, columns, load, actions, onAction, getRowId, pageSize, pageSizes, locale, currency, actionDisplay, mode, numbered });
-      // Ver más acompaña al texto principal, aunque haya una foto antes del nombre.
-      this.primaryColumn = columns.find(column => column.type !== 'photo' && (column.priority ?? 0) === 0) || columns[0];
       this.visibleKeys = new Set(columns.map(column => column.key));
-      this.expanded = new Set();
+      // En móvil la numeración deja espacio a la información operativa; vuelve automáticamente al ampliar.
+      this.sequenceVisible = Boolean(numbered && container.getBoundingClientRect().width >= 520);
       this.sort = this.validateSort(sort);
       this.menus = [];
       this.collator = new Intl.Collator(locale, { numeric: true, sensitivity: 'base' });
@@ -81,7 +80,7 @@
       this.table = UI.element('table', 'app-table');
       this.table.append(UI.element('caption', 'app-sr-only', caption));
       const head = UI.element('thead'), row = UI.element('tr');
-      if (this.numbered) { const cell = UI.element('th', 'app-table-sequence', 'N.º'); cell.scope = 'col'; row.append(cell); }
+      if (this.numbered) { const cell = UI.element('th', 'app-table-sequence', 'N.º'); cell.scope = 'col'; cell.hidden = !this.sequenceVisible; row.append(cell); }
       for (const column of this.columns) {
         const cell = UI.element('th', this.cellClass(column), column.label);
         cell.scope = 'col'; cell.dataset.columnKey = column.key;
@@ -90,7 +89,7 @@
         row.append(cell);
       }
       if (this.actions.length) {
-        const cell = UI.element('th', '', 'Acciones'); cell.scope = 'col'; row.append(cell);
+        const cell = UI.element('th', 'app-table-actions-cell', 'Acciones'); cell.scope = 'col'; row.append(cell);
       }
       head.append(row);
       this.body = UI.element('tbody');
@@ -229,7 +228,7 @@
         this.loadingMore = true; this.appendError = false; this.clearContinuation(); this.updateFooter();
       } else {
         if (this.mode === 'scroll') this.page = 1;
-        this.loadingMore = false; this.appendError = false; this.rows = []; this.expanded.clear();
+        this.loadingMore = false; this.appendError = false; this.rows = [];
         this.clearContinuation(); this.scroll.scrollTop = 0; this.showState('loading', 'Cargando…');
       }
       const queryPage = append ? requestedPage : this.page;
@@ -325,23 +324,15 @@
         const index = from + offset;
         const row = UI.element('tr');
         row.dataset.rowIndex = String(index);
-        if (this.numbered) row.append(UI.element('td', 'app-table-sequence', this.rowNumber(index)));
+        if (this.numbered) { const sequenceCell = UI.element('td', 'app-table-sequence', this.rowNumber(index)); sequenceCell.hidden = !this.sequenceVisible; row.append(sequenceCell); }
         for (const column of this.columns) {
           const cell = UI.element('td', this.cellClass(column));
           cell.dataset.columnKey = column.key;
           this.fillCell(cell, column, record);
-          if (column === this.primaryColumn && this.columns.some(item => (item.priority ?? 0) > 0)) {
-            cell.classList.add('app-table-primary');
-            const toggle = UI.element('button', 'app-table-details-toggle', 'Ver más'); toggle.type = 'button';
-            toggle.dataset.tableDetails = String(index); toggle.setAttribute('aria-expanded', 'false');
-            toggle.setAttribute('aria-controls', this.id + '-details-' + index);
-            toggle.setAttribute('aria-label', 'Ver más datos de la fila ' + this.rowNumber(index));
-            toggle.hidden = true; cell.append(toggle);
-          }
           row.append(cell);
         }
         if (this.actions.length) {
-          const cell = UI.element('td'), group = UI.element('div', 'app-table-actions');
+          const cell = UI.element('td', 'app-table-actions-cell'), group = UI.element('div', 'app-table-actions');
           const menuItems = [];
           this.actions.forEach((action, actionIndex) => {
             if (action.visible && !action.visible(record)) return;
@@ -364,23 +355,12 @@
           cell.append(group); row.append(cell);
         }
         fragment.append(row);
-        if (!this.columns.some(item => (item.priority ?? 0) > 0)) return;
-        const details = UI.element('tr', 'app-table-details'); details.id = this.id + '-details-' + index;
-        details.dataset.detailsIndex = String(index); details.hidden = true;
-        const detailsCell = UI.element('td'); detailsCell.colSpan = this.columnCount;
-        const list = UI.element('dl');
-        for (const column of this.columns.filter(item => (item.priority ?? 0) > 0)) {
-          const group = UI.element('div'); group.dataset.detailColumn = column.key;
-          const value = UI.element('dd'); this.fillCell(value, column, record);
-          group.append(UI.element('dt', '', column.label), value); list.append(group);
-        }
-        detailsCell.append(list); details.append(detailsCell); fragment.append(details);
       });
       if (append) this.body.append(fragment); else this.body.replaceChildren(fragment);
       this.updatePriorities(true); this.updateFooter();
     }
 
-    /** Un único formateador sirve para celdas y detalles; ningún valor del usuario se interpreta como HTML. */
+    /** Un único formateador sirve para las celdas; ningún valor del usuario se interpreta como HTML. */
     fillCell(cell, column, record) {
       const value = record[column.key];
       if (column.type === 'photo') {
@@ -393,43 +373,28 @@
       } else cell.textContent = this.format(value, column, record);
     }
     rowNumber(index) { return (this.mode === 'scroll' ? 0 : (this.page - 1) * this.pageSize) + index + 1; }
-    get columnCount() { return this.visibleKeys.size + Number(this.numbered) + (this.actions.length ? 1 : 0); }
-    /** Prioridad 0 siempre visible; 1, 2 y 3 aparecen a partir de 520, 780 y 1100 px disponibles. */
+    get columnCount() { return this.visibleKeys.size + Number(this.sequenceVisible) + (this.actions.length ? 1 : 0); }
+    /** Prioridad 0 siempre visible; 1, 2 y 3 aparecen a partir de 520, 780 y 1100 px. N.º se oculta bajo 520 px. */
     updatePriorities(force = false) {
       if (this.destroyed) return;
       const width = this.container.getBoundingClientRect().width;
       const visible = new Set(this.columns.filter(column => width >= [0, 520, 780, 1100][column.priority ?? 0]).map(column => column.key));
-      if (!force && [...visible].join('|') === [...this.visibleKeys].join('|')) return;
+      const sequenceVisible = Boolean(this.numbered && width >= 520);
+      const sameColumns = [...visible].join('|') === [...this.visibleKeys].join('|');
+      if (!force && sameColumns && sequenceVisible === this.sequenceVisible) return;
       this.visibleKeys = visible;
+      this.sequenceVisible = sequenceVisible;
       for (const cell of this.table.querySelectorAll('[data-column-key]')) {
         if (!visible.has(cell.dataset.columnKey) && cell.contains(document.activeElement)) this.scroll.focus({ preventScroll: true });
         cell.hidden = !visible.has(cell.dataset.columnKey);
       }
-      const hasDetails = visible.size < this.columns.length;
-      for (const button of this.body.querySelectorAll('[data-table-details]')) {
-        if (!hasDetails && button === document.activeElement) this.scroll.focus({ preventScroll: true });
-        button.hidden = !hasDetails;
-        const open = this.expanded.has(Number(button.dataset.tableDetails));
-        button.textContent = open ? 'Ver menos' : 'Ver más'; button.setAttribute('aria-expanded', String(open));
-        button.setAttribute('aria-label', (open ? 'Ocultar' : 'Ver más') + ' datos de la fila ' + this.rowNumber(Number(button.dataset.tableDetails)));
-      }
-      for (const row of this.body.querySelectorAll('[data-details-index]')) {
-        row.hidden = !hasDetails || !this.expanded.has(Number(row.dataset.detailsIndex));
-        row.firstElementChild.colSpan = this.columnCount;
-        for (const group of row.querySelectorAll('[data-detail-column]')) group.hidden = visible.has(group.dataset.detailColumn);
-      }
+      for (const cell of this.table.querySelectorAll('.app-table-sequence')) cell.hidden = !sequenceVisible;
       const state = this.body.querySelector('.app-table-state'); if (state) state.colSpan = this.columnCount;
-    }
-    toggleDetails(button) {
-      const index = Number(button.dataset.tableDetails), open = !this.expanded.has(index);
-      if (open) this.expanded.add(index); else this.expanded.delete(index);
-      this.updatePriorities(true);
     }
 
     async onClick(event) {
       const button = event.target.closest('button');
       if (!button || !this.container.contains(button) || button.disabled) return;
-      if (button.hasAttribute('data-table-details')) return this.toggleDetails(button);
       if (button.hasAttribute('data-table-more')) return this.loadMore({ retry: true });
       if (button.hasAttribute('data-table-retry')) return this.refresh();
       if (button.dataset.tablePage) {

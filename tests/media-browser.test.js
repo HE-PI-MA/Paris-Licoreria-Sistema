@@ -26,29 +26,30 @@ test('U031: fotos y lectores en Chromium con MySQL', { skip: process.env.PARIS_U
       await modal('Editar producto').getByRole('button', { name: 'Guardar', exact: true }).click(); await modal('Editar producto').waitFor({ state: 'detached' }); assert.notEqual((await repo.products.detail(1)).photoHash, before);
       await shot('u031-productos-foto');
     });
-    await check('U037: foto en su propia columna, WebP guardado y Ver más junto al nombre en móvil', async () => {
-      const table = page.locator('#products-table'), row = table.locator('tr[data-row-index]').first();
-      assert.deepEqual(await table.locator('thead th').allTextContents(), ['N.º', 'Foto', 'Producto', 'Categoría', 'Se cuenta en', 'Disponible', 'Estado', 'Acciones']);
-      assert.equal(await row.locator('[data-column-key=name] img').count(), 0);
-      const photo = row.locator('[data-column-key=photoHash] img'); await photo.waitFor();
-      const response = await page.request.get(new URL(await photo.getAttribute('src'), app.base).href);
-      assert.equal(response.status(), 200); assert.match(response.headers()['content-type'], /^image\/webp/);
-      assert.equal(require('../src/domain/ImageCodec').mime(await response.body()), 'image/webp');
-      assert.equal(require('../src/domain/ImageCodec').mime((await repo.products.photos.read(1)).bytes), 'image/webp');
-      await table.locator('tr[data-row-index]').nth(1).getByRole('img', { name: 'Sin foto', exact: true }).waitFor();
+    await check('U042: foto en su columna, prioridades sin Ver más y N.º responsive', async () => {
+      const table=page.locator('#products-table'),row=table.locator('tr[data-row-index]').first();
+      assert.deepEqual(await table.locator('thead th').allTextContents(),['N.º','Foto','Producto','Categoría','Se cuenta en','Disponible','Estado','Acciones']);
+      assert.equal(await row.locator('[data-column-key=name] img').count(),0);
+      const photo=row.locator('[data-column-key=photoHash] img');await photo.waitFor();
+      const response=await page.request.get(new URL(await photo.getAttribute('src'),app.base).href);
+      assert.equal(response.status(),200);assert.match(response.headers()['content-type'],/^image\/webp/);
+      assert.equal(require('../src/domain/ImageCodec').mime(await response.body()),'image/webp');
+      assert.equal(require('../src/domain/ImageCodec').mime((await repo.products.photos.read(1)).bytes),'image/webp');
+      await table.locator('tr[data-row-index]').nth(1).getByRole('img',{name:'Sin foto',exact:true}).waitFor();
       await shot('u037-foto-columna-escritorio');
-      for (const width of [768, 390, 320]) {
-        await page.setViewportSize({ width, height: 844 });
-        const toggle = row.locator('[data-column-key=name] [data-table-details]'); await toggle.waitFor({ state: 'visible' });
-        assert.equal(await row.locator('[data-column-key=photoHash] [data-table-details]').count(), 0);
+      for(const width of [768,390,320]){
+        await page.setViewportSize({width,height:844});await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        assert.equal(await table.locator('[data-table-details]').count(),0);
+        assert.equal(await table.locator('tr[data-details-index]').count(),0);
         assert.ok(await photo.isVisible());
-        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-        assert.ok(await table.locator('.app-table-scroll').evaluate(el => el.scrollWidth <= el.clientWidth));
-        await toggle.click(); await table.locator('[data-details-index="0"] [data-detail-column=category]').waitFor({ state: 'visible' });
-        assert.equal(await table.locator('[data-details-index="0"] td').getAttribute('colspan'), String(await row.locator('td:visible').count()));
-        await toggle.click(); if (width === 390) await shot('u037-foto-columna-movil');
+        assert.equal(await row.locator('.app-table-sequence').isVisible(),width>=520);
+        assert.equal(await row.locator('[data-column-key=category]').isVisible(),false);
+        if(width<520)assert.equal(await row.locator('[data-column-key=stock]').isVisible(),false);
+        assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+        assert.ok(await table.locator('.app-table-scroll').evaluate(el=>el.scrollWidth<=el.clientWidth));
+        if(width===390)await shot('u037-foto-columna-movil');
       }
-      await page.setViewportSize({ width: 1440, height: 1000 });
+      await page.setViewportSize({width:1440,height:1000});
     });
     await check('el lector de teclado selecciona el paquete exacto y Enter no guarda la compra', async () => {
       await page.goto(app.base + '/compras'); await page.locator('[data-module-primary]').click(); const form = modal('Nueva compra');
@@ -86,9 +87,9 @@ test('U031: fotos y lectores en Chromium con MySQL', { skip: process.env.PARIS_U
         const make = () => { const canvas = document.createElement('canvas'); canvas.width = (bars.length + 24) * 4; canvas.height = 180; const c = canvas.getContext('2d'); c.fillStyle = 'white'; c.fillRect(0, 0, canvas.width, canvas.height); c.fillStyle = 'black'; [...bars].forEach((b, i) => { if (b === '1') c.fillRect((i + 12) * 4, 15, 4, 150); }); const stream = canvas.captureStream(5); window.testCameraStreams.push(stream); return stream; };
         window.testCameraStreams = []; window.testCameraMode = 'live'; Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { configurable: true, value: () => window.testCameraMode === 'pending' ? new Promise(resolve => { window.resolveTestCamera = () => resolve(make()); }) : Promise.resolve(make()) });
       }, code.bars);
-      await modal('Nuevo producto').getByRole('button', { name: 'Escanear código', exact: true }).click(); await modal('Leer código de barras').getByRole('button', { name: 'Encender cámara', exact: true }).click(); await modal('Leer código de barras').waitFor({ state: 'detached' });
+      await modal('Nuevo producto').getByRole('button', { name: 'Escanear código', exact: true }).click(); await modal('Leer código de barras').waitFor({ state: 'detached' });
       assert.equal(await page.evaluate(() => window.testCameraStreams.every(s => s.getTracks().every(t => t.readyState === 'ended'))), true); await modal('Producto ya registrado').getByRole('button', { name: 'Cancelar', exact: true }).click();
-      await page.evaluate(() => { window.testCameraMode = 'pending'; }); await modal('Nuevo producto').getByRole('button', { name: 'Escanear código', exact: true }).click(); await modal('Leer código de barras').getByRole('button', { name: 'Encender cámara', exact: true }).click(); await page.waitForFunction(() => Boolean(window.resolveTestCamera));
+      await page.evaluate(() => { window.testCameraMode = 'pending'; }); await modal('Nuevo producto').getByRole('button', { name: 'Escanear código', exact: true }).click(); await page.waitForFunction(() => Boolean(window.resolveTestCamera));
       await modal('Leer código de barras').getByRole('button', { name: 'Cerrar', exact: true }).click(); await page.evaluate(() => window.resolveTestCamera()); await page.waitForFunction(() => window.testCameraStreams.every(s => s.getTracks().every(t => t.readyState === 'ended')));
     });
     await check('componentes compartidos en móvil, avisos temporales y formulario sin desbordarse', async () => {

@@ -32,11 +32,18 @@
     columns:[{key:'location',label:'Ubicación',sortable:true},{key:'physicalStock',label:'Cantidad',type:'quantity'},{key:'unit',label:'Se cuenta en',priority:1},
      {key:'lotCode',label:'Lote',priority:1},{key:'expiresOn',label:'Vencimiento',type:'date',priority:2},{key:'expiryStatus',label:'Aviso',type:'state',states:this.expiryStates,priority:1}],
     load:async p=>{const data=await api.request('/'+record.id+'/lotes'+api.query(p),{signal:p.signal});return {...data,records:data.records.map(r=>({...r,expiryStatus:r.expiresOn?r.expiryStatus:'SIN_FECHA'}))};},
-    actions:[{id:'transfer',label:'Trasladar',icon:'refresh',tone:'info'},{id:'count',label:'Corregir por conteo',icon:'edit',tone:'edit'},{id:'remove',label:'Retirar mercadería',icon:'trash',variant:'danger'}],
+    actions:[{id:'detailLot',label:'Ver detalle',icon:'info',tone:'info'},{id:'transfer',label:'Trasladar',icon:'refresh',tone:'info'},{id:'count',label:'Corregir por conteo',icon:'edit',tone:'edit'},{id:'remove',label:'Retirar mercadería',icon:'trash',variant:'danger'}],
     actionDisplay:'menu',onAction:action=>{if(!modal.destroyed)return onAction(action,modal);}});
    const filters=new UI.FilterBar({container:controls,searchInput:search,mode:'inline',fields:[{name:'locationId',label:'Ubicación',type:'select',control:location,emptyLabel:'Todas las ubicaciones',load:p=>api.request('/ubicaciones'+api.query(p),{signal:p.signal})}],onChange:q=>table.setQuery(q)});
    const modal=this.dialog('Existencias: '+record.name,content,opener,()=>{filters.destroy();table.destroy();});
    modal.refresh=async()=>{const next=await api.detail(record.id);if(!modal.destroyed){render(next);await Promise.all([table.refresh(),filters.loadInline(filters.fields[0])]);}};return modal;
+  }
+  static lot(row,opener){
+   const view={...row,expiryLabel:this.expiryStates[row.expiryStatus]?.label || row.expiryStatus || 'Sin aviso'};
+   const details=new UI.RecordDetails({record:view,fields:[
+    {key:'location',label:'Ubicación',wide:true},{key:'physicalStock',label:'Cantidad',type:'quantity'},{key:'unit',label:'Se cuenta en'},
+    {key:'lotCode',label:'Lote',empty:'Sin código'},{key:'expiresOn',label:'Vencimiento',empty:'Sin fecha'},{key:'expiryLabel',label:'Aviso'}]});
+   return this.dialog('Detalle de lote y ubicación',details.element,opener);
   }
   static history(api,opener,product){
    const content=UI.element('div','app-form'),controls=UI.element('div','module-controls-row app-fields--toolbar'),host=UI.element('div'),search=this.search(controls,'Ej.: Coca-Cola o lote L-01');

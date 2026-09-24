@@ -48,12 +48,91 @@
 .module-layout--listing .module-content-area { min-height: 0; padding: 0; }
 .module-layout--listing .module-messages > h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 @media (max-width: 48rem) {
-  .module-header { flex-wrap: wrap; padding: 10px; }
-  .module-heading h1 { font-size: 1.4rem; }
+  .module-header {
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 62px;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .module-heading {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .module-heading .workspace-menu-button {
+    flex: 0 0 42px;
+  }
+
+  .module-heading h1 {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .module-actions {
+    flex: 0 0 auto;
+    width: auto;
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+
+  .module-primary-action {
+    width: auto;
+    max-width: 10.5rem;
+    min-height: 42px;
+    padding: .55rem .7rem;
+    gap: .4rem;
+    font-size: .78rem;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .module-primary-action .paris-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-basis: 1.1rem;
+  }
+
+  .module-primary-action span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 @media (max-width: 30rem) {
-  .module-actions, .module-primary-action { width: 100%; }
-  .module-controls-row { flex-direction: column; align-items: stretch; gap: var(--module-space); }
-  .module-filter-button { align-self: flex-start; }
-  .module-select-field { flex-basis: auto; }
+  .module-heading h1 {
+    font-size: 1rem;
+  }
+
+  .module-primary-action {
+    width: auto;
+    max-width: 8.75rem;
+    padding-left: .55rem;
+    padding-right: .55rem;
+    font-size: .72rem;
+  }
+
+  .module-controls-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--module-space);
+  }
+
+  .module-filter-button {
+    align-self: flex-start;
+  }
+
+  .module-select-field {
+    flex-basis: auto;
+  }
 }

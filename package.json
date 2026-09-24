@@ -15,7 +15,8 @@
     "db:purchases": "node scripts/check-purchases.js",
     "db:core": "node scripts/setup-core.js",
     "db:install": "node scripts/setup-database.js",
-    "db:cleanup-operations": "node scripts/cleanup-operations.js"
+    "db:cleanup-operations": "node scripts/cleanup-operations.js",
+    "db:purchases:u044": "node scripts/setup-purchases-u044.js"
   },
   "keywords": [],
   "author": "",

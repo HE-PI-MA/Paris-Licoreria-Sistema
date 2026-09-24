@@ -20,6 +20,7 @@
       this.pendingClose = false;
       this.destroyed = false;
       this.element = UI.element('dialog', 'app-modal app-modal--' + size);
+      this.element.dataset.modalSize = size;
       this.element.setAttribute('aria-modal', 'true');
       this.element.tabIndex = -1;
       const header = UI.element('header', 'app-modal-header');
@@ -35,6 +36,7 @@
       this.footer = UI.element('footer', 'app-modal-footer');
       this.element.append(header, this.body, this.footer);
       if (content) this.setContent(content);
+      this.classifyContent();
       this.element.addEventListener('cancel', event => {
         event.preventDefault();
         this.requestClose();
@@ -56,6 +58,17 @@
         this.element.removeAttribute('aria-describedby');
       }
       else throw new TypeError('El cuerpo debe ser un nodo o texto.');
+      this.classifyContent();
+    }
+
+    /** Clasifica el contenido sin pedir estilos propios a cada módulo. */
+    classifyContent() {
+      const classes = ['app-modal--form', 'app-modal--detail', 'app-modal--table', 'app-modal--scanner'];
+      this.element.classList.remove(...classes);
+      if (this.body.querySelector('.app-scanner')) this.element.classList.add('app-modal--scanner');
+      if (this.body.querySelector('form')) this.element.classList.add('app-modal--form');
+      if (this.body.querySelector('.app-record-details')) this.element.classList.add('app-modal--detail');
+      if (this.body.querySelector('.app-data-table')) this.element.classList.add('app-modal--table');
     }
 
     open(opener = document.activeElement) {
@@ -63,6 +76,7 @@
       if (this.element.open) return;
       this.opener = opener;
       this.parent = Modal.top;
+      this.classifyContent();
       document.body.append(this.element);
       this.element.showModal();
       Modal.opened.push(this);

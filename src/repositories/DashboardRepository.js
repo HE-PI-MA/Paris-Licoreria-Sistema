@@ -8,8 +8,8 @@ class DashboardRepository{
    LEFT JOIN caja c ON c.id_caja=sc.id_caja JOIN vw_efectivo_esperado_sesion ee ON ee.id_sesion_caja=sc.id_sesion_caja WHERE sc.estado='ABIERTA' LIMIT 1`);
   const result={salesToday:{count:Number(sales.count),total:sales.total},openCash:open||null};
   if(actor.rol==='ADMINISTRADOR'){
-    const [[stock]]=await this.pool.query("SELECT SUM(CASE WHEN estado_stock='AGOTADO' THEN 1 ELSE 0 END) AS empty,SUM(CASE WHEN estado_stock='STOCK BAJO' THEN 1 ELSE 0 END) AS low FROM vw_stock_producto");
-    const [[expiring]]=await this.pool.query('SELECT COUNT(*) AS total FROM vw_lotes_proximos_vencer');result.stock={empty:Number(stock.empty||0),low:Number(stock.low||0),expiring:Number(expiring.total||0)};
+    const [[stock]]=await this.pool.query("SELECT SUM(CASE WHEN estado_stock='AGOTADO' THEN 1 ELSE 0 END) AS emptyCount,SUM(CASE WHEN estado_stock='STOCK BAJO' THEN 1 ELSE 0 END) AS lowCount FROM vw_stock_producto");
+    const [[expiring]]=await this.pool.query('SELECT COUNT(*) AS total FROM vw_lotes_proximos_vencer');result.stock={empty:Number(stock.emptyCount||0),low:Number(stock.lowCount||0),expiring:Number(expiring.total||0)};
   }
   return result;}
 }

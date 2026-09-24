@@ -1,234 +1,552 @@
-/** Modal único de Compras. Hereda campos comunes y coordina autocompletado, borrador y envío atómico mediante POO. */
+/** U051: Nueva compra simple con categoría para productos nuevos y medidas sugeridas. */
 (() => {
   'use strict';
-  const UI=window.ParisUI, P=window.ParisPurchases;
+  const UI = window.ParisUI, P = window.ParisPurchases;
+
   class PurchaseForm extends UI.CatalogForm {
-    constructor(options){
-      super({...options,title:'Nueva compra',icon:'bag',size:'large'});
-      this.productsApi=new window.ParisProducts.ProductsApi();this.suppliersApi=new UI.CatalogApi('/api/proveedores');
-      this.draft=new P.PurchaseDraft();this.pending=new Set();this.generation={};this.lookupRecords=new Map();
+    constructor(options) {
+      super({ ...options, title: 'Nueva compra', icon: 'bag', size: 'large' });
+      this.productsApi = new window.ParisProducts.ProductsApi();
+      this.draft = new P.PurchaseDraft();
+      this.editing = null;
+      this.pending = new Set();
+      this.generation = {};
       this.grid.remove();
-      this.section('Proveedor e ingreso');
-      this.grid.classList.add('app-form-grid--compact');
-      this.supplier=this.lookup('supplier','Nombre o empresa',p=>this.catalogOptions(this.suppliersApi,p),'Ej.: Distribuidora Sol');
-      this.phone=this.field('phone','Teléfono',{maxLength:30,uppercase:false,placeholder:'Ej.: 70012345'});
-      this.bindLookup(this.supplier,'supplier',id=>this.suppliersApi.detail(id),record=>{
-        this.phone.value=record?.phone || '';this.phone.readOnly=Boolean(record);
+
+      this.section('Datos de la compra', 'app-form-grid app-form-grid--3');
+
+      this.product = this.productLookup();
+      this.category = this.categoryLookup();
+
+      this.arrival = this.suggestChoice('arrival', '¿Cómo llegó?', {
+        value: 'UNIDAD',
+        required: true,
+        placeholder: 'Escribe para buscar…',
+        options: [
+          { value: 'UNIDAD', label: 'Unidad' },
+          { value: 'DOCENA', label: 'Docena' },
+          { value: 'PAQUETE', label: 'Paquete' },
+          { value: 'CAJA', label: 'Caja' },
+          { value: 'BOLSA', label: 'Bolsa' },
+          { value: 'BOTELLA', label: 'Botella' },
+          { value: 'GRAMO', label: 'Gramo (g)' },
+          { value: 'KILOGRAMO', label: 'Kilogramo (kg)' },
+          { value: 'LIBRA', label: 'Libra (lb)' },
+          { value: 'MILILITRO', label: 'Mililitro (ml)' },
+          { value: 'LITRO', label: 'Litro (L)' }
+        ]
       });
-      this.location=this.lookup('locationId','Ubicación *',p=>this.api.request('/ubicaciones'+this.api.query(p),{signal:p.signal}),'Ej.: Heladera');
-      this.location.control.input.maxLength=80;this.location.control.input.required=true;
-      this.bindLookup(this.location,'location',id=>({id}),()=>{});
-      this.observation=this.field('observation','Observación',{maxLength:250,uppercase:true,placeholder:'Ej.: Entrega hoy'});
-      this.section('Producto de la compra');
-      this.product=this.lookup('product','Producto',p=>this.productOptions(p),'Ej.: Coca-Cola 2 litros');
-      this.bindLookup(this.product,'product',id=>this.productsApi.detail(id),record=>this.setProduct(record));
-      this.categoryLookup=this.lookup('categoryId','Categoría *',p=>this.productsApi.options('categories',p),'Ej.: Gaseosas');
-      this.category=this.categoryLookup.select;this.categoryLookup.control.input.maxLength=80;
-      this.bindLookup(this.categoryLookup,'category',id=>({id}),()=>{});
-      this.unit=super.selector('unitId','¿Cómo lo cuentas?','units',null,'Unidad para botellas o latas; gramo para productos por peso.',this.productsApi,'Ej.: Unidad o gramo');this.unit.required=false;
-      this.presentation=this.lookup('presentation','¿Cómo lo compras?',p=>this.presentationOptions(p),'Ej.: Botella o paquete de 6');
-      this.bindLookup(this.presentation,'presentation',id=>this.productsApi.presentation(this.selectedProduct.id,id),record=>this.setPresentation(record));
-      this.factor=this.field('factor','¿Cuánto trae?',{type:'number',min:'0.001',step:'0.001',value:'1',placeholder:'Ej.: 6',help:'Paquete de 6: escribe 6. Un kilo contado en gramos: 1000. Una botella: 1.'});
-      this.barcode=this.field('barcode','Código de barras',{maxLength:50,uppercase:false,placeholder:'Ej.: 7771234567890'});
-      this.photo=new UI.PhotoField({container:this.grid,form:this.form,modal:this.modal});
-      new UI.BarcodeField({input:this.barcode,signal:this.modal.events.signal,onRead:code=>this.scan(code)});
-      const productSection=this.grid.parentElement;
-      this.grid=UI.element('div','app-form-grid app-form-grid--compact');productSection.append(this.grid);
-      this.quantity=this.field('quantity','Cantidad comprada',{type:'number',min:'0.001',step:'0.001',value:'1',placeholder:'Ej.: 2',help:'Ej.: 2 paquetes de 6 ingresan 12 unidades.'});
-      this.cost=this.field('cost','Costo (Bs)',{type:'number',min:'0',step:'0.01',placeholder:'Ej.: 45.50',help:'Lo que pagas por un paquete o unidad.'});
-      this.price=this.field('price','Precio venta (Bs)',{type:'number',min:'0',step:'0.01',placeholder:'Ej.: 60.00',help:'Lo que cobras al vender ese mismo paquete o unidad.'});
-      this.lot=this.field('lotCode','Lote (opcional)',{maxLength:80,uppercase:false,placeholder:'Ej.: L-2026-08'});
-      this.expiry=this.field('expiresOn','Vencimiento',{type:'date',help:'Opcional.'});
-      const toolbar=UI.element('div','app-form-toolbar');
-      this.add=UI.Button.create({label:'Agregar producto',icon:'plus',variant:'primary'});
-      this.reset=UI.Button.create({label:'Limpiar producto'});toolbar.append(this.add,this.reset);this.form.append(toolbar);
-      const host=UI.element('div');host.id=this.form.id+'-items';this.form.append(host);
-      this.table=new UI.DataTable({container:host,caption:'Productos de la compra',mode:'scroll',numbered:true,fillHeight:false,pageSize:50,
-        columns:P.PurchaseView.columns(),actionDisplay:'menu',actions:[
-          {id:'detail',label:'Ver detalle',icon:'info'}, {id:'edit',label:'Editar',icon:'edit',tone:'edit'}, {id:'remove',label:'Quitar',icon:'trash',variant:'danger'}
-        ],onAction:item=>this.rowAction(item)});
-      this.total=UI.element('output','app-form-total','Total: Bs 0,00');this.total.setAttribute('aria-live','polite');this.modal.footer.append(this.total);
-      this.draftState=UI.element('input');this.draftState.type='hidden';this.draftState.name='draftState';this.draftState.value='[]';this.form.append(this.draftState);
-      const cancel=UI.Button.create({label:'Cancelar'}),save=UI.Button.create({label:'Guardar compra',icon:'success',variant:'primary',type:'submit'});save.setAttribute('form',this.form.id);
-      this.modal.footer.append(cancel,save);
-      const send=this.api.operation('');
-      this.controller=new UI.FormController({form:this.form,modal:this.modal,
-        validate:()=>this.validatePurchase(),onSubmit:(_,settings)=>send(this.payload(),settings),onSuccess:async result=>{this.modal.close();await this.onSaved(result);}});
-      const settings={signal:this.modal.events.signal};
-      cancel.addEventListener('click',()=>this.modal.requestClose(),settings);
-      this.add.addEventListener('click',()=>this.addLine(),settings);this.reset.addEventListener('click',()=>this.clearEditor(),settings);
-      const close=this.modal.onClose;this.modal.onClose=value=>{this.destroyed=true;this.table.destroy();close(value);};
-      this.modal.open(this.opener);this.supplier.control.input.focus();
-    }
-    /** Hereda los campos de CatalogForm y cambia únicamente el grupo semántico donde se insertan. */
-    section(title){
-      const section=UI.element('section','app-form-section'),heading=UI.element('h3','app-form-section-title',title);
-      this.grid=UI.element('div','app-form-grid');section.append(heading,this.grid);this.form.append(section);
-    }
-    lookup(name,label,load,placeholder){
-      const select=this.field(name,label,{type:'select',options:[{value:'',label:''}]}),control=new UI.SearchSelect({select,load,allowCustom:true,placeholder});
-      const status=UI.element('span','app-field-help');status.setAttribute('role','status');select.closest('.app-field').append(status);
-      this.selectors.push(control);return {select,control,status};
-    }
-    async catalogOptions(api,params){
-      const result=await api.list({...params,query:{state:'ACTIVO'}});
-      return {options:result.records.map(row=>({value:row.id,label:row.name})),total:result.total};
-    }
-    async productOptions(params){
-      // Los productos nuevos del borrador se pueden reutilizar antes de guardar la compra.
-      const local=this.draft.rows.filter(row=>!row.line.product.id && row.product.toLocaleLowerCase('es').includes(params.term.toLocaleLowerCase('es')));
-      const unique=[...new Map(local.map(row=>[row.line.product.clientKey,row])).values()];
-      if(unique.length){
-        unique.forEach(row=>this.lookupRecords.set('draft:'+row.line.product.clientKey,{...row.line.product,name:row.product,category:row.category,unit:row.unit}));
-        const result=await this.catalogOptions(this.productsApi,params);
-        // No mezclar páginas remotas con resultados locales truncados: ofrecer locales solo si no existen coincidencias remotas.
-        if(result.total)return result;
-        return {options:unique.slice((params.page-1)*params.pageSize,params.page*params.pageSize).map(row=>({value:'draft:'+row.line.product.clientKey,label:row.product+' (NUEVO EN ESTA COMPRA)'})),total:unique.length};
-      }
-      return this.catalogOptions(this.productsApi,params);
-    }
-    async presentationOptions(params){
-      let remote={options:[],total:0};
-      if(this.selectedProduct?.id){
-        const result=await this.productsApi.presentations(this.selectedProduct.id,{...params,query:{state:'ACTIVO'}});
-        remote={options:result.records.map(row=>({value:row.id,label:row.name})),total:result.total};
-      }
-      if(remote.total)return remote;
-      const identity=this.selectedProduct?.id || this.selectedProduct?.clientKey;
-      const rows=this.draft.rows.filter(row=>identity && (row.line.product.id || row.line.product.clientKey)===identity && !row.line.presentation.id && row.presentation.toLocaleLowerCase('es').includes(params.term.toLocaleLowerCase('es')));
-      const unique=[...new Map(rows.map(row=>[row.presentation,row])).values()];
-      unique.forEach(row=>this.lookupRecords.set('draft-presentation:'+row.id,row.line.presentation));
-      return {options:unique.slice((params.page-1)*params.pageSize,params.page*params.pageSize).map(row=>({value:'draft-presentation:'+row.id,label:row.presentation+' (NUEVA EN ESTA COMPRA)'})),total:unique.length};
-    }
-    bindLookup(lookup,key,load,selected){
-      const changed=async()=>{
-        const generation=this.generation[key]=(this.generation[key] || 0)+1;
-        const id=lookup.select.value;this.pending.delete(key);this[key+'Record']=null;selected(null);
-        if(!id){lookup.status.textContent=lookup.control.input.value.trim()?'Nuevo — se creará al guardar la compra':'';return;}
-        this.pending.add(key);lookup.status.textContent='Cargando…';
-        try{
-          const local=this.lookupRecords.get(id);
-          const record=local || await load(id);
-          if(this.destroyed || generation!==this.generation[key])return;
-          if(record.state && record.state!=='ACTIVO')throw new UI.CatalogApiError('El registro ya no está activo. Vuelve a buscarlo.');
-          this[key+'Record']=record;selected(record);lookup.status.textContent=local?'Nuevo en esta compra':'Existente';
-        }catch(error){if(!this.destroyed && generation===this.generation[key]){lookup.status.textContent='No se pudo cargar. Vuelve a seleccionar.';lookup.select.value='';this.controller?.alert.show('error',error.userMessage || 'No se pudo cargar la selección.');}}
-        finally{if(generation===this.generation[key])this.pending.delete(key);}
+
+      this.quantity = this.field('quantity', 'Cantidad comprada', {
+        type: 'number', min: '0.001', step: '0.001', value: '1', placeholder: 'Ej.: 5'
+      });
+
+      this.factor = this.field('factor', '¿Cuánto trae?', {
+        type: 'number', min: '0.001', step: '0.001', value: '1', placeholder: 'Ej.: 24'
+      });
+
+      this.cost = this.field('cost', 'Costo de compra (Bs)', {
+        type: 'number', min: '0', step: '0.01', placeholder: 'Ej.: 180.00'
+      });
+
+      this.expiry = this.field('expiresOn', 'Vencimiento (opcional)', { type: 'date' });
+      this.location = this.lookupLocation();
+      this.location.select.closest('.app-field').classList.add('app-field--span-2');
+
+      const productHost = this.product.select.closest('.app-field');
+      productHost.classList.add('app-field--span-2');
+
+      this.scanInput = UI.element('input');
+      this.scanInput.type = 'text';
+      this.scanInput.hidden = true;
+      this.scanButton = UI.Button.create({ label: 'Escanear producto', icon: 'barcode' });
+
+      const productActions = UI.element('div', 'app-field-control-row');
+      productHost.insertBefore(productActions, this.product.status);
+      productActions.append(this.product.control.root, this.scanButton);
+      productHost.append(this.scanInput);
+
+      new UI.BarcodeField({
+        input: this.scanInput,
+        button: this.scanButton,
+        signal: this.modal.events.signal,
+        onRead: code => this.scan(code)
+      });
+
+      const toolbar = UI.element('div', 'app-form-toolbar');
+      this.add = UI.Button.create({ label: 'Agregar producto', icon: 'plus', variant: 'primary' });
+      this.reset = UI.Button.create({ label: 'Limpiar producto' });
+      toolbar.append(this.add, this.reset);
+      this.form.append(toolbar);
+
+      const host = UI.element('div');
+      host.id = this.form.id + '-items';
+      this.form.append(host);
+
+      this.table = new UI.DataTable({
+        container: host,
+        caption: 'Productos de la compra',
+        mode: 'scroll',
+        numbered: true,
+        fillHeight: false,
+        pageSize: 50,
+        columns: P.PurchaseView.columns(),
+        actionDisplay: 'menu',
+        actions: [
+          { id: 'detail', label: 'Ver detalle', icon: 'info' },
+          { id: 'edit', label: 'Editar', icon: 'edit', tone: 'edit' },
+          { id: 'remove', label: 'Quitar', icon: 'trash', variant: 'danger' }
+        ],
+        onAction: item => this.rowAction(item)
+      });
+
+      this.total = UI.element('output', 'app-form-total', 'Total: Bs 0,00');
+      this.total.setAttribute('aria-live', 'polite');
+      this.modal.footer.append(this.total);
+
+      const cancel = UI.Button.create({ label: 'Cancelar' });
+      const save = UI.Button.create({ label: 'Guardar compra', icon: 'success', variant: 'primary', type: 'submit' });
+      save.setAttribute('form', this.form.id);
+      this.modal.footer.append(cancel, save);
+
+      const send = this.api.operation('');
+      this.controller = new UI.FormController({
+        form: this.form,
+        modal: this.modal,
+        validate: () => this.validatePurchase(),
+        onSubmit: (_, settings) => send(this.payload(), settings),
+        onSuccess: async result => {
+          this.modal.close();
+          await this.onSaved(result);
+        }
+      });
+
+      const settings = { signal: this.modal.events.signal };
+      cancel.addEventListener('click', () => this.modal.requestClose(), settings);
+      this.add.addEventListener('click', () => this.addLine(), settings);
+      this.reset.addEventListener('click', () => this.clearEditor(), settings);
+      this.arrival.addEventListener('change', () => this.syncArrival(), settings);
+
+      const close = this.modal.onClose;
+      this.modal.onClose = value => {
+        this.destroyed = true;
+        this.table.destroy();
+        close(value);
       };
-      const options={signal:this.modal.events.signal};lookup.select.addEventListener('change',changed,options);
-      lookup.control.input.addEventListener('input',()=>{if(!lookup.select.value)lookup.status.textContent=lookup.control.input.value.trim()?'Nuevo — se creará al guardar la compra':'';},options);
+
+      this.modal.open(this.opener);
+      this.syncArrival();
+      this.product.control.input.focus();
     }
-    setProduct(record){
-      this.selectedProduct=record;this.presentationRecord=null;this.generation.presentation=(this.generation.presentation || 0)+1;this.pending.delete('presentation');
-      if(this.presentation){this.presentation.control.setValue(null);this.presentation.status.textContent='';this.setPresentation(null);}
-      if(!this.category)return;
-      this.setClassification(record,Boolean(record));
-      this.photo?.reset(record,Boolean(record));
+
+    section(title, gridClass = 'app-form-grid') {
+      const section = UI.element('section', 'app-form-section');
+      const heading = UI.element('h3', 'app-form-section-title', title);
+      this.grid = UI.element('div', gridClass);
+      section.append(heading, this.grid);
+      this.form.append(section);
     }
-    /** Restaura la categoría escrita al reutilizar o editar un producto todavía no guardado. */
-    setClassification(record,disabled){
-      for(const [input,key,label] of [[this.category,'categoryId','category'],[this.unit,'unitId','unit']]){
-        const control=UI.SearchSelect.controls.get(input);
-        control.setValue(record?.[key]?{value:record[key],label:record[label]}:null);input.disabled=disabled;
+
+    lookupLocation() {
+      const select = this.field('locationId', 'Ubicación de ingreso', {
+        type: 'select',
+        options: [{ value: '', label: '' }]
+      });
+      const control = new UI.SearchSelect({
+        select,
+        load: p => this.api.request('/ubicaciones' + this.api.query(p), { signal: p.signal }),
+        allowCustom: true,
+        placeholder: 'Ej.: Almacén o heladera'
+      });
+      control.input.maxLength = 80;
+      const status = UI.element('span', 'app-sr-only');
+      status.setAttribute('role', 'status');
+      select.closest('.app-field').append(status);
+      this.selectors.push(control);
+      return { select, control, status };
+    }
+
+    productLookup() {
+      const select = this.field('productId', 'Nombre del producto', {
+        type: 'select',
+        options: [{ value: '', label: '' }]
+      });
+      const control = new UI.SearchSelect({
+        select,
+        load: p => this.productOptions(p),
+        allowCustom: true,
+        placeholder: 'Buscar o escribir producto…'
+      });
+      control.input.maxLength = 120;
+      const status = UI.element('span', 'app-sr-only');
+      status.setAttribute('role', 'status');
+      select.closest('.app-field').append(status);
+      this.selectors.push(control);
+      select.addEventListener('change', () => this.loadProduct(), { signal: this.modal.events.signal });
+      return { select, control, status };
+    }
+
+    categoryLookup() {
+      const select = this.field('categoryId', 'Categoría', {
+        type: 'select',
+        options: [{ value: '', label: '' }]
+      });
+      const control = new UI.SearchSelect({
+        select,
+        load: p => this.productsApi.options('categories', p),
+        allowCustom: true,
+        placeholder: 'Buscar o escribir categoría…'
+      });
+      control.input.maxLength = 80;
+      const status = UI.element('span', 'app-sr-only');
+      status.setAttribute('role', 'status');
+      select.closest('.app-field').append(status);
+      this.selectors.push(control);
+      return { select, control, status };
+    }
+
+    setCategory(record, locked = false) {
+      const select = this.category.select;
+      const control = this.category.control;
+
+      select.disabled = false;
+      control.syncDisabled();
+
+      if (record?.categoryId) {
+        control.setValue({
+          value: record.categoryId,
+          label: record.category || record.categoryName || 'Categoría'
+        });
+      } else {
+        control.setValue(null);
+        if (record?.categoryName) control.input.value = record.categoryName;
       }
-      if(record?.categoryName)this.categoryLookup.control.input.value=record.categoryName;
-      this.categoryLookup.status.textContent=record?.categoryName?'Nueva en esta compra':record?.categoryId?'Existente':'';
+
+      select.disabled = Boolean(locked);
+      control.syncDisabled();
     }
-    setPresentation(record){
-      this.selectedPresentation=record;
-      for(const [input,key,fallback] of [[this.factor,'factor','1'],[this.price,'price',''],[this.barcode,'barcode','']])if(input){input.value=record?.[key] ?? fallback;input.readOnly=Boolean(record);}
+
+    async productOptions(params) {
+      const result = await this.productsApi.list({ ...params, query: { state: 'ACTIVO' } });
+      return {
+        options: result.records.map(row => ({ value: row.id, label: row.name })),
+        total: result.total
+      };
     }
-    /** Un código identifica la forma de compra exacta, sin crear registros al escanear. */
-    async scan(code){
-      if(this.controller.busy || this.destroyed)return;
-      const generation=this.generation.scan=(this.generation.scan || 0)+1;
-      const productGeneration=this.generation.product || 0;
+
+    async loadProduct() {
+      const id = this.product.select.value;
+      const previous = this.selectedProduct;
+      const generation = this.generation.product = (this.generation.product || 0) + 1;
+      this.selectedProduct = null;
+
+      if (!id) {
+        this.product.status.textContent = '';
+        if (previous?.id) this.setCategory(null, false);
+        this.syncArrival();
+        return;
+      }
+
+      this.pending.add('product');
+      this.product.status.textContent = 'Cargando…';
+
+      try {
+        const record = await this.productsApi.detail(id);
+        if (this.destroyed || generation !== this.generation.product) return;
+        if (!record || record.state !== 'ACTIVO') throw new UI.CatalogApiError('El producto ya no está activo.');
+
+        this.selectedProduct = record;
+        this.product.status.textContent = '';
+        this.setCategory(record, true);
+        this.syncArrival();
+      } catch (error) {
+        if (!this.destroyed && generation === this.generation.product) {
+          this.product.control.setValue(null);
+          this.setCategory(null, false);
+          this.product.status.textContent = '';
+          this.controller?.alert.show('error', error.userMessage || 'No se pudo cargar el producto.');
+        }
+      } finally {
+        if (generation === this.generation.product) this.pending.delete('product');
+      }
+    }
+
+    normalize(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim()
+        .toLocaleUpperCase('es');
+    }
+
+    inferredUnit(arrival) {
+      if (['GRAMO', 'KILOGRAMO', 'LIBRA'].includes(arrival)) return 'Gramo';
+      if (['MILILITRO', 'LITRO'].includes(arrival)) return 'Mililitro';
+      return 'Unidad';
+    }
+
+    automaticFactor(arrival) {
+      const unit = this.normalize(this.selectedProduct?.unit || this.inferredUnit(arrival));
+
+      if (unit === 'GRAMO') {
+        return { GRAMO: '1', KILOGRAMO: '1000', LIBRA: '453.592' }[arrival] || null;
+      }
+      if (unit === 'MILILITRO') {
+        return { MILILITRO: '1', LITRO: '1000' }[arrival] || null;
+      }
+      if (unit === 'UNIDAD') {
+        return { UNIDAD: '1', DOCENA: '12' }[arrival] || null;
+      }
+      if (unit === 'KILOGRAMO') {
+        return { KILOGRAMO: '1', GRAMO: '0.001' }[arrival] || null;
+      }
+      return null;
+    }
+
+    syncArrival() {
+      const automatic = this.automaticFactor(this.arrival.value);
+      if (automatic !== null) {
+        this.factor.value = automatic;
+        this.factor.readOnly = true;
+      } else {
+        if (this.factor.readOnly) this.factor.value = '1';
+        this.factor.readOnly = false;
+      }
+    }
+
+    async scan(code) {
+      if (this.controller.busy || this.destroyed) return;
       this.pending.add('scan');
-      try{
-        const result=await this.productsApi.barcode(code,this.modal.events.signal);
-        if(this.destroyed || generation!==this.generation.scan || productGeneration!==(this.generation.product || 0) || this.barcode.value!==code)return;
-        if(!result.found){this.controller.alert.show('info','Código nuevo. Completa el producto y cómo lo compras antes de agregarlo.');return;}
-        if(this.product.control.input.value.trim() && !await UI.Confirm.ask({title:'Usar producto del código',message:'Se reemplazarán los datos del producto que estás editando por '+result.product.name+'. La cantidad y el costo se conservan.',confirmLabel:'Usar producto'}))return;
-        if(this.destroyed || generation!==this.generation.scan || productGeneration!==(this.generation.product || 0))return;
-        this.generation.product=(this.generation.product || 0)+1;this.pending.delete('product');this.productRecord=result.product;
-        this.setProduct(result.product);
-        this.product.control.setValue({value:result.product.id,label:result.product.name});this.product.status.textContent='Existente';
-        this.presentationRecord=result.presentation;this.setPresentation(result.presentation);
-        this.presentation.control.setValue({value:result.presentation.id,label:result.presentation.name});this.presentation.status.textContent='Existente';
-        this.quantity.focus();this.controller.alert.show('success','Código reconocido: '+result.product.name+' — '+result.presentation.name+'.');
-      }catch(error){if(!this.destroyed && generation===this.generation.scan)this.controller.alert.show('error',error.userMessage || 'No se pudo consultar el código.');}
-      finally{if(generation===this.generation.scan)this.pending.delete('scan');}
+
+      try {
+        const result = await this.productsApi.barcode(code, this.modal.events.signal);
+        if (!result?.found) {
+          this.controller.alert.show('info', 'Código no encontrado. Puedes escribir el producto nuevo, elegir su categoría y continuar con la compra.');
+          return;
+        }
+
+        this.product.control.setValue({ value: result.product.id, label: result.product.name });
+        this.selectedProduct = result.product;
+        this.product.status.textContent = '';
+        this.setCategory(result.product, true);
+        this.syncArrival();
+        this.controller.alert.show('success', 'Producto reconocido: ' + result.product.name + '.');
+        this.quantity.focus();
+      } catch (error) {
+        if (!this.destroyed) {
+          this.controller.alert.show('error', error.userMessage || 'No se pudo consultar el código.');
+        }
+      } finally {
+        this.pending.delete('scan');
+        this.scanInput.value = '';
+      }
     }
-    ref(record){return {id:record.id,version:record.version};}
-    payload(){
-      if(this.pending.size)throw new UI.CatalogApiError('Espera a que termine la selección.');
-      if(this.product.control.input.value.trim() || this.presentation.control.input.value.trim() || this.cost.value || this.lot.value || this.expiry.value || this.price.value || this.quantity.value!=='1' || this.factor.value!=='1' || this.editing || this.photo.state.value)throw new UI.CatalogApiError('Agrega el producto que estás editando o pulsa Limpiar producto antes de guardar la compra.');
-      if(!this.draft.rows.length)throw new UI.CatalogApiError('Agrega al menos un producto a la compra.');
-      const data={supplier:this.supplierRecord?this.ref(this.supplierRecord):{name:this.supplier.control.input.value.trim(),phone:this.phone.value.trim()},
-        ...(this.location.select.value?{locationId:this.location.select.value}:{locationName:this.location.control.input.value.trim()}),
-        observation:this.observation.value,lines:this.draft.payload()};
-      if(new TextEncoder().encode(JSON.stringify(data)).length>4000000)throw new UI.CatalogApiError('Esta compra contiene demasiadas fotos. Reduce las fotos o registra algunas desde Productos.');
-      return data;
+
+    ref(record) {
+      return { id: record.id, version: record.version };
     }
-    validatePurchase(){
-      const errors={};
-      if(!this.supplier.control.input.value.trim())errors.supplierText='Escribe o selecciona el proveedor.';
-      if(!this.location.control.input.value.trim())errors.locationIdText='Escribe o selecciona la ubicación de ingreso.';
+
+    payload() {
+      if (this.pending.size) throw new UI.CatalogApiError('Espera a que termine la selección.');
+
+      if (
+        this.product.control.input.value.trim() ||
+        this.category.control.input.value.trim() ||
+        this.selectedProduct ||
+        this.cost.value ||
+        this.expiry.value ||
+        this.editing
+      ) {
+        throw new UI.CatalogApiError('Agrega el producto que estás editando o pulsa Limpiar producto antes de guardar la compra.');
+      }
+
+      if (!this.draft.rows.length) throw new UI.CatalogApiError('Agrega al menos un producto a la compra.');
+
+      return {
+        ...(this.location.select.value
+          ? { locationId: this.location.select.value }
+          : { locationName: this.location.control.input.value.trim() }),
+        lines: this.draft.payload()
+      };
+    }
+
+    validatePurchase() {
+      const errors = {};
+      if (!this.location.control.input.value.trim()) {
+        errors.locationIdText = 'Selecciona o escribe la ubicación de ingreso.';
+      }
       return errors;
     }
-    addLine(){
-      if(this.controller.busy)return;
+
+    addLine() {
+      if (this.controller.busy) return;
       this.controller.clearErrors();
-      try{
-        if(this.pending.size)throw new UI.CatalogApiError('Espera a que termine la selección.');
-        const name=this.product.control.input.value.trim(),presentationName=this.presentation.control.input.value.trim();
-        if(!name || !presentationName)throw new UI.CatalogApiError('Indica el producto y cómo lo compras: por ejemplo, botella o paquete de 6.');
-        const categoryName=this.categoryLookup.control.input.value.trim();
-        if(!categoryName || !this.unit.value)throw new UI.CatalogApiError('Indica la categoría y selecciona cómo cuentas el producto: por unidad, gramo u otra medida de la lista.');
-        const product=this.selectedProduct?.id?this.ref(this.selectedProduct):{
-          clientKey:this.selectedProduct?.clientKey || UI.CatalogApi.newKey(),name:this.selectedProduct?.name || name,
-          ...(this.category.value?{categoryId:this.category.value}:{categoryName}),unitId:this.unit.value,...this.photo.payload()};
-        const presentation=this.selectedPresentation?.id?this.ref(this.selectedPresentation):{name:this.selectedPresentation?.name || presentationName,
-          factor:P.PurchaseDraft.decimal(this.factor.value,3,'la cantidad que trae',true),barcode:this.barcode.value.trim(),price:P.PurchaseDraft.decimal(this.price.value,2,'el precio de venta')};
-        const quantity=P.PurchaseDraft.decimal(this.quantity.value,3,'la cantidad',true),cost=P.PurchaseDraft.decimal(this.cost.value,2,'el costo');
-        const factor=this.selectedPresentation?.factor || presentation.factor;
-        const baseQuantity=UI.Decimal.multiply(quantity,factor,3);
-        if(UI.Decimal.units(baseQuantity,3)<=0n || UI.Decimal.units(baseQuantity,3)>999999999999999n)throw new UI.CatalogApiError('Revisa cuántos paquetes o unidades compras y cuánto trae cada uno.');
-        const display={product:this.selectedProduct?.name || name,presentation:this.selectedPresentation?.name || presentationName,
-          photoHash:this.selectedProduct?.photoHash,categoryId:this.category.value,unitId:this.unit.value,category:UI.SearchSelect.controls.get(this.category).input.value,unit:UI.SearchSelect.controls.get(this.unit).input.value,
-          factor,baseQuantity,price:this.price.value,barcode:this.barcode.value,lotCode:this.lot.value,expiresOn:this.expiry.value};
-        this.draft.save({product,presentation,quantity,cost,lotCode:this.lot.value,expiresOn:this.expiry.value},display,this.editing);
-        this.updateDraft();this.clearEditor();
-      }catch(error){this.controller.alert.show('error',error.userMessage || 'Revisa los datos del producto.');}
-    }
-    updateDraft(){this.draftState.value=JSON.stringify(this.draft.payload());this.total.textContent='Total: Bs '+UI.Decimal.format(this.draft.total());this.table.setData(this.draft.rows);}
-    clearEditor(){
-      if(this.controller?.busy)return;
-      this.generation.scan=(this.generation.scan || 0)+1;this.pending.delete('scan');
-      this.editing=null;this.productRecord=null;this.generation.product=(this.generation.product || 0)+1;this.pending.delete('product');
-      this.product.control.setValue(null);this.product.status.textContent='';this.setProduct(null);
-      this.quantity.value='1';this.cost.value=this.lot.value=this.expiry.value='';this.add.querySelector('span').textContent='Agregar producto';
-    }
-    async rowAction({action,record,button}){
-      if(this.controller.busy)return;
-      if(action==='detail')return P.PurchaseView.line(record,button);
-      if(action==='remove'){
-        if(await UI.Confirm.ask({title:'Quitar producto',message:'Quitar '+record.product+' de esta compra.',confirmLabel:'Quitar',danger:true}) && !this.destroyed && !this.controller.busy){this.draft.remove(record.id);if(this.editing===record.id)this.clearEditor();this.updateDraft();}return;
+
+      try {
+        if (this.pending.size) throw new UI.CatalogApiError('Espera a que termine la selección.');
+
+        const name = this.product.control.input.value.trim().replace(/\s+/g, ' ').toLocaleUpperCase('es');
+        if (!this.selectedProduct?.id && !name) throw new UI.CatalogApiError('Busca o escribe el nombre del producto.');
+        if (!this.arrival.value) throw new UI.CatalogApiError('Selecciona cómo llegó el producto desde las sugerencias.');
+        if (!this.location.control.input.value.trim()) throw new UI.CatalogApiError('Selecciona o escribe dónde se ubicará la mercadería.');
+
+        const categoryText = this.category.control.input.value.trim();
+        if (!this.selectedProduct?.id && !categoryText) {
+          throw new UI.CatalogApiError('Selecciona o escribe la categoría del producto nuevo.');
+        }
+
+        const arrival = this.arrival.value;
+        const factor = P.PurchaseDraft.decimal(this.factor.value, 3, 'cuánto trae', true);
+        const quantity = P.PurchaseDraft.decimal(this.quantity.value, 3, 'la cantidad', true);
+        const cost = P.PurchaseDraft.decimal(this.cost.value, 2, 'el costo');
+        const baseQuantity = UI.Decimal.multiply(quantity, factor, 3);
+
+        if (UI.Decimal.units(baseQuantity, 3) <= 0n || UI.Decimal.units(baseQuantity, 3) > 999999999999999n) {
+          throw new UI.CatalogApiError('Revisa la cantidad comprada y cuánto trae cada uno.');
+        }
+
+        const product = this.selectedProduct?.id
+          ? this.ref(this.selectedProduct)
+          : {
+              name,
+              ...(this.category.select.value
+                ? { categoryId: this.category.select.value }
+                : { categoryName: categoryText })
+            };
+
+        const displayName = this.selectedProduct?.name || name;
+        const displayCategory = this.selectedProduct?.category || categoryText;
+
+        const line = {
+          product,
+          arrival,
+          factor,
+          quantity,
+          cost,
+          expiresOn: this.expiry.value
+        };
+
+        const display = {
+          product: displayName,
+          category: displayCategory,
+          categoryId: this.selectedProduct?.categoryId || this.category.select.value || '',
+          arrival,
+          factor,
+          quantity,
+          cost,
+          baseQuantity,
+          subtotal: UI.Decimal.multiply(quantity, cost, 2),
+          unit: this.selectedProduct?.unit || this.inferredUnit(arrival),
+          expiresOn: this.expiry.value,
+          location: this.location.control.input.value.trim()
+        };
+
+        this.draft.save(line, display, this.editing);
+        this.updateDraft();
+        this.clearEditor();
+      } catch (error) {
+        this.controller.alert.show('error', error.userMessage || error.message || 'Revisa los datos del producto.');
       }
-      if(this.product.control.input.value.trim() && !await UI.Confirm.ask({title:'Cambiar producto',message:'Se descartará la edición del producto que aún no agregaste.',confirmLabel:'Continuar'}))return;
-      if(this.destroyed || this.controller.busy)return;
-      this.clearEditor();this.editing=record.id;
-      const line=record.line;
-      this.selectedProduct={...line.product,name:record.product,photoHash:record.photoHash};
-      this.photo.reset(this.selectedProduct,true);
-      this.product.control.setValue({value:line.product.id || 'draft:'+line.product.clientKey,label:record.product});this.product.status.textContent=line.product.id?'Existente':'Nuevo en esta compra';
-      this.setClassification({...record,...line.product},true);
-      this.selectedPresentation=line.presentation.id?{...line.presentation,name:record.presentation,factor:record.factor}:null;
-      if(line.presentation.id)this.presentation.control.setValue({value:line.presentation.id,label:record.presentation});else this.presentation.control.input.value=record.presentation;this.presentation.status.textContent=line.presentation.id?'Existente':'Nuevo';
-      for(const [input,value] of [[this.factor,record.factor],[this.price,record.price],[this.barcode,record.barcode],[this.quantity,line.quantity],[this.cost,line.cost],[this.lot,line.lotCode],[this.expiry,line.expiresOn]])input.value=value || '';
-      this.factor.readOnly=this.price.readOnly=this.barcode.readOnly=Boolean(line.presentation.id);
-      this.add.querySelector('span').textContent='Actualizar producto';this.product.control.input.focus();
+    }
+
+    updateDraft() {
+      this.total.textContent = 'Total: Bs ' + UI.Decimal.format(this.draft.total());
+      this.table.setData(this.draft.rows);
+    }
+
+    clearEditor() {
+      if (this.controller?.busy) return;
+
+      this.editing = null;
+      this.selectedProduct = null;
+      this.generation.product = (this.generation.product || 0) + 1;
+      this.pending.delete('product');
+
+      this.product.control.setValue(null);
+      this.product.status.textContent = '';
+      this.setCategory(null, false);
+
+      this.arrival.value = 'UNIDAD';
+      this.arrival.dispatchEvent(new Event('change', { bubbles: true }));
+
+      this.quantity.value = '1';
+      this.cost.value = '';
+      this.expiry.value = '';
+      this.add.querySelector('span').textContent = 'Agregar producto';
+    }
+
+    async rowAction({ action, record, button }) {
+      if (this.controller.busy) return;
+
+      if (action === 'detail') return P.PurchaseView.line(record, button);
+
+      if (action === 'remove') {
+        if (await UI.Confirm.ask({
+          title: 'Quitar producto',
+          message: 'Quitar ' + record.product + ' de esta compra.',
+          confirmLabel: 'Quitar',
+          danger: true
+        }) && !this.destroyed && !this.controller.busy) {
+          this.draft.remove(record.id);
+          if (this.editing === record.id) this.clearEditor();
+          this.updateDraft();
+        }
+        return;
+      }
+
+      if (
+        (this.selectedProduct || this.product.control.input.value.trim()) &&
+        !await UI.Confirm.ask({
+          title: 'Cambiar producto',
+          message: 'Se descartará la edición del producto que aún no agregaste.',
+          confirmLabel: 'Continuar'
+        })
+      ) return;
+
+      if (this.destroyed || this.controller.busy) return;
+
+      this.clearEditor();
+      this.editing = record.id;
+      const line = record.line;
+
+      if (line.product.id) {
+        this.selectedProduct = {
+          id: line.product.id,
+          version: line.product.version,
+          name: record.product,
+          categoryId: record.categoryId,
+          category: record.category,
+          unit: record.unit,
+          state: 'ACTIVO'
+        };
+        this.product.control.setValue({ value: line.product.id, label: record.product });
+        this.setCategory(this.selectedProduct, true);
+      } else {
+        this.selectedProduct = null;
+        this.product.control.setValue(null);
+        this.product.control.input.value = record.product;
+
+        this.setCategory(
+          line.product.categoryId
+            ? { categoryId: line.product.categoryId, category: record.category }
+            : { categoryName: line.product.categoryName },
+          false
+        );
+      }
+
+      this.product.status.textContent = '';
+
+      this.arrival.value = line.arrival;
+      this.arrival.dispatchEvent(new Event('change', { bubbles: true }));
+      this.factor.value = line.factor;
+      this.quantity.value = line.quantity;
+      this.cost.value = line.cost;
+      this.expiry.value = line.expiresOn || '';
+
+      this.add.querySelector('span').textContent = 'Actualizar producto';
+      this.product.control.input.focus();
     }
   }
-  P.PurchaseForm=PurchaseForm;
+
+  P.PurchaseForm = PurchaseForm;
 })();

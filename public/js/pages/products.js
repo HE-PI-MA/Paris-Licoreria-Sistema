@@ -110,12 +110,27 @@
         form.modal.onClose = value => { onClose(value); this.dialogs.delete(form.modal); };
         this.dialogs.add(form.modal);
       };
+      const detail = (row, button) => {
+        const details = new UI.RecordDetails({ record: row, fields: [
+          { key: 'name', label: 'Presentación', wide: true },
+          { key: 'factor', label: 'Cuánto trae', type: 'quantity' },
+          { key: 'barcode', label: 'Código de barras', empty: 'Sin registrar' },
+          { key: 'price', label: 'Precio de venta', type: 'price' },
+          { key: 'state', label: 'Estado', type: 'state' }
+        ] });
+        const detailModal = new UI.Modal({ title: 'Detalle de presentación', icon: 'box', content: details.element,
+          onClose: () => { detailModal.destroy(); this.dialogs.delete(detailModal); } });
+        const close = UI.Button.create({ label: 'Cerrar' });
+        close.addEventListener('click', () => detailModal.requestClose(), { signal: detailModal.events.signal });
+        detailModal.footer.append(close); this.dialogs.add(detailModal); detailModal.open(button);
+      };
       add.addEventListener('click', () => edit(null, add), { signal: modal.events.signal });
       table = new UI.DataTable({ container: host, caption: 'Presentaciones de ' + product.name, numbered: true, mode: 'scroll', fillHeight: false, pageSize: 50, load: params => this.api.presentations(product.id, params),
-        columns: [{ key: 'name', label: 'Presentación', sortable: true }, { key: 'factor', label: 'Cuánto trae', type: 'quantity', sortable: true },
-          { key: 'barcode', label: 'Código de barras' }, { key: 'price', label: 'Precio (Bs)', type: 'price', sortable: true }, { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'inactive' } } }],
-        sort: { key: 'name', direction: 'asc' }, actionDisplay: 'menu', actions: [{ id: 'edit', label: 'Editar', icon: 'edit', tone: 'edit' }, ...this.stateActions()],
+        columns: [{ key: 'name', label: 'Presentación', sortable: true }, { key: 'factor', label: 'Cuánto trae', type: 'quantity', sortable: true, priority: 1 },
+          { key: 'barcode', label: 'Código de barras', priority: 2 }, { key: 'price', label: 'Precio (Bs)', type: 'price', sortable: true }, { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'inactive' } } }],
+        sort: { key: 'name', direction: 'asc' }, actionDisplay: 'menu', actions: [{ id: 'detail', label: 'Ver detalle', icon: 'info' }, { id: 'edit', label: 'Editar', icon: 'edit', tone: 'edit' }, ...this.stateActions()],
         onAction: ({ action, record, button }) => this.handle(async () => {
+          if (action === 'detail') return detail(await this.api.presentation(product.id, record.id), button);
           if (action === 'edit') return edit(await this.api.presentation(product.id, record.id), button);
           return this.change(action, record, '/' + product.id + '/presentaciones/' + record.id,
             () => saved(action === 'delete' ? 'Presentación eliminada.' : 'Estado de la presentación actualizado.'));

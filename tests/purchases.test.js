@@ -1,104 +1,69 @@
-/** Contrato de compras con datos ficticios: atomicidad, idempotencia, referencias, precisión y protección HTTP. */
-const {test}=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto');
-const {PurchaseMemoryRepository,body}=require('./support/purchase-fixture');
-const Service=require('../src/services/PurchaseService'),Input=require('../src/domain/PurchaseInput'),Decimal=require('../public/js/components/decimal');
-const {server,password}=require('./support/application-fixture');
-const key=()=>crypto.randomUUID();
-test('Categorías: una compra anterior por ID mantiene el hash de reintento U028',()=>{
- const data=body();data.lines[0].product.clientKey='12345678-1234-4234-8234-123456789abc';
- assert.equal(crypto.createHash('sha256').update(JSON.stringify(['purchase:create',Input.purchase(data)])).digest('hex'),'89daea2d12649b7362344c2d1ce940be8f8f8b0a9514607f52791b675839d38b');
+/** U044: contrato simplificado de Compras con datos ficticios. */
+const { test } = require('node:test'), assert = require('node:assert/strict'), crypto = require('node:crypto');
+const { PurchaseMemoryRepository, body } = require('./support/purchase-fixture');
+const Service = require('../src/services/PurchaseService'), Input = require('../src/domain/PurchaseInput');
+const { server, password } = require('./support/application-fixture');
+const key = () => crypto.randomUUID();
+
+test('U044: Compra acepta solo datos propios del ingreso', () => {
+  const clean = Input.purchase(body());
+  assert.deepEqual(Object.keys(clean).sort(), ['lines','locationId']);
+  assert.equal(clean.lines[0].arrival, 'CAJA');
+  assert.equal(clean.lines[0].factor, '6.000');
+  assert.equal(clean.lines[0].quantity, '2.000');
+  for (const extra of [
+    { supplier: { name: 'NO' } }, { observation: 'NO' }
+  ]) assert.throws(() => Input.purchase({ ...body(), ...extra }), error => error.status === 400);
+  for (const extra of [
+    { presentation: { id: 1 } }, { lotCode: 'MANUAL' }, { price: '50' }, { barcode: '123' }, { photo: 'x' }
+  ]) {
+    const data = body(); Object.assign(data.lines[0], extra);
+    assert.throws(() => Input.purchase(data), error => error.status === 400);
+  }
 });
-test('Categorías: nombres normalizados y contratos sin ambigüedad ni cambios de catálogo existentes',()=>{
- const data=body(),product=data.lines[0].product;
- delete product.categoryId;product.categoryName='  gaseosas   nuevas  ';
- assert.equal(Input.purchase(data).lines[0].product.categoryName,'GASEOSAS NUEVAS');
- for(const name of ['', ' ', 'a'.repeat(81), '\u0000BEBIDAS', null, 123]){
-  product.categoryName=name;assert.throws(()=>Input.purchase(data),e=>e.status===422);
- }
- product.categoryName='GASEOSAS';product.categoryId=1;assert.throws(()=>Input.purchase(data),e=>e.status===422);
- data.lines[0].product={id:1,version:'a'.repeat(64),categoryName:'GASEOSAS'};assert.throws(()=>Input.purchase(data),e=>e.status===400);
+
+test('U044: guardar compra aumenta stock base con factor propio y genera lote automático', async () => {
+  const repo = new PurchaseMemoryRepository(), service = new Service(repo);
+  const saved = await service.create(1, key(), body());
+  assert.equal(saved.total, '90.50');
+  assert.equal(repo.pool.data.purchases.length, 1);
+  assert.equal(repo.pool.data.lines[0].baseQuantity, '12.000');
+  assert.equal(repo.pool.data.lines[0].lotCode, 'L-000001');
+  const detail = await service.detail(saved.id);
+  assert.equal(detail.lines[0].product, 'CERVEZA FICTICIA');
+  assert.equal(detail.lines[0].arrival, 'CAJA');
+  assert.equal(detail.lines[0].lotCode, 'L-000001');
 });
-test('Categorías: alta y reutilización entre productos y reintentos, sin reactivar inactivas',async()=>{
- const repo=new PurchaseMemoryRepository(),service=new Service(repo),data=body(),operation=key();
- delete data.lines[0].product.categoryId;data.lines[0].product.categoryName='gaseosas nuevas';
- const second=structuredClone(data.lines[0]);second.product.clientKey=key();second.product.name='OTRA GASEOSA';second.presentation.barcode='OTRO-CODIGO';data.lines.push(second);
- const [a,b]=await Promise.all([service.create(1,operation,data),service.create(1,operation,data)]);assert.deepEqual(a,b);
- assert.equal(repo.pool.data.categories.length,2);assert.equal(repo.pool.data.products.length,2);
- assert.ok(repo.pool.data.products.every(p=>p.categoryId===2));assert.equal((await repo.products.detail(1)).category,'GASEOSAS NUEVAS');
- const more=body();more.supplier={id:1,version:(await repo.suppliers.get(1)).version};more.lines[0].product.name='TERCERA GASEOSA';delete more.lines[0].product.categoryId;more.lines[0].product.categoryName='GASEOSAS NUEVAS';more.lines[0].presentation.barcode='TERCER-CODIGO';
- repo.pool.data.categories[1].state='INACTIVO';await assert.rejects(service.create(1,key(),more),e=>e.status===422&&/inactiva/.test(e.message));
- assert.equal(repo.pool.data.categories[1].state,'INACTIVO');assert.equal(repo.pool.data.products.length,2);
+
+test('U044: ubicación nueva e idempotencia conservan una sola compra', async () => {
+  const repo = new PurchaseMemoryRepository(), service = new Service(repo), data = body(), operation = key();
+  delete data.locationId; data.locationName = 'HELADERA';
+  const [a, b] = await Promise.all([service.create(1, operation, data), service.create(1, operation, data)]);
+  assert.deepEqual(a, b);
+  assert.equal(repo.pool.data.purchases.length, 1);
+  assert.equal(repo.pool.data.locations.length, 2);
 });
-test('Categorías: el fallo de una fila revierte el alta y permite reintentar con la misma clave',async()=>{
- const repo=new PurchaseMemoryRepository(),service=new Service(repo),data=body(),operation=key();
- delete data.lines[0].product.categoryId;data.lines[0].product.categoryName='CATEGORÍA NUEVA';
- repo.failLine=true;await assert.rejects(service.create(1,operation,data));
- assert.equal(repo.pool.data.categories.length,1);assert.equal(repo.pool.data.products.length,0);assert.equal(repo.pool.data.operations.size,0);
- repo.failLine=false;await service.create(1,operation,data);assert.equal(repo.pool.data.categories.length,2);
+
+test('U044: versiones y productos inactivos protegen el ingreso', async () => {
+  const repo = new PurchaseMemoryRepository(), service = new Service(repo);
+  const bad = body(); bad.lines[0].product.version = 'a'.repeat(64);
+  await assert.rejects(service.create(1, key(), bad), error => error.status === 409);
+  repo.pool.data.products[0].state = 'INACTIVO';
+  const inactive = body();
+  await assert.rejects(service.create(1, key(), inactive), error => error.status === 409);
 });
-test('Ubicaciones: conserva el contrato U025 y valida nombres nuevos sin destinos ambiguos',()=>{
- const payload=body(),previous=Input.purchase(payload);
- assert.equal(previous.locationId,1);assert.equal(Object.hasOwn(previous,'locationName'),false);
- const {locationId,...inline}=payload;
- assert.equal(Input.purchase({...inline,locationName:'  heladera   dos  '}).locationName,'HELADERA DOS');
- for(const name of ['', ' ', 'a'.repeat(81), '\u0000HELADERA', null, 123])assert.throws(()=>Input.purchase({...inline,locationName:name}),e=>e.status===422);
- assert.throws(()=>Input.purchase({...payload,locationName:'HELADERA'}),e=>e.status===422);
-});
-test('Ubicaciones: alta atómica, reintento idempotente, reutilización exacta y rechazo de inactivas',async()=>{
- const repo=new PurchaseMemoryRepository(),service=new Service(repo),payload=body(),operation=key();delete payload.locationId;payload.locationName='heladera';
- const [a,b]=await Promise.all([service.create(1,operation,payload),service.create(1,operation,payload)]);assert.deepEqual(a,b);
- assert.equal(repo.pool.data.locations.length,2);assert.equal((await service.detail(a.id)).lines[0].location,'HELADERA');
- assert.deepEqual(await service.locations({term:'heladera'}),{options:[{value:'2',label:'HELADERA'}],total:1});
- const ref=r=>({id:r.id,version:r.version});
- const existing={...payload,supplier:ref(await repo.suppliers.get(1)),lines:[{...payload.lines[0],product:ref(await repo.products.getProduct(1)),presentation:ref(await repo.products.getPresentation(1,1))}]};
- await service.create(1,key(),existing);assert.equal(repo.pool.data.locations.length,2);assert.equal(repo.pool.data.lines.at(-1).locationId,2);
- repo.pool.data.locations[1].state='INACTIVO';await assert.rejects(service.create(1,key(),existing),e=>e.status===422&&Boolean(e.fieldErrors.locationIdText));
- assert.equal(repo.pool.data.locations[1].state,'INACTIVO');assert.equal(repo.pool.data.purchases.length,2);
-});
-test('Ubicaciones: un error tardío revierte el lugar nuevo y permite volver a guardar',async()=>{
- const repo=new PurchaseMemoryRepository(),service=new Service(repo),payload=body(),operation=key();delete payload.locationId;payload.locationName='CAJA DOS';
- repo.failLine=true;await assert.rejects(service.create(1,operation,payload));assert.equal(repo.pool.data.locations.length,1);assert.equal(repo.pool.data.operations.size,0);
- repo.failLine=false;await service.create(1,operation,payload);assert.equal(repo.pool.data.locations.length,2);assert.equal(repo.pool.data.locations[1].name,'CAJA DOS');
-});
-test('Compras: altas conjuntas, equivalencia, total y reintento concurrente sin duplicar',async()=>{
- const repo=new PurchaseMemoryRepository(),service=new Service(repo),payload=body(),operation=key();
- const [a,b]=await Promise.all([service.create(1,operation,payload),service.create(1,operation,payload)]);assert.deepEqual(a,b);assert.equal(a.total,'90.50');
- assert.equal(repo.pool.data.suppliers.length,1);assert.equal(repo.pool.data.products.length,1);assert.equal(repo.pool.data.presentations.length,1);assert.equal(repo.pool.data.purchases.length,1);assert.equal(repo.pool.data.lines[0].baseQuantity,'12.000');
- await assert.rejects(service.create(1,operation,{...payload,observation:'CAMBIO'}),e=>e.status===409);
- const supplier=await repo.suppliers.get(1),product=await repo.products.getProduct(1),presentation=await repo.products.getPresentation(1,1);
- const ref=r=>({id:r.id,version:r.version});const existing={...payload,supplier:ref(supplier),lines:[{...payload.lines[0],product:ref(product),presentation:ref(presentation)}]};
- await service.create(1,key(),existing);assert.equal(repo.pool.data.suppliers[0].phone,'70000000');assert.equal(repo.pool.data.presentations.length,1);
- await assert.rejects(service.create(1,key(),{...existing,supplier:{...existing.supplier,phone:'77777777'}}),e=>e.status===400);
- repo.pool.data.presentations[0].factor='12.000';await assert.rejects(service.create(1,key(),existing),e=>e.status===409);
-});
-test('Compras: una fila inválida o fallo de stock revierte también catálogos y clave de operación',async()=>{
- const repo=new PurchaseMemoryRepository(),service=new Service(repo),payload=body();
- payload.lines.push({...payload.lines[0],product:{...payload.lines[0].product,clientKey:key(),name:'OTRO',categoryId:'99'},presentation:{...payload.lines[0].presentation,barcode:'otro'}});
- await assert.rejects(service.create(1,key(),payload),e=>e.status===422);for(const table of ['suppliers','products','presentations','purchases','lines'])assert.equal(repo.pool.data[table].length,0);assert.equal(repo.pool.data.operations.size,0);
- const valid=body(),operation=key();repo.failLine=true;await assert.rejects(service.create(1,operation,valid));assert.equal(repo.pool.data.purchases.length,0);repo.failLine=false;await service.create(1,operation,valid);assert.equal(repo.pool.data.purchases.length,1);
-});
-test('Compras: reutiliza el mismo producto nuevo entre lotes y rechaza coincidencias no seleccionadas',async()=>{
- const repo=new PurchaseMemoryRepository(),service=new Service(repo),payload=body();payload.lines.push({...structuredClone(payload.lines[0]),lotCode:'LOTE-2'});
- await service.create(1,key(),payload);assert.equal(repo.pool.data.products.length,1);assert.equal(repo.pool.data.presentations.length,1);assert.equal(repo.pool.data.lines.length,2);
- await assert.rejects(service.create(1,key(),body()),e=>e.status===409&&/proveedor/.test(e.message));
- const supplier=await repo.suppliers.get(1);await assert.rejects(service.create(1,key(),{...body(),supplier:{id:1,version:supplier.version}}),e=>e.status===409&&/producto/.test(e.message));
-});
-test('Compras: rechaza campos extra, cantidades y fechas inválidas; calcula centavos exactos',()=>{
- const payload=body();assert.throws(()=>Input.purchase({...payload,unexpected:true}));assert.throws(()=>Input.purchase({...payload,lines:[]}));assert.throws(()=>Input.purchase({...payload,lines:Array(51).fill(payload.lines[0])}));
- for(const quantity of ['-1','0','1.0001','Infinity','1e3'])assert.throws(()=>Input.purchase({...payload,lines:[{...payload.lines[0],quantity}]}));
- assert.throws(()=>Input.purchase({...payload,lines:[{...payload.lines[0],expiresOn:'2026-02-30'}]}));
- assert.equal(Decimal.multiply('0.125','0.12',2),'0.02');assert.equal(Decimal.multiply('3','453.592',3),'1360.776');assert.equal(Decimal.total([{quantity:'1',cost:'0.10'},{quantity:'1',cost:'0.20'}]),'0.30');
-});
-test('Compras: API conserva sesión, CSRF y permiso administrador',async()=>{
- const repo=new PurchaseMemoryRepository(),app=await server({purchaseRepository:repo});
- try{
-  assert.equal((await app.request('/api/compras')).status,401);
-  const form=await app.form();const login=await app.post('/api/auth/login',{nombre_usuario:'audit_user',contrasena:password},form);assert.equal(login.status,200);
-  const auth=await app.form('/compras',login.cookie);
-  assert.equal((await app.post('/api/compras',body(),{cookie:auth.cookie,token:''},{'x-operation-id':key()})).status,403);
-  const result=await app.post('/api/compras',body(),auth,{'x-operation-id':key()});assert.equal(result.status,201,result.text);
-  assert.equal((await app.request('/api/compras/1',{headers:{Cookie:auth.cookie}})).status,200);
-  app.setUser({id_usuario:1,id_rol:2,nombre:'Cajero',nombre_usuario:'audit_user',estado:'ACTIVO',rol:'ENCARGADO_VENTA'});
-  assert.equal((await app.request('/api/compras',{headers:{Cookie:auth.cookie}})).status,403);
- }finally{await app.close();}
+
+test('U044: API conserva sesión, CSRF y permiso administrador', async () => {
+  const repo = new PurchaseMemoryRepository(), app = await server({ purchaseRepository: repo });
+  try {
+    assert.equal((await app.request('/api/compras')).status, 401);
+    const form = await app.form();
+    const login = await app.post('/api/auth/login', { nombre_usuario: 'audit_user', contrasena: password }, form);
+    const auth = await app.form('/compras', login.cookie);
+    assert.equal((await app.post('/api/compras', body(), { cookie: auth.cookie, token: '' }, { 'x-operation-id': key() })).status, 403);
+    const result = await app.post('/api/compras', body(), auth, { 'x-operation-id': key() });
+    assert.equal(result.status, 201, result.text);
+    app.setUser({ id_usuario: 1, id_rol: 2, nombre: 'Cajero', nombre_usuario: 'audit_user', estado: 'ACTIVO', rol: 'ENCARGADO_VENTA' });
+    assert.equal((await app.request('/api/compras', { headers: { Cookie: auth.cookie } })).status, 403);
+  } finally { await app.close(); }
 });

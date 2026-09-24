@@ -112,7 +112,6 @@ test('U013: cabecera compartida y filtro directo', { skip: process.env.PARIS_UI_
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, 'Ancho ' + width);
         assert.equal(await page.locator('#module-category').isVisible(), true);
         if (width === 390 && process.env.PARIS_UI_SCREENSHOTS) {
-          await page.locator('#products-table [data-table-details="0"]').click();
           await page.screenshot({ path: path.join(process.env.PARIS_UI_SCREENSHOTS, 'productos-u014-mobile.png') });
         }
         await page.locator('[data-module-primary]').click(); await page.getByRole('dialog').first().waitFor();

@@ -22,6 +22,7 @@
   async handle({action,record,button},parent){
    UI.Button.setBusy(button,true,'Cargando…');
    try{
+    if(action==='detailLot'){this.track(V.lot(record,button));return;}
     if(action==='history'){this.track(V.history(this.api,button,record));return;}
     const row=await (action==='detail'?this.api.detail(record.id):this.api.request('/existencias/'+record.id));if(this.destroyed||parent?.destroyed)return;
     if(action==='detail')this.track(V.product(row,this.api,button,(item,modal)=>this.handle(item,modal)));

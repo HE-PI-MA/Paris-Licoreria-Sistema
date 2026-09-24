@@ -115,7 +115,7 @@ CREATE TABLE proveedor (
 
 CREATE TABLE compra (
     id_compra INT UNSIGNED AUTO_INCREMENT,
-    id_proveedor INT UNSIGNED NOT NULL,
+    id_proveedor INT UNSIGNED NULL,
     id_usuario INT UNSIGNED NOT NULL,
     fecha_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     observacion VARCHAR(250) NULL,
@@ -130,16 +130,24 @@ CREATE TABLE compra (
 CREATE TABLE detalle_compra (
     id_detalle_compra INT UNSIGNED AUTO_INCREMENT,
     id_compra INT UNSIGNED NOT NULL,
-    id_presentacion INT UNSIGNED NOT NULL,
+    id_producto INT UNSIGNED NULL,
+    id_presentacion INT UNSIGNED NULL,
+    forma_ingreso VARCHAR(80) NULL,
+    factor_ingreso DECIMAL(15,3) NULL,
     cantidad DECIMAL(15,3) NOT NULL,
     costo_unitario DECIMAL(15,2) NOT NULL,
     CONSTRAINT pk_detalle_compra PRIMARY KEY (id_detalle_compra),
     CONSTRAINT chk_detalle_compra_cantidad CHECK (cantidad > 0),
     CONSTRAINT chk_detalle_compra_costo CHECK (costo_unitario >= 0),
+    CONSTRAINT chk_detalle_compra_forma_ingreso CHECK (forma_ingreso IS NULL OR TRIM(forma_ingreso) <> ''),
+    CONSTRAINT chk_detalle_compra_factor_ingreso CHECK (factor_ingreso IS NULL OR factor_ingreso > 0),
     CONSTRAINT fk_detalle_compra_compra FOREIGN KEY (id_compra)
         REFERENCES compra(id_compra) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_detalle_compra_producto FOREIGN KEY (id_producto)
+        REFERENCES producto(id_producto) ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT fk_detalle_compra_presentacion FOREIGN KEY (id_presentacion)
-        REFERENCES presentacion_producto(id_presentacion) ON UPDATE CASCADE ON DELETE RESTRICT
+        REFERENCES presentacion_producto(id_presentacion) ON UPDATE CASCADE ON DELETE RESTRICT,
+    INDEX idx_detalle_compra_producto (id_producto, id_compra)
 ) ENGINE=InnoDB;
 
 CREATE TABLE lote_producto (

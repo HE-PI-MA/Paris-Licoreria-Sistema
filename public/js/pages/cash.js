@@ -19,10 +19,23 @@
           { key: 'user', label: 'Responsable', sortable: true, priority: 1 }, { key: 'initialAmount', label: 'Inicial', type: 'price', priority: 2 },
           { key: 'state', label: 'Estado', type: 'state', sortable: true, states: { ABIERTA: { label: 'Abierta', tone: 'success' }, CERRADA: { label: 'Cerrada', tone: 'inactive' } } },
           { key: 'closedAt', label: 'Cierre', priority: 2 }
-        ] });
+        ], actionDisplay: 'menu', actions: [{ id: 'detail', label: 'Ver detalle', icon: 'info' }],
+        onAction: ({ record, button }) => this.detail(record, button) });
       this.primary.addEventListener('click', event => this.primaryAction(event.currentTarget), { signal: this.events.signal });
       window.addEventListener('pagehide', () => this.destroy(), { once: true, signal: this.events.signal });
       this.refreshStatus();
+    }
+    detail(record, opener) {
+      const view = { ...record, stateLabel: record.state === 'ABIERTA' ? 'Abierta' : record.state === 'CERRADA' ? 'Cerrada' : record.state };
+      const details = new UI.RecordDetails({ record: view, fields: [
+        { key: 'cash', label: 'Caja' }, { key: 'user', label: 'Responsable', wide: true },
+        { key: 'openedAt', label: 'Apertura' }, { key: 'initialAmount', label: 'Monto inicial', type: 'price' },
+        { key: 'stateLabel', label: 'Estado' }, { key: 'closedAt', label: 'Cierre', empty: 'Turno todavía abierto' }
+      ] });
+      const modal = new UI.Modal({ title: 'Detalle del turno de caja', icon: 'cash', content: details.element,
+        onClose: () => { modal.destroy(); this.dialogs.delete(modal); } });
+      const close = UI.Button.create({ label: 'Cerrar' }); close.addEventListener('click', () => modal.requestClose(), { signal: modal.events.signal });
+      modal.footer.append(close); this.dialogs.add(modal); modal.open(opener);
     }
     async refreshStatus() {
       this.statusHost.setAttribute('aria-busy', 'true');
@@ -66,7 +79,7 @@
       for (const box of this.status.boxes.filter(item => item.state === 'ACTIVA')) { const option = UI.element('option', '', box.name); option.value = box.id; cash.append(option); }
       const amount = UI.element('input', 'app-input'); amount.id = 'cash-initial'; amount.name = 'initialAmount'; amount.type = 'number'; amount.min = '0'; amount.step = '.01'; amount.value = '0'; amount.required = true;
       const observation = UI.element('textarea', 'app-input'); observation.id = 'cash-open-observation'; observation.name = 'observation'; observation.maxLength = 250; observation.rows = 3;
-      grid.append(field('Caja física *', cash), field('Monto inicial (Bs) *', amount), field('Observación', observation));
+      grid.append(field('Caja física', cash), field('Monto inicial (Bs)', amount), field('Observación', observation));
       const selector = new UI.SearchSelect({ select: cash, searchable: false }); let controller;
       const modal = new UI.Modal({ title: 'Abrir turno de caja', icon: 'cash', size: 'medium', content: form, isDirty: () => controller?.isDirty(), onClose: () => { controller?.destroy(); selector.destroy(); modal.destroy(); this.dialogs.delete(modal); } });
       const cancel = UI.Button.create({ label: 'Cancelar' }), save = UI.Button.create({ label: 'Abrir caja', icon: 'success', variant: 'primary', type: 'submit' }); save.setAttribute('form', form.id);

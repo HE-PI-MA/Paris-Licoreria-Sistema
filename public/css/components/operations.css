@@ -17,18 +17,20 @@
 .ops-section-heading { margin-bottom: var(--module-space); }
 .ops-range { display: flex; flex-wrap: wrap; gap: var(--module-space); align-items: end; }
 .ops-range .app-field { flex: 1 1 12rem; }
-.ops-lines { width: 100%; border-collapse: collapse; font-size: .9rem; }
-.ops-lines th,.ops-lines td { padding: .65rem; border-bottom: 1px solid #eee8eb; text-align: left; vertical-align: top; }
-.ops-lines th { color: #5b4b31; font-size: .78rem; text-transform: uppercase; letter-spacing: .035em; }
-.ops-lines td:last-child,.ops-lines th:last-child { text-align: right; }
-.ops-lines tr:last-child td { border-bottom: 0; }
 .ops-inline-actions { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: flex-end; }
 .ops-sale-builder { display: grid; gap: var(--module-space); }
 .ops-sale-add { display: grid; grid-template-columns: minmax(0,2fr) minmax(7rem,.7fr) auto; gap: var(--module-space); align-items: end; }
+.ops-sale-actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--module-space); }
 .ops-total { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:.85rem 1rem; border-radius:.75rem; background:#fff8e9; border:1px solid #eed6a7; font-weight:750; }
 .ops-empty { margin: 0; padding: 1rem; color: #756b6f; text-align: center; }
 .ops-count-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(8rem,1fr));gap:var(--module-space); }
 .ops-count-item { display:grid;gap:.35rem; }
 .ops-count-total { margin:0;font-weight:700;text-align:right; }
 .ops-quick-links { display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.8rem; }
-@media (max-width: 40rem) { .ops-sale-add { grid-template-columns: 1fr; } .ops-status-card { align-items:stretch; } .ops-status-metrics { justify-content:space-between; } }
+@media (max-width: 40rem) {
+  .ops-sale-add { grid-template-columns: 1fr; }
+  .ops-sale-actions { justify-content: stretch; }
+  .ops-sale-actions .app-button { flex: 1 1 0; }
+  .ops-status-card { align-items: stretch; }
+  .ops-status-metrics { justify-content: space-between; }
+}
