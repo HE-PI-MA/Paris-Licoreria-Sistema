@@ -83,21 +83,23 @@ test('U051: detalle de Compra conserva la categoría', () => {
   assert.match(repo, /JOIN categoria cat/);
 });
 
-test('U051: Nuevo producto queda reducido a datos esenciales', () => {
+test('U051/U052: el producto nace desde Compra y Productos solo lo administra', () => {
   const form = read('public/js/pages/product-forms.js');
-
-  assert.match(form, /Foto del producto \(opcional\)/);
-  assert.match(form, /Nombre del producto/);
-  assert.match(form, /'Categoría'/);
-  assert.match(form, /'¿Cómo se cuenta\?'/);
+  const page = read('public/js/pages/products.js');
+  const layout = read('src/config/module-layouts.js');
 
   const productClass = form.match(/class ProductForm[\s\S]*?class PresentationForm/)?.[0] || '';
-  assert.doesNotMatch(productClass, /new Catalog\.ProductCapture/);
-  assert.doesNotMatch(productClass, /presentationName|Código de barras|Primera forma de venta/);
 
-  assert.match(productClass, /if \(row\) \{/);
-  assert.match(productClass, /Stock mínimo/);
-  assert.match(productClass, /Descripción/);
+  assert.match(productClass, /Editar producto requiere un producto existente/);
+  assert.match(productClass, /Foto del producto \(opcional\)/);
+  assert.match(productClass, /Nombre del producto/);
+  assert.match(productClass, /'Categoría'/);
+  assert.match(productClass, /'¿Cómo se cuenta\?'/);
+  assert.match(productClass, /this\.state\(row\.state\)/);
+
+  assert.doesNotMatch(productClass, /Nuevo producto/);
+  assert.doesNotMatch(page, /openProduct\(null/);
+  assert.match(layout, /productos:\s*\{[^}]*hidePrimary:\s*true/);
 });
 
 test('U051: backend de Producto aplica valores por defecto al crear', () => {

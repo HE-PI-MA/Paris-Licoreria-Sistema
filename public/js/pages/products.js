@@ -12,10 +12,11 @@
           { key: 'name', label: 'Producto', sortable: true }, { key: 'category', label: 'Categoría', sortable: true, priority: 2 },
           { key: 'unit', label: 'Se cuenta en', priority: 2 },
           { key: 'stock', label: 'Disponible', type: 'quantity', sortable: true, priority: 1 },
+          { key: 'presentations', label: 'Formas de venta', type: 'number', priority: 1 },
           { key: 'state', label: 'Estado', type: 'state', sortable: true, priority: 1, states: { ACTIVO: { label: 'Activo', tone: 'success' }, INACTIVO: { label: 'Inactivo', tone: 'inactive' } } }
         ], sort: { key: 'name', direction: 'asc' },
         actions: [{ id: 'detail', label: 'Ver detalle', icon: 'info' }, { id: 'edit', label: 'Editar', icon: 'edit', tone: 'edit' },
-          { id: 'presentations', label: 'Presentaciones', icon: 'box', tone: 'catalog' }, ...this.stateActions()],
+          { id: 'presentations', label: row => Number(row.presentations) > 0 ? 'Presentaciones' : 'Configurar venta', icon: 'box', tone: 'catalog' }, ...this.stateActions()],
         onAction: item => this.handle(() => this.action(item))
       });
       this.filters = new UI.FilterBar({ container: document.querySelector('[data-module-region="controls"]'),
@@ -24,7 +25,6 @@
           emptyLabel: 'Todas las categorías', load: params => this.api.options('categories', params) }],
         onChange: query => this.table.setQuery(query)
       });
-      document.querySelector('[data-module-primary]').addEventListener('click', event => this.openProduct(null, event.currentTarget), { signal: this.events.signal });
       window.addEventListener('pagehide', () => this.destroy(), { once: true, signal: this.events.signal });
     }
     stateActions() { return [
@@ -46,8 +46,13 @@
       if (table !== this.table) await this.table.refresh();
     }
     openProduct(record, opener) {
-      const form = new Catalog.ProductForm({ api: this.api, record, opener, onExisting: row => this.openProduct(row, opener),
-        onSaved: result => this.saved(record ? 'Producto actualizado correctamente.' : result.presentationId ? 'Producto y forma de venta guardados.' : 'Producto guardado. Ya puedes agregar sus presentaciones.') });
+      if (!record) return;
+      const form = new Catalog.ProductForm({
+        api: this.api,
+        record,
+        opener,
+        onSaved: () => this.saved('Producto actualizado correctamente.')
+      });
       const onClose = form.modal.onClose;
       form.modal.onClose = value => { onClose(value); this.dialogs.delete(form.modal); };
       this.dialogs.add(form.modal);
@@ -83,10 +88,8 @@
         { key: 'name', label: 'Producto', wide: true }, { key: 'category', label: 'Categoría' },
         { key: 'unit', label: 'Se cuenta en' }, { key: 'stock', label: 'Disponible', type: 'quantity' },
         { key: 'physicalStock', label: 'Stock físico', type: 'quantity' },
-        { key: 'minimum', label: 'Stock mínimo', type: 'quantity' },
         { key: 'presentations', label: 'Formas de venta', type: 'number' },
-        { key: 'state', label: 'Estado', type: 'state', wide: true },
-        { key: 'description', label: 'Descripción', wide: true, empty: 'Sin descripción' }
+        { key: 'state', label: 'Estado', type: 'state', wide: true }
       ] });
       const modal = new UI.Modal({ title: 'Detalle del producto', icon: 'box', content: details.element,
         onClose: () => { modal.destroy(); this.dialogs.delete(modal); } });
@@ -95,7 +98,7 @@
     }
     presentations(product, opener) {
       const content = UI.element('div'), toolbar = UI.element('div', 'app-section-toolbar');
-      const help = UI.element('p', 'app-field-help', product.state === 'ACTIVO' ? 'Se cuenta en ' + product.unit + '. Cada botella o paquete tiene su propio precio de venta.' : 'Producto inactivo. Actívalo para agregar o activar presentaciones.');
+      const help = UI.element('p', 'app-field-help', product.state === 'ACTIVO' ? 'Se cuenta en ' + product.unit + '. Cada forma de venta tiene su propio precio y código de barras.' : 'Producto inactivo. Actívalo para agregar o activar presentaciones.');
       const add = UI.Button.create({ label: 'Nueva presentación', icon: 'plus', variant: 'primary', disabled: product.state !== 'ACTIVO' });
       toolbar.append(help, add); const host = UI.element('div'); content.append(toolbar, host);
       let table;

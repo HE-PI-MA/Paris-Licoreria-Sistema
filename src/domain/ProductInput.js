@@ -13,31 +13,52 @@ class ProductInput extends RecordInput {
   }
 
   static product(body, update = false) {
-    this.body(body, ['name', 'categoryId', 'unitId', 'description', 'minimum', 'state', 'photo', ...(update ? ['version'] : ['initialPresentation', 'categoryName'])]);
+    if (update) {
+      this.body(body, ['name', 'categoryId', 'categoryName', 'unitId', 'state', 'photo', 'version']);
+      const category = this.categoryFields(body);
+      return {
+        name: this.text(body.name, 120, 'name'),
+        ...category,
+        unitId: this.id(body.unitId, 'unitId'),
+        state: this.state(body.state),
+        ...require('./ProductPhoto').optional(body)
+      };
+    }
 
-    // En un producto nuevo, los campos administrativos no necesitan mostrarse:
-    // inicia activo, con stock mínimo 0 y sin descripción.
-    const source = update ? body : {
+    this.body(body, ['name', 'categoryId', 'unitId', 'description', 'minimum', 'state', 'photo', 'initialPresentation', 'categoryName']);
+
+    const source = {
       description: '',
       minimum: '0',
       state: 'ACTIVO',
       ...body
     };
 
-    const category = update ? { categoryId: this.id(source.categoryId, 'categoryId') } : this.categoryFields(source);
-    const data = { ...this.productFields(source, category), ...require('./ProductPhoto').optional(source) };
+    const category = this.categoryFields(source);
+    const data = {
+      ...this.productFields(source, category),
+      ...require('./ProductPhoto').optional(source)
+    };
 
-    // Se conserva compatibilidad del contrato, aunque la interfaz nueva administra las formas de venta aparte.
-    if (!update && source.initialPresentation !== undefined) {
+    if (source.initialPresentation !== undefined) {
       try {
         this.body(source.initialPresentation, ['name', 'factor', 'barcode', 'price']);
         data.initialPresentation = this.presentation({ ...source.initialPresentation, state: data.state });
       } catch (error) {
         if (!(error instanceof ProductError)) throw error;
-        throw new ProductError(error.status, error.message,
-          Object.fromEntries(Object.entries(error.fieldErrors).map(([key, message]) => [key === 'name' ? 'presentationName' : key, message])));
+        throw new ProductError(
+          error.status,
+          error.message,
+          Object.fromEntries(
+            Object.entries(error.fieldErrors).map(([key, message]) => [
+              key === 'name' ? 'presentationName' : key,
+              message
+            ])
+          )
+        );
       }
     }
+
     return data;
   }
 

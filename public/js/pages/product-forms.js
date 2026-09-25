@@ -1,4 +1,4 @@
-/** Formularios del catálogo. Nuevo producto muestra solo los datos esenciales; las formas de venta se administran aparte. */
+/** Productos administra registros que nacieron desde Compras; este formulario edita sus datos de catálogo. */
 (() => {
   'use strict';
   const UI = window.ParisUI, Catalog = window.ParisProducts;
@@ -6,7 +6,9 @@
 
   class ProductForm extends CatalogForm {
     constructor(options) {
-      super({ ...options, icon: options.record ? 'edit' : 'plus', title: options.record ? 'Editar producto' : 'Nuevo producto' });
+      if (!options.record) throw new TypeError('Editar producto requiere un producto existente.');
+
+      super({ ...options, icon: 'edit', title: 'Editar producto' });
 
       const row = this.record;
 
@@ -19,7 +21,7 @@
       this.photo.reset(row);
 
       this.field('name', 'Nombre del producto', {
-        value: row?.name,
+        value: row.name,
         required: true,
         maxLength: 120,
         wide: true,
@@ -30,24 +32,24 @@
         'categoryId',
         'Categoría',
         'categories',
-        row && { value: row.categoryId, label: row.category },
+        { value: row.categoryId, label: row.category },
         undefined,
         this.api,
         'Buscar o escribir categoría…',
-        { allowCustom: !row, maxLength: 80 }
+        { allowCustom: true, maxLength: 80 }
       );
 
       const unit = this.selector(
         'unitId',
         '¿Cómo se cuenta?',
         'units',
-        row && { value: row.unitId, label: row.unit },
+        { value: row.unitId, label: row.unit },
         undefined,
         this.api,
         'Ej.: Unidad, gramo o mililitro'
       );
 
-      if (row?.presentations > 0) {
+      if (row.presentations > 0) {
         unit.disabled = true;
         this.grid.append(UI.element(
           'p',
@@ -56,43 +58,18 @@
         ));
       }
 
-      // Solo Editar producto muestra los campos administrativos.
-      if (row) {
-        this.field('minimum', 'Stock mínimo', {
-          type: 'number',
-          value: row.minimum ?? '0',
-          min: '0',
-          max: '999999999999.999',
-          step: '0.001',
-          required: true
-        });
-        this.state(row.state);
-        this.field('description', 'Descripción', {
-          type: 'textarea',
-          value: row.description,
-          maxLength: 255,
-          wide: true
-        });
-      }
+      this.state(row.state);
 
       this.start(
-        row ? '/' + row.id + '/editar' : '',
-        ({ photoState, categoryIdText, categoryId, ...values }) => {
-          const base = {
-            name: values.name,
-            ...(categoryId ? { categoryId } : { categoryName: categoryIdText }),
-            unitId: row && unit.disabled ? String(row.unitId) : values.unitId,
-            ...this.photo.payload()
-          };
-
-          return row ? {
-            ...base,
-            minimum: values.minimum,
-            state: values.state,
-            description: values.description,
-            version: row.version
-          } : base;
-        }
+        '/' + row.id + '/editar',
+        ({ photoState, categoryIdText, categoryId, ...values }) => ({
+          name: values.name,
+          ...(categoryId ? { categoryId } : { categoryName: categoryIdText }),
+          unitId: unit.disabled ? String(row.unitId) : values.unitId,
+          state: values.state,
+          ...this.photo.payload(),
+          version: row.version
+        })
       );
     }
   }
@@ -108,7 +85,7 @@
         value: row?.name,
         required: true,
         maxLength: 80,
-        help: 'Por ejemplo: botella, paquete de 6 o caja de 12.',
+        help: 'Por ejemplo: unidad, paquete de 6 o caja de 12.',
         wide: true
       });
 
@@ -121,7 +98,7 @@
         required: true,
         help: row?.used
           ? 'No puede cambiarse: esta presentación ya tiene ventas.'
-          : 'Una botella: 1. Un paquete de 6: 6. Un kilo contado en gramos: 1000.'
+          : 'Unidad: 1. Paquete de 6: 6. Kilo contado en gramos: 1000.'
       });
       factor.readOnly = Boolean(row?.used);
 

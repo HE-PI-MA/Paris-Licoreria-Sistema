@@ -104,7 +104,7 @@ class ProductRepository {
     await this.photos.save(c, result.insertId, v.photo);
     return { id: result.insertId };
   }
-  async updateProduct(c, id, v) { await c.query('UPDATE producto SET nombre=?,id_categoria=?,id_unidad_medida=?,descripcion=?,stock_minimo=?,estado=? WHERE id_producto=?', [v.name,v.categoryId,v.unitId,v.description || null,v.minimum,v.state,id]); await this.photos.save(c, id, v.photo); return { id }; }
+  async updateProduct(c, id, v) { await c.query('UPDATE producto SET nombre=?,id_categoria=?,id_unidad_medida=?,estado=? WHERE id_producto=?', [v.name,v.categoryId,v.unitId,v.state,id]); await this.photos.save(c, id, v.photo); return { id }; }
   async productState(c, id, state) { await c.query('UPDATE producto SET estado=? WHERE id_producto=?', [state,id]); return { id }; }
   async deleteProduct(c, id) { await c.query('DELETE FROM presentacion_producto WHERE id_producto=?', [id]); await c.query('DELETE FROM producto WHERE id_producto=?', [id]); return { id, deleted: true }; }
   async checkBarcode(c, code, id = null) {

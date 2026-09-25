@@ -27,6 +27,214 @@
       throw new Error('No se pudo reducir esta foto. Prueba con otra imagen.');
     }
   }
+  class PhotoCamera {
+    constructor({ onCapture, opener }) {
+      this.onCapture = onCapture;
+      this.stream = null;
+      this.resizeObserver = null;
+      this.generation = 0;
+      this.busy = false;
+
+      const content = UI.element('div', 'app-photo-camera');
+      this.preview = UI.element('div', 'app-photo-camera-preview');
+      this.video = UI.element('video', 'app-photo-camera-video');
+      this.video.muted = true;
+      this.video.playsInline = true;
+      this.video.autoplay = true;
+
+      this.guide = UI.element('div', 'app-photo-camera-guide');
+      this.guide.setAttribute('aria-hidden', 'true');
+      this.preview.append(this.video, this.guide);
+
+      this.help = UI.element(
+        'p',
+        'app-field-help',
+        'Coloca el producto dentro del cuadrado. La foto guardada tendrá ese encuadre.'
+      );
+      this.help.setAttribute('role', 'status');
+      this.help.setAttribute('aria-live', 'polite');
+      content.append(this.preview, this.help);
+
+      this.modal = new UI.Modal({
+        title: 'Tomar foto del producto',
+        icon: 'camera',
+        size: 'medium',
+        content,
+        onClose: () => {
+          this.stop();
+          this.modal.destroy();
+        }
+      });
+
+      const options = { signal: this.modal.events.signal };
+      const cancel = UI.Button.create({ label: 'Cancelar' });
+      this.capture = UI.Button.create({
+        label: 'Tomar foto',
+        icon: 'camera',
+        variant: 'primary',
+        disabled: true
+      });
+
+      cancel.addEventListener('click', () => this.modal.requestClose(), options);
+      this.capture.addEventListener('click', () => void this.take(), options);
+      this.modal.footer.append(cancel, this.capture);
+      this.modal.events.signal.addEventListener('abort', () => this.stop(), { once: true });
+      window.addEventListener('pagehide', () => this.stop(), options);
+
+      this.modal.open(opener);
+      void this.start();
+    }
+
+    static available() {
+      return window.isSecureContext && Boolean(navigator.mediaDevices?.getUserMedia);
+    }
+
+    async start() {
+      if (!PhotoCamera.available()) {
+        this.help.textContent = 'La cámara guiada necesita HTTPS.';
+        return;
+      }
+
+      this.stop();
+      const generation = this.generation;
+      this.help.textContent = 'Permite el acceso a la cámara…';
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+
+        if (this.modal.destroyed || generation !== this.generation) {
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+
+        this.stream = stream;
+        this.video.srcObject = stream;
+        await this.video.play().catch(() => {});
+
+        if (this.modal.destroyed || generation !== this.generation) {
+          this.stop();
+          return;
+        }
+
+        this.resizeObserver = new ResizeObserver(() => this.frameGuide());
+        this.resizeObserver.observe(this.video);
+        this.video.addEventListener('loadedmetadata', () => this.frameGuide(), {
+          once: true,
+          signal: this.modal.events.signal
+        });
+
+        this.frameGuide();
+        this.capture.disabled = false;
+        this.help.textContent = 'Coloca el producto dentro del cuadrado. La foto guardada tendrá ese encuadre.';
+      } catch (_) {
+        if (!this.modal.destroyed && generation === this.generation) {
+          this.stop();
+          this.help.textContent = 'No se pudo abrir la cámara. Revisa el permiso o usa Elegir foto.';
+        }
+      }
+    }
+
+    displayedVideoRect() {
+      const boxWidth = this.video.clientWidth;
+      const boxHeight = this.video.clientHeight;
+      const sourceWidth = this.video.videoWidth;
+      const sourceHeight = this.video.videoHeight;
+      if (!boxWidth || !boxHeight || !sourceWidth || !sourceHeight) return null;
+
+      const sourceRatio = sourceWidth / sourceHeight;
+      const boxRatio = boxWidth / boxHeight;
+
+      if (sourceRatio > boxRatio) {
+        const width = boxWidth;
+        const height = width / sourceRatio;
+        return { left: 0, top: (boxHeight - height) / 2, width, height };
+      }
+
+      const height = boxHeight;
+      const width = height * sourceRatio;
+      return { left: (boxWidth - width) / 2, top: 0, width, height };
+    }
+
+    frameGuide() {
+      const rect = this.displayedVideoRect();
+      if (!rect) return;
+
+      const side = Math.min(rect.width, rect.height);
+      this.guide.style.width = side + 'px';
+      this.guide.style.height = side + 'px';
+      this.guide.style.left = (rect.left + (rect.width - side) / 2) + 'px';
+      this.guide.style.top = (rect.top + (rect.height - side) / 2) + 'px';
+    }
+
+    async take() {
+      if (this.busy || !this.stream || !this.video.videoWidth || !this.video.videoHeight) return;
+
+      this.busy = true;
+      this.capture.disabled = true;
+      this.help.textContent = 'Preparando foto…';
+      const generation = this.generation;
+
+      try {
+        const width = this.video.videoWidth;
+        const height = this.video.videoHeight;
+        const side = Math.min(width, height);
+        const sourceX = (width - side) / 2;
+        const sourceY = (height - side) / 2;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = side;
+        canvas.height = side;
+
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('No se pudo preparar la foto.');
+
+        context.drawImage(
+          this.video,
+          sourceX,
+          sourceY,
+          side,
+          side,
+          0,
+          0,
+          side,
+          side
+        );
+
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+        if (!blob) throw new Error('No se pudo preparar la foto.');
+        if (this.modal.destroyed || generation !== this.generation) return;
+
+        const callback = this.onCapture;
+        this.stop();
+        this.modal.close();
+        await callback(blob);
+      } catch (error) {
+        if (!this.modal.destroyed && generation === this.generation) {
+          this.busy = false;
+          this.capture.disabled = false;
+          this.help.textContent = error.message || 'No se pudo tomar la foto.';
+        }
+      }
+    }
+
+    stop() {
+      this.generation++;
+      this.busy = false;
+      this.resizeObserver?.disconnect();
+      this.resizeObserver = null;
+      this.stream?.getTracks().forEach(track => track.stop());
+      this.stream = null;
+      if (this.video) this.video.srcObject = null;
+    }
+  }
+
   class ProductPhoto {
     static url(row) { return row?.photoHash && /^\d+$/.test(String(row.id)) ? '/api/productos/' + row.id + '/imagen?v=' + encodeURIComponent(row.photoHash) : ''; }
     static element(row, large = false) {
@@ -55,13 +263,47 @@
       this.state = UI.element('input'); this.state.type = 'hidden'; this.state.name = 'photoState'; this.state.value = '';
       this.help = UI.element('p', 'app-field-help'); this.help.setAttribute('role', 'status');
       this.inputs = [];
-      for (const [label, capture] of [['Elegir foto', false], ['Tomar foto', true]]) {
-        const input = UI.element('input'); input.type = 'file'; input.accept = 'image/jpeg,image/png,image/webp'; input.hidden = true;
-        if (capture) input.setAttribute('capture', 'environment');
-        const button = UI.Button.create({ label, icon: 'camera' }); button.addEventListener('click', () => input.click(), { signal: this.events.signal });
-        input.addEventListener('change', () => { const file = input.files[0]; input.value = ''; if (file) this.choose(file); }, { signal: this.events.signal });
-        this.inputs.push(input); this.actions.append(button, input);
-      }
+
+      const chooseInput = UI.element('input');
+      chooseInput.type = 'file';
+      chooseInput.accept = 'image/jpeg,image/png,image/webp';
+      chooseInput.hidden = true;
+
+      const chooseButton = UI.Button.create({ label: 'Elegir foto', icon: 'camera' });
+      chooseButton.addEventListener('click', () => chooseInput.click(), { signal: this.events.signal });
+      chooseInput.addEventListener('change', () => {
+        const file = chooseInput.files[0];
+        chooseInput.value = '';
+        if (file) this.choose(file);
+      }, { signal: this.events.signal });
+
+      const captureInput = UI.element('input');
+      captureInput.type = 'file';
+      captureInput.accept = chooseInput.accept;
+      captureInput.setAttribute('capture', 'environment');
+      captureInput.hidden = true;
+
+      const captureButton = UI.Button.create({ label: 'Tomar foto', icon: 'camera' });
+      captureButton.addEventListener('click', () => {
+        if (PhotoCamera.available()) {
+          this.camera?.modal.destroy();
+          this.camera = new PhotoCamera({
+            opener: captureButton,
+            onCapture: file => this.choose(file)
+          });
+        } else {
+          captureInput.click();
+        }
+      }, { signal: this.events.signal });
+
+      captureInput.addEventListener('change', () => {
+        const file = captureInput.files[0];
+        captureInput.value = '';
+        if (file) this.choose(file);
+      }, { signal: this.events.signal });
+
+      this.inputs.push(chooseInput, captureInput);
+      this.actions.append(chooseButton, chooseInput, captureButton, captureInput);
       this.remove = UI.Button.create({ label: 'Quitar foto', icon: 'trash', variant: 'danger' });
       this.remove.addEventListener('click', () => { if (!this.readOnly) { this.generation++; this.busy = false; this.value = null; this.render(); } }, { signal: this.events.signal });
       this.actions.append(this.remove); controls.append(this.actions, this.help); body.append(this.preview, controls); this.host.append(body, this.state); container.append(this.host);
@@ -99,7 +341,7 @@
       if (this.busy) throw new UI.CatalogApiError('Espera a que termine de prepararse la foto.');
       return this.value === undefined ? {} : { photo: this.value };
     }
-    destroy() { this.destroyed = true; this.generation++; this.events.abort(); this.preview.replaceChildren(); this.value = undefined; }
+    destroy() { this.destroyed = true; this.generation++; this.camera?.modal.destroy(); this.events.abort(); this.preview.replaceChildren(); this.value = undefined; }
   }
-  Object.assign(UI, { ImageFile, ProductPhoto, PhotoField });
+  Object.assign(UI, { ImageFile, PhotoCamera, ProductPhoto, PhotoField });
 })();

@@ -84,8 +84,9 @@ class ProductService {
       const previous = this.required(await this.repository.getProduct(id, c, true)); this.version(previous, version);
       const presentations = await this.repository.lockPresentations(c, id);
       if (presentations.length && data.unitId !== previous.unitId) throw new ProductError(409, 'La unidad base está protegida.', { unitId: 'No puede cambiarse mientras el producto tenga presentaciones.' });
-      await this.referenceChecks(c, data, previous);
-      return this.repository.updateProduct(c, id, data);
+      const resolved = { ...data, categoryId: await this.category(c, data) };
+      await this.referenceChecks(c, resolved, previous);
+      return this.repository.updateProduct(c, id, resolved);
     });
   }
   state(actor, key, id, body) {
